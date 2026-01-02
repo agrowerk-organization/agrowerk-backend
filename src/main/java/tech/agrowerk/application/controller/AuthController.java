@@ -1,38 +1,64 @@
 package tech.agrowerk.application.controller;
 
-import io.github.bucket4j.Bucket;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.apache.coyote.Response;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+import tech.agrowerk.application.dto.auth.ChangePassword;
 import tech.agrowerk.application.dto.auth.LoginRequest;
 import tech.agrowerk.application.dto.auth.LoginResponse;
+import tech.agrowerk.application.dto.auth.RefreshTokenRequest;
+import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.service.AuthService;
-import tech.agrowerk.business.service.security.RateLimitService;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
-    private final RateLimitService rateLimitService;
 
-    public AuthController(AuthService authService, RateLimitService rateLimitService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.rateLimitService = rateLimitService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         LoginResponse loginResponse = authService.login(loginRequest);
 
         return ResponseEntity.ok(loginResponse);
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@RequestBody RefreshTokenRequest request) {
+        LoginResponse loginResponse = authService.refreshToken(request.refreshToken());
+
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        authService.logout(token);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword changePassword, Authentication authentication) {
+
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String authenticatedEmail = jwt.getSubject();
+
+        authService.changePassword(changePassword);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserInfoDto> getCurrentUser(Authentication authentication) {
+        UserInfoDto userInfo = authService.getInfo(authentication);
+        return ResponseEntity.ok(userInfo);
+    }
 }

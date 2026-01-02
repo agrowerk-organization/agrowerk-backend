@@ -1,7 +1,6 @@
 package tech.agrowerk.application.dto.auth;
 
-public record LoginResponse(
-        String accessToken,
+public record RefreshTokenRequest(
         String refreshToken
 ) {
 }

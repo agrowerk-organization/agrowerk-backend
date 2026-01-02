@@ -1,9 +1,11 @@
 package tech.agrowerk.business.service.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import tech.agrowerk.infrastructure.model.User;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -17,6 +19,12 @@ public class JwtService {
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
+
+    @Value("${security.jwt.expiration}")
+    private Long accessTokenExpiration;
+
+    @Value("${security.jwt.issuer}")
+    private String issuer;
 
     private final Set<String> blacklistedTokens = ConcurrentHashMap.newKeySet();
 
@@ -33,12 +41,30 @@ public class JwtService {
                 .collect(Collectors.joining(" "));
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("seu-app")
+                .issuer(issuer)
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .expiresAt(now.plusSeconds(accessTokenExpiration))
                 .subject(authentication.getName())
                 .claim("roles", scope)
                 .claim("jti", UUID.randomUUID().toString())
+                .build();
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
+    public String generateTokenFromUser(User user) {
+        Instant now = Instant.now();
+
+        String scope = user.getRole().toString();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(issuer)
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(accessTokenExpiration))
+                .subject(user.getEmail())
+                .claim("roles", scope)
+                .claim("jti", UUID.randomUUID().toString())
+                .claim("userId", user.getId())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
@@ -48,7 +74,7 @@ public class JwtService {
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("seu-app")
+                .issuer(issuer)
                 .issuedAt(now)
                 .expiresAt(now.plus(7, ChronoUnit.DAYS))
                 .subject(username)
@@ -59,6 +85,10 @@ public class JwtService {
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
+    public String generateRefreshTokenFromUser(User user) {
+        return generateRefreshToken(user.getEmail());
+    }
+
     public void invalidateToken(String token) {
         Jwt jwt = jwtDecoder.decode(token);
         String jti = jwt.getClaimAsString("jti");
@@ -67,5 +97,17 @@ public class JwtService {
 
     public boolean isTokenBlacklisted(String jti) {
         return blacklistedTokens.contains(jti);
+    }
+
+    public Jwt decodeToken(String token) {
+        return jwtDecoder.decode(token);
+    }
+
+    public Long extractUserId(Jwt jwt) {
+        return jwt.getClaim("userId");
+    }
+
+    public String extractUsername(Jwt jwt) {
+        return jwt.getSubject();
     }
 }

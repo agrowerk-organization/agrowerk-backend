@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tech.agrowerk.business.service.security.JwtService;
+import tech.agrowerk.infrastructure.exception.local.OperationDeniedException;
 
 import java.io.IOException;
 
@@ -46,7 +47,7 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
                     return;
                 }
             } catch (Exception e) {
-
+                throw new OperationDeniedException("Operation denied");
             }
         }
 

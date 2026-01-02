@@ -53,4 +53,16 @@ public class GlobalExceptionHandler {
         ErrorResponse body = new ErrorResponse(ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        ErrorResponse body = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidPasswordException ex) {
+        ErrorResponse body = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 }
