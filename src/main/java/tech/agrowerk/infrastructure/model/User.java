@@ -5,6 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.br.CPF;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import tech.agrowerk.application.dto.auth.LoginRequest;
+import tech.agrowerk.infrastructure.enums.RoleType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +42,8 @@ public class User {
     @CPF
     private String cpf;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
     private Role role;
 
     @CreationTimestamp
@@ -66,4 +70,17 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<StockMovement> movements;
+
+
+    public boolean isLoginCorrect(LoginRequest loginRequest, BCryptPasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(loginRequest.password(), this.password);
+    }
+
+    public boolean isProducer() {
+        return role != null && role.getName() == RoleType.PRODUCER;
+    }
+
+    public boolean isSupplierAdmin() {
+        return role != null && role.getName() == RoleType.SUPPLIER_ADMIN;
+    }
 }

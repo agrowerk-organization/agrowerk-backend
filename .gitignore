@@ -35,3 +35,13 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Environment ###
+.env.local
+.env.homolog
+.env.prod
+
+### Security ###
+keys/
+*.pem
+*.key
