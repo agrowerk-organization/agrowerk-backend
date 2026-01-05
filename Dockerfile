@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jdk-jammy AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /app
 
 COPY gradlew .
@@ -12,7 +12,7 @@ RUN ./gradlew dependencies --no-daemon
 COPY src ./src
 RUN ./gradlew bootJar -x test --no-daemon
 
-FROM eclipse-temurin:25-jre-jammy
+FROM eclipse-temurin:25-jre-alpine AS runtime
 WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
