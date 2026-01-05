@@ -1,20 +1,21 @@
-FROM maven:3-eclipse-temurin-25 AS build
+FROM eclipse-temurin:25-jdk-jammy AS build
 WORKDIR /app
 
-COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
+COPY gradlew .
+COPY gradle ./gradle
+COPY build.gradle .
+COPY settings.gradle .
 
-RUN mvn dependency:resolve
+RUN chmod +x gradlew
+RUN ./gradlew dependencies --no-daemon
 
 COPY src ./src
-
-RUN mvn package -DskipTests
+RUN ./gradlew bootJar -x test --no-daemon
 
 FROM eclipse-temurin:25-jre-jammy
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
