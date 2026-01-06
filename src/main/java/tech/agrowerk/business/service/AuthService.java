@@ -1,7 +1,5 @@
 package tech.agrowerk.business.service;
 
-import lombok.val;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -9,7 +7,10 @@ import tech.agrowerk.application.dto.auth.ChangePassword;
 import tech.agrowerk.application.dto.auth.LoginRequest;
 import tech.agrowerk.application.dto.auth.LoginResponse;
 import tech.agrowerk.application.dto.user.UserInfoDto;
-import tech.agrowerk.business.service.security.JwtService;
+import tech.agrowerk.business.mapper.UserMapper;
+import tech.agrowerk.infrastructure.security.JwtService;
+import tech.agrowerk.business.utils.AuthUtil;
+import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.BadCredentialsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.InvalidPasswordException;
@@ -23,11 +24,15 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthUtil authUtil;
+    private final UserMapper userMapper;
 
-    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, AuthUtil authUtil, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.authUtil = authUtil;
+        this.userMapper = userMapper;
     }
 
     public LoginResponse login(LoginRequest loginRequest) {
@@ -87,19 +92,8 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public UserInfoDto getInfo(Authentication authentication) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-
-        assert jwt != null;
-        Long userId = jwtService.extractUserId(jwt);
-
-        User currentUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-        return new UserInfoDto(
-                currentUser.getId(),
-                currentUser.getName(),
-                currentUser.getEmail()
-        );
+    public UserInfoDto getCurrentUserInfo() {
+        AuthenticatedUser authUser = authUtil.getAuthenticatedUser();
+        return userMapper.toUserInfoDto(authUser);
     }
 }

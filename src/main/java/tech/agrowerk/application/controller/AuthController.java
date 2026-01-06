@@ -12,14 +12,17 @@ import tech.agrowerk.application.dto.auth.LoginResponse;
 import tech.agrowerk.application.dto.auth.RefreshTokenRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.service.AuthService;
+import tech.agrowerk.business.service.UserService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UserService userService) {
         this.authService = authService;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -58,8 +61,7 @@ public class AuthController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserInfoDto> getCurrentUser(Authentication authentication) {
-        UserInfoDto userInfo = authService.getInfo(authentication);
-        return ResponseEntity.ok(userInfo);
+    public ResponseEntity<UserInfoDto> getCurrentUser() {
+        return ResponseEntity.ok(authService.getCurrentUserInfo());
     }
 }

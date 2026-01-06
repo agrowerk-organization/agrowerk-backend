@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import tech.agrowerk.business.service.security.RateLimitService;
+import tech.agrowerk.infrastructure.security.RateLimitService;
 
 import java.io.IOException;
 

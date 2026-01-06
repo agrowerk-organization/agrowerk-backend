@@ -3,6 +3,8 @@ package tech.agrowerk.business.mapper;
 import org.springframework.stereotype.Component;
 import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
 import tech.agrowerk.application.dto.crud.get.UserResponse;
+import tech.agrowerk.application.dto.user.UserInfoDto;
+import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.model.Role;
 import tech.agrowerk.infrastructure.model.User;
 
@@ -30,6 +32,14 @@ public class UserMapper {
                 user.getRole() != null ? user.getRole().getName().name() : null,
                 user.getCreatedAt(),
                 user.getUpdatedAt()
+        );
+    }
+
+    public UserInfoDto toUserInfoDto(AuthenticatedUser user) {
+        return new UserInfoDto(
+                user.id(),
+                user.email(),
+                user.role()
         );
     }
 }

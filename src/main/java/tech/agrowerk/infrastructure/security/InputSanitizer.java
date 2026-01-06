@@ -1,4 +1,4 @@
-package tech.agrowerk.business.service.security;
+package tech.agrowerk.infrastructure.security;
 
 import org.owasp.encoder.Encode;
 import org.springframework.stereotype.Service;

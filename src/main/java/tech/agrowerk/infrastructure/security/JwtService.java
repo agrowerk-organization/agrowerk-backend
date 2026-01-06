@@ -1,10 +1,11 @@
-package tech.agrowerk.business.service.security;
+package tech.agrowerk.infrastructure.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.model.User;
 
 import java.time.Instant;
@@ -36,16 +37,17 @@ public class JwtService {
     public String generateToken(Authentication authentication) {
         Instant now = Instant.now();
 
-        String scope = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(" "));
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
+        assert userDetails != null;
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(accessTokenExpiration))
                 .subject(authentication.getName())
-                .claim("roles", scope)
+                .claim("userId", userDetails.getId())
+                .claim("email", userDetails.getUsername())
+                .claim("role", userDetails.getRole().name())
                 .claim("jti", UUID.randomUUID().toString())
                 .build();
 
@@ -55,14 +57,14 @@ public class JwtService {
     public String generateTokenFromUser(User user) {
         Instant now = Instant.now();
 
-        String scope = user.getRole().toString();
-
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(accessTokenExpiration))
                 .subject(user.getEmail())
-                .claim("roles", scope)
+                .claim("userId", user.getId())
+                .claim("email", user.getEmail())
+                .claim("role", user.getRole().getName())
                 .claim("jti", UUID.randomUUID().toString())
                 .claim("userId", user.getId())
                 .build();

@@ -1,4 +1,4 @@
-package tech.agrowerk.business.service.security;
+package tech.agrowerk.infrastructure.security;
 
 import io.github.bucket4j.Bandwidth;
 import org.springframework.stereotype.Component;

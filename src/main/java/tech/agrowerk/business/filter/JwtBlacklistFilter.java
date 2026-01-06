@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.slf4j.Logger;
-import tech.agrowerk.business.service.security.JwtService;
+import tech.agrowerk.infrastructure.security.JwtService;
 
 import java.io.IOException;
 import java.util.List;
