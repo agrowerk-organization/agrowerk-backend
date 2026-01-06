@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
 import tech.agrowerk.application.dto.crud.get.UserResponse;
 import tech.agrowerk.business.mapper.UserMapper;
+import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.model.Role;
 import tech.agrowerk.infrastructure.model.User;
 import tech.agrowerk.infrastructure.repository.RoleRepository;
 import tech.agrowerk.infrastructure.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -34,13 +36,19 @@ public class UserService {
         Role role = roleRepository.findById(request.roleId())
                 .orElseThrow( () -> new EntityNotFoundException("Role not found"));
 
-        User user = userMapper.toEntity(request, role);
+        Optional<User> user = userRepository.findByEmail(request.email());
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.isPresent()) {
+            throw new EntityAlreadyExistsException("User already exists");
+        }
 
-        user.setLastLogin(LocalDateTime.now());
+        User newUser = userMapper.toEntity(request, role);
 
-        User savedUser = userRepository.save(user);
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+
+        newUser.setLastLogin(LocalDateTime.now());
+
+        User savedUser = userRepository.save(newUser);
 
         return userMapper.toResponse(savedUser);
     }

@@ -20,7 +20,7 @@ public class RoleInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        List<String> roles = Arrays.asList("SUPPLIER_ADMIN", "PRODUCER");
+        List<String> roles = Arrays.asList("SYSTEM_ADMIN", "SUPPLIER_ADMIN", "PRODUCER");
 
         for (String roleName : roles) {
             Object role;

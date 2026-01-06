@@ -45,7 +45,7 @@ public class Supplier {
     @Embedded
     private Address address;
 
-    @OneToMany(mappedBy = "suppliers", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupplierSpecialtyLink> specialties;
 
     @Column(precision = 3, scale = 2)
@@ -58,8 +58,8 @@ public class Supplier {
     private Boolean isActive;
 
     @OneToOne
-    @JoinColumn(name = "admin_id", unique = true)
-    private User admin;
+    @JoinColumn(name = "administrator_id", unique = true)
+    private User administrator;
 
     @OneToMany(mappedBy = "supplier")
     private List<Batch> batches;

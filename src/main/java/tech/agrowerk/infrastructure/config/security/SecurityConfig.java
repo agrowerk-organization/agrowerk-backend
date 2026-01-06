@@ -1,5 +1,7 @@
 package tech.agrowerk.infrastructure.config.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +20,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
@@ -35,6 +39,7 @@ import tech.agrowerk.business.filter.JwtBlacklistFilter;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -73,32 +78,34 @@ public class SecurityConfig {
 
                 .addFilterBefore(jwtBlacklistFilter,
                         UsernamePasswordAuthenticationFilter.class)
+
                 .headers(headers -> headers
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31536000))
                         .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; frame-ancestors 'none';"))
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
-                        .xssProtection(xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.valueOf("1; mode=block")))
+                                .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none';"))
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                        .xssProtection(xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
                         .contentTypeOptions(Customizer.withDefaults())
                 )
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/login",
-                                "user/register",
-                                "/auth/refresh-token",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/actuator/health"
+                                "/swagger-ui/index.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/favicon.ico"
                         ).permitAll()
 
-                        .requestMatchers("/users/create-user").permitAll()
+                        .requestMatchers("/auth/login", "/users/register").permitAll()
 
-                        .requestMatchers("/admin/**", "/actuator/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers("/actuator/**", "/admin/**").hasRole("SYSTEM_ADMIN")
+
+                        .requestMatchers("/suppliers/**").hasAnyRole("SYSTEM_ADMIN", "SUPPLIER_ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -112,12 +119,13 @@ public class SecurityConfig {
                                 .decoder(jwtDecoder())
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
+                        .bearerTokenResolver(customBearerTokenResolver())
                 )
 
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
                             logger.warn("Unauthorized access attempt: {}", authException.getMessage());
-                            response.setStatus(401);
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
                             response.getWriter().write(
                                     "{\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}"
@@ -125,7 +133,7 @@ public class SecurityConfig {
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             logger.warn("Access denied: {}", accessDeniedException.getMessage());
-                            response.setStatus(403);
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
                             response.getWriter().write(
                                     "{\"error\":\"Forbidden\",\"message\":\"Access denied\"}"
@@ -134,6 +142,48 @@ public class SecurityConfig {
                 )
 
                 .build();
+    }
+
+    @Bean
+    public BearerTokenResolver customBearerTokenResolver() {
+        DefaultBearerTokenResolver defaultResolver = new DefaultBearerTokenResolver();
+        defaultResolver.setAllowUriQueryParameter(false);
+
+        return new BearerTokenResolver() {
+
+            private final List<String> publicPatterns = List.of(
+                    "/v3/api-docs",
+                    "/swagger-ui",
+                    "/swagger-ui.html",
+                    "/swagger-resources",
+                    "/webjars/",
+                    "/favicon.ico",
+                    "/actuator/health",
+                    "/actuator/info",
+                    "/auth/",
+                    "/users/register"
+            );
+
+            @Override
+            public String resolve(HttpServletRequest request) {
+                String path = request.getRequestURI();
+                String authHeader = request.getHeader("Authorization");
+
+                boolean isPublicEndpoint = publicPatterns.stream()
+                        .anyMatch(path::startsWith);
+
+                if (isPublicEndpoint && authHeader == null) {
+                    logger.debug("Public endpoint accessed without token: {}", path);
+                    return null;
+                }
+
+                if (authHeader != null) {
+                    logger.debug("Token present for path: {} - will validate", path);
+                }
+
+                return defaultResolver.resolve(request);
+            }
+        };
     }
 
     @Bean

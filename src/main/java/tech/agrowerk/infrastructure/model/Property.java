@@ -66,9 +66,9 @@ public class Property {
     @ManyToMany(mappedBy = "properties", fetch = FetchType.LAZY)
     private Set<User> users;
 
-    @OneToMany(mappedBy = "properties", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Stock> stocks;
 
-    @OneToMany(mappedBy = "properties")
-    private List<StockMovement> mevements;
+    @OneToMany(mappedBy = "property")
+    private List<StockMovement> movements;
 }

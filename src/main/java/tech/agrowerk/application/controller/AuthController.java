@@ -46,6 +46,7 @@ public class AuthController {
     }
 
     @PutMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword changePassword, Authentication authentication) {
 
         Jwt jwt = (Jwt) authentication.getPrincipal();

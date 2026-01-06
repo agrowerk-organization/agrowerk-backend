@@ -42,7 +42,7 @@ public class User {
     @CPF
     private String cpf;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
 
@@ -71,6 +71,8 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<StockMovement> movements;
 
+    @Column(nullable = false, columnDefinition = "boolean default = false")
+    private boolean isDeleted = false;
 
     public boolean isLoginCorrect(LoginRequest loginRequest, BCryptPasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(loginRequest.password(), this.password);

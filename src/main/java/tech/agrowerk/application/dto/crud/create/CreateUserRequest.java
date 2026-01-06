@@ -2,7 +2,9 @@ package tech.agrowerk.application.dto.crud.create;
 
 import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.br.CPF;
+import tech.agrowerk.business.validators.PasswordMatch;
 
+@PasswordMatch
 public record CreateUserRequest(
 
         @NotBlank(message = "Name is required")

@@ -35,7 +35,7 @@ public class AuthService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid email or password");
+            throw new BadCredentialsException("Invalid password");
         }
 
         String accessToken = jwtService.generateTokenFromUser(user);

@@ -4,21 +4,34 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import tech.agrowerk.application.dto.auth.ChangePassword;
 
-public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch, ChangePassword> {
+import java.lang.reflect.Field;
+
+public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch, Object> {
 
     @Override
-    public boolean isValid(ChangePassword changePassword, ConstraintValidatorContext context) {
-        if (changePassword == null) {
+    public boolean isValid(Object obj, ConstraintValidatorContext context) {
+        if (obj == null) {
             return true;
         }
 
-        String newPassword = changePassword.newPassword();
-        String confirmPassword = changePassword.confirmPassword();
+        try {
+            Field passwordField = obj.getClass().getDeclaredField("password");
+            Field confirmPasswordField = obj.getClass().getDeclaredField("confirmPassword");
 
-        if (newPassword == null || confirmPassword == null) {
+            passwordField.setAccessible(true);
+            confirmPasswordField.setAccessible(true);
+
+            String password = (String) passwordField.get(obj);
+            String confirmPassword = (String) confirmPasswordField.get(obj);
+
+            if (password == null || confirmPassword == null) {
+                return false;
+            }
+
+            return password.equals(confirmPassword);
+
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             return false;
         }
-
-        return newPassword.equals(confirmPassword);
     }
 }
