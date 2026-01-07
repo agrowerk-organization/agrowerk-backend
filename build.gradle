@@ -33,6 +33,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'com.bucket4j:bucket4j-core:8.9.0'
     implementation 'org.owasp.encoder:encoder:1.2.3'
+    implementation 'com.cloudinary:cloudinary-http44:1.39.0'
+    implementation 'org.apache.tika:tika-core:2.9.1'
     implementation 'org.springframework.boot:spring-boot-starter-logging'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.mysql:mysql-connector-j'
