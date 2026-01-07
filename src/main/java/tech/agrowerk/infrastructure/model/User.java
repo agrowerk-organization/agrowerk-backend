@@ -57,6 +57,9 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime lastLogin;
 
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_property",

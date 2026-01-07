@@ -151,9 +151,8 @@ public class UserService {
         user.setDeleted(true);
         user.setName("deleted");
         user.setEmail("deleted_" + user.getId() + "@non.local");
+        user.setPassword("deleted");
         user.setCpf(null);
         user.setTelephone(null);
-        user.setPassword(null);
-        user.setLastLogin(null);
     }
 }

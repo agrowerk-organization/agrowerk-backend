@@ -2,10 +2,8 @@ package tech.agrowerk.infrastructure.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
-import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.model.User;
 
 import java.time.Instant;
@@ -13,7 +11,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -48,6 +45,7 @@ public class JwtService {
                 .claim("userId", userDetails.getId())
                 .claim("email", userDetails.getUsername())
                 .claim("role", userDetails.getRole().name())
+               // .claim("tv", userDetails.getTokenVersion())
                 .claim("jti", UUID.randomUUID().toString())
                 .build();
 
@@ -65,6 +63,7 @@ public class JwtService {
                 .claim("userId", user.getId())
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().getName())
+                .claim("tv", user.getTokenVersion())
                 .claim("jti", UUID.randomUUID().toString())
                 .claim("userId", user.getId())
                 .build();
