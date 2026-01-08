@@ -65,15 +65,7 @@ git clone https://github.com/seu-usuario/agrowerk-backend.git
 cd agrowerk-backend
 ```
 
-### 2. Configure o banco de dados
-
-Crie um banco de dados MySQL:
-
-```sql
-CREATE DATABASE agrowerk;
-```
-
-### 3. Configure as variáveis de ambiente
+### 2. Configure as variáveis de ambiente
 
 Crie um arquivo `.env.local` na raíz do projeto e coloque suas variáveis de ambiente e credenciais, não suba para a plataforma de versionamento:
 
@@ -110,11 +102,10 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
-### 4. Execute o projeto
+### 3. Execute o projeto
 
-```bash
-./gradlew clean build
-./gradlew bootRun
+```docker
+   docker compose --env-file .env-file up --build
 ```
 
 A API estará disponível em: `http://localhost:8080`
