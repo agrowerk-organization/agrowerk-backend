@@ -16,14 +16,14 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long
 
     Optional<FileMetadata> findByCloudinaryPublicIdAndDeletedFalse(String cloudinaryPublicId);
 
-    List<FileMetadata> findByCategoryAndEntityIdAndDeletedFalse(FileCategory category, Long entityId);
+    List<FileMetadata> findByFileCategoryAndEntityIdAndDeletedFalse(FileCategory category, Long entityId);
 
-    List<FileMetadata> findByCategoryAndDeletedFalse(FileCategory category);
+    List<FileMetadata> findByFileCategoryAndDeletedFalse(FileCategory category);
 
     @Query("SELECT f FROM FileMetadata f WHERE f.deleted = true AND f.deletedAt < :cutoffDate")
     List<FileMetadata> findDeletedFilesBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
 
-    long countByCategoryAndDeletedFalse(FileCategory category);
+    long countByFileCategoryAndDeletedFalse(FileCategory category);
 
     @Query("SELECT COALESCE(SUM(f.fileSize), 0) FROM FileMetadata f WHERE f.deleted = false")
     Long getTotalStorageUsed();

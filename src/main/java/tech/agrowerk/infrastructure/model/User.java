@@ -74,7 +74,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<StockMovement> movements;
 
-    @Column(nullable = false, columnDefinition = "boolean default = false")
+    @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
     public boolean isLoginCorrect(LoginRequest loginRequest, BCryptPasswordEncoder passwordEncoder) {

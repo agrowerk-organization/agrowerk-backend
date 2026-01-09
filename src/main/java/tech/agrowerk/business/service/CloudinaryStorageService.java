@@ -102,8 +102,7 @@ public class CloudinaryStorageService implements FileStorageService {
     @Override
     @Transactional(readOnly = true)
     public List<FileUploadResponse> listFiles(FileCategory category, Long entityId) {
-        List<FileMetadata> files = fileMetadataRepository
-                .findByCategoryAndEntityIdAndDeletedFalse(category, entityId);
+        List<FileMetadata> files = fileMetadataRepository.findByFileCategoryAndEntityIdAndDeletedFalse(category, entityId);
         return files.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -134,9 +133,7 @@ public class CloudinaryStorageService implements FileStorageService {
         try {
             cloudinary.uploader().destroy(metadata.getCloudinaryPublicId(), ObjectUtils.emptyMap());
             fileMetadataRepository.delete(metadata);
-            log.info("Arquivo deletado permanentemente: {}", id);
         } catch (IOException e) {
-            log.error("Erro ao deletar arquivo do Cloudinary: {}", id, e);
             throw new FileStorageException(
                     FileStorageErrorCode.FILE_NOT_FOUND,
                     "File not found"
@@ -174,9 +171,9 @@ public class CloudinaryStorageService implements FileStorageService {
         Long totalBytes = fileMetadataRepository.getTotalStorageUsed();
         long totalMB = totalBytes / (1024 * 1024);
 
-        long propertyPhotos = fileMetadataRepository.countByCategoryAndDeletedFalse(FileCategory.PROPERTY_PHOTO);
-        long productPhotos = fileMetadataRepository.countByCategoryAndDeletedFalse(FileCategory.PRODUCT_PHOTO);
-        long documents = fileMetadataRepository.countByCategoryAndDeletedFalse(FileCategory.DOCUMENT);
+        long propertyPhotos = fileMetadataRepository.countByFileCategoryAndDeletedFalse(FileCategory.PROPERTY_PHOTO);
+        long productPhotos = fileMetadataRepository.countByFileCategoryAndDeletedFalse(FileCategory.PRODUCT_PHOTO);
+        long documents = fileMetadataRepository.countByFileCategoryAndDeletedFalse(FileCategory.DOCUMENT);
 
         return new StorageStats(totalFiles, totalBytes, totalMB, propertyPhotos, productPhotos, documents);
     }

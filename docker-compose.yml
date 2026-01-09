@@ -1,27 +1,24 @@
 version: "3.9"
 
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
-    restart: always
+  postgres:
+    image: postgres:15-alpine
+    container_name: app-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      POSTGRES_DB: ${POSTGRESQL_DATABASE}
+      POSTGRES_USER: ${POSTGRESQL_USER}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
     ports:
-      - "3306:3306"
+      - "${POSTGRESQL_PORT:-5432}:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - agrowerk
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRESQL_USER} -d ${POSTGRESQL_DATABASE}" ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 50s
+    networks:
+      - agrowerk
 
   backend:
     build:
@@ -29,14 +26,14 @@ services:
     container_name: backend
     restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://${MYSQL_HOST:-mysql}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE}
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRESQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRESQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRESQL_PASSWORD}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
       APP_LOG_LEVEL_HIBERNATE: ${APP_LOG_LEVEL_HIBERNATE:-WARN}
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     ports:
       - "8080:8080"
@@ -45,7 +42,7 @@ services:
     entrypoint: ["java", "-jar", "app.jar"]
 
 volumes:
-  mysql_data:
+  postgres_data:
 
 networks:
   agrowerk:

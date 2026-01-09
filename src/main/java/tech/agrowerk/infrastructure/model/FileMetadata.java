@@ -54,6 +54,7 @@ public class FileMetadata {
     private Long entityId;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean deleted = false;
 
     @CreationTimestamp
