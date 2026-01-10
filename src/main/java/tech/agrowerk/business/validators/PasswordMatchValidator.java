@@ -2,7 +2,6 @@ package tech.agrowerk.business.validators;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import tech.agrowerk.application.dto.auth.ChangePassword;
 
 import java.lang.reflect.Field;
 

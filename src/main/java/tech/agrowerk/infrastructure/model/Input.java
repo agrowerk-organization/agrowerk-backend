@@ -94,4 +94,7 @@ public class Input {
 
     @OneToMany(mappedBy = "input")
     private List<Batch> batches;
+
+    @OneToMany(mappedBy = "input")
+    private List<PlantingInput> plantingInputs;
 }

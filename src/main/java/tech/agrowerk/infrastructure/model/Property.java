@@ -71,4 +71,7 @@ public class Property {
 
     @OneToMany(mappedBy = "property")
     private List<StockMovement> movements;
+
+    @OneToMany(mappedBy = "property")
+    private List<Planting> plantings;
 }

@@ -71,4 +71,8 @@ public class StockMovement {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_id", nullable = false)
     private Batch batch;
+
+    @OneToOne
+    @JoinColumn(name = "harvest_id")
+    private Harvest harvest;
 }

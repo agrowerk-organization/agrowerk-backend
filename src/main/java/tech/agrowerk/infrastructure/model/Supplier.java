@@ -6,6 +6,7 @@ import org.hibernate.validator.constraints.br.CNPJ;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "suppliers")
@@ -63,4 +64,12 @@ public class Supplier {
 
     @OneToMany(mappedBy = "supplier")
     private List<Batch> batches;
+
+    @ManyToMany
+    @JoinTable(
+            name = "supplier_crops",
+            joinColumns = @JoinColumn(name = "supplier_id"),
+            inverseJoinColumns = @JoinColumn(name = "crop_id")
+    )
+    private Set<Crop> crops;
 }
