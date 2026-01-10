@@ -2,6 +2,7 @@ package tech.agrowerk.business.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.LoggerFactory;
@@ -25,16 +26,8 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
     private final JwtDecoder jwtDecoder;
 
     private static final List<String> PUBLIC_PATTERNS = List.of(
-            "/swagger-ui",
-            "/v3/api-docs",
-            "/swagger-resources",
-            "/webjars",
-            "/favicon.ico",
-            "/actuator/health",
-            "/actuator/info",
-            "/auth/login",
-            "/auth/register",
-            "/users/register"
+            "/swagger-ui", "/v3/api-docs", "/swagger-resources", "/webjars", "/favicon.ico", "/actuator/health",
+            "/actuator/info", "/auth/login", "/auth/register", "/users/register"
     );
 
     public JwtBlacklistFilter(@Lazy JwtService jwtService, JwtDecoder jwtDecoder) {
@@ -57,6 +50,52 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String token = extractTokenFromRequest(request);
+
+        if (token != null) {
+            try {
+                Jwt jwt = jwtDecoder.decode(token);
+                String jti = jwt.getClaimAsString("jti");
+                if (jti != null && jwtService.isTokenBlacklisted(jti)) {
+                    logger.warn("Blocked blacklisted token (jti: {}) for path: {}", jti, request.getRequestURI());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Token has been revoked\"}");
+                    return;
+                }
+                request.setAttribute("JWT_TOKEN", token);
+            } catch (JwtException e) {
+                logger.debug("Invalid JWT token: {}", e.getMessage());
+            }
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    logger.debug("Token extracted from cookie for path: {}", request.getRequestURI());
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            logger.debug("Token extracted from header for path: {}", request.getRequestURI());
+            return authHeader.substring(7);
+        }
+
+        return null;
+    }
+
+    /*@Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
@@ -86,5 +125,5 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
+    } */
 }
