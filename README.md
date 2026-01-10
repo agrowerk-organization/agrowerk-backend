@@ -4,7 +4,7 @@
 
 [![Java](https://img.shields.io/badge/Java-25-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 ## 📋 Sobre o Projeto
@@ -29,7 +29,7 @@
 - **Spring Boot 4.x** - Framework principal
 - **Spring Security** - Autenticação e autorização
 - **Spring Data JPA** - Persistência de dados
-- **MySQL 8.0** - Banco de dados relacional
+- **PostgreSQL 15** - Banco de dados relacional
 
 ### Segurança
 - **JWT (JSON Web Tokens)** - Autenticação stateless
@@ -51,9 +51,7 @@
 
 Antes de começar, certifique-se de ter instalado:
 
-- Java JDK 25
-- Gradle 9.2.1
-- MySQL 8.0+
+- Docker e Docker Compose
 - Git
 
 ## ⚙️ Instalação e Configuração
@@ -74,12 +72,12 @@ Crie um arquivo `.env.local` na raíz do projeto e coloque suas variáveis de am
 CLIENT_ENDPOINT=
 
 # Database
-MYSQL_HOST=
-MYSQL_PORT=
-MYSQL_ROOT_PASSWORD=
-MYSQL_DATABASE=
-MYSQL_USER=
-MYSQL_PASSWORD=
+POSTGRESQL_HOST=
+POSTGRESQL_PORT=
+POSTGRESQL_ROOT_PASSWORD=
+POSTGRESQL_DATABASE=
+POSTGRESQL_USER=
+POSTGRESQL_PASSWORD=
 
 # Logging
 SHOW_SQL=
