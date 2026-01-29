@@ -1,6 +1,6 @@
 # 🌾 AgroWerk - Backend
 
-> AgroWerk é um ecossistema ERP completo para o agronegócio, focado na gestão integrada de safras, inventário e operações de barter. Projetado para escalar e com segurança e robustez desde o alicerce.
+> AgroWerk é um ecossistema ERP - Sistema Integrado de Gestão Empresarial completo para o agronegócio, focado na gestão integrada de safras, inventário e operações de barter. Projetado para escalar e com segurança e robustez desde o alicerce.
 
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -10,7 +10,7 @@
 
 ## 📋 Sobre o Projeto
 
-**AgroWerk** (do alemão: *Agro* = Agricultura + *Werk* = Obra/Trabalho) é uma API RESTful completa para gestão de inventário agrícola, conectando produtores rurais, fornecedores e administradores em uma plataforma integrada de controle de insumos e estoque.
+**AgroWerk** (do alemão: *Agro* = Agricultura + *Werk* = Obra/Trabalho) é uma API RESTful completa para ERP agrícola, conectando produtores rurais, fornecedores e administradores em uma plataforma integrada de planejamento de safras, gestão de estoque e inventário e operações relativas ao barter.
 
 ### ✨ Principais Funcionalidades
 
