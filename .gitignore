@@ -37,7 +37,7 @@ out/
 .vscode/
 
 ### Environment ###
-.env.local
+.env
 .env.homolog
 .env.prod
 
