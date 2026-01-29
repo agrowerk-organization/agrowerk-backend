@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.support.enums.FaqCategory;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "faqs")
@@ -20,8 +21,8 @@ import java.time.LocalDateTime;
 public class Faq {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String question;

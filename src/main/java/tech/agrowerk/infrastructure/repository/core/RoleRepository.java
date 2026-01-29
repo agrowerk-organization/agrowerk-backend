@@ -6,8 +6,9 @@ import tech.agrowerk.infrastructure.model.core.enums.RoleType;
 import tech.agrowerk.infrastructure.model.core.Role;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long> {
+public interface RoleRepository extends JpaRepository<Role, UUID> {
     Optional<Role> findByName(RoleType name);
 }

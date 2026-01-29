@@ -7,6 +7,7 @@ import tech.agrowerk.infrastructure.model.inventory.enums.UnitOfMeasure;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "input_categories")
@@ -18,8 +19,8 @@ import java.util.List;
 public class InputCategory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, unique = true, length = 100)
     private String name;

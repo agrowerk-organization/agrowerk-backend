@@ -11,6 +11,7 @@ import tech.agrowerk.infrastructure.model.property.Property;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "plantings")
@@ -21,8 +22,8 @@ import java.util.List;
 public class Planting {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal areaHectares;

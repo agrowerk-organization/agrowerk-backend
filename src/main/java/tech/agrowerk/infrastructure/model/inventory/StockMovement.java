@@ -10,6 +10,7 @@ import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "movement_stocks")
@@ -21,8 +22,8 @@ import java.time.LocalDateTime;
 public class StockMovement {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, precision = 10, scale = 3)
     private BigDecimal quantity;

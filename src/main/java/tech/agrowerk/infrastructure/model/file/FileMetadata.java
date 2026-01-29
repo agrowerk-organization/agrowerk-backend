@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "file_metadata")
@@ -19,8 +20,8 @@ import java.time.LocalDateTime;
 public class FileMetadata {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String cloudinaryPublicId;

@@ -5,6 +5,7 @@ import lombok.*;
 import tech.agrowerk.infrastructure.model.core.enums.RoleType;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "roles")
@@ -15,8 +16,8 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Role {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     @Column(unique = true, name = "name")

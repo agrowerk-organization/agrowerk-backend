@@ -10,6 +10,7 @@ import tech.agrowerk.infrastructure.model.inventory.StockMovement;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "harvests")
@@ -20,8 +21,8 @@ import java.time.LocalDate;
 public class Harvest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false)
     private LocalDate harvestDate;

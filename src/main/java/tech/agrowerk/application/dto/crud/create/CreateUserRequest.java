@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.br.CPF;
 import tech.agrowerk.business.validators.PasswordMatch;
 
+import java.util.UUID;
+
 @PasswordMatch
 public record CreateUserRequest(
 
@@ -38,6 +40,5 @@ public record CreateUserRequest(
         String cpf,
 
         @NotNull(message = "Role is required")
-        @Positive(message = "Role ID must be positive")
-        Long roleId
+        UUID roleId
 ) {}

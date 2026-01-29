@@ -8,6 +8,7 @@ import lombok.Setter;
 import tech.agrowerk.infrastructure.model.farming.enums.SeasonStatus;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "seasons")
@@ -18,8 +19,8 @@ import java.time.LocalDate;
 public class Season {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, length = 255)
     private String name;

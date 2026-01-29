@@ -11,6 +11,7 @@ import tech.agrowerk.infrastructure.model.farming.Crop;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "suppliers")
@@ -22,8 +23,8 @@ import java.util.Set;
 public class Supplier {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, length = 255)
     private String corporateReason;

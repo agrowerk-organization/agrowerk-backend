@@ -12,6 +12,7 @@ import tech.agrowerk.infrastructure.model.farming.PlantingInput;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "inputs")
@@ -22,8 +23,8 @@ import java.util.List;
 public class Input {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, length = 150)
     private String name;

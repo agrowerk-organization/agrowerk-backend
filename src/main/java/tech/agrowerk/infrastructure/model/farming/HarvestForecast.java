@@ -8,6 +8,7 @@ import tech.agrowerk.infrastructure.model.property.Property;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "harvest_forecasts")
@@ -19,8 +20,8 @@ import java.time.LocalDateTime;
 public class HarvestForecast {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "crop_id", nullable = false)

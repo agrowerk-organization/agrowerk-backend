@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.supplier.SupplierSpecialty;
 
+import java.util.UUID;
+
 @Repository
-public interface SupplierSpecialtyRepository extends JpaRepository<SupplierSpecialty, Long> {
+public interface SupplierSpecialtyRepository extends JpaRepository<SupplierSpecialty, UUID> {
 }

@@ -3,6 +3,8 @@ package tech.agrowerk.infrastructure.model.property;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "states")
 @Getter
@@ -13,8 +15,8 @@ import lombok.*;
 public class State {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(length = 2, unique = true, nullable = false)
     private String code;

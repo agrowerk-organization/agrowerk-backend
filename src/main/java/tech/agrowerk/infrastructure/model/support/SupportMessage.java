@@ -11,6 +11,7 @@ import tech.agrowerk.infrastructure.model.core.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "support_messages")
@@ -20,8 +21,8 @@ import java.util.List;
 @AllArgsConstructor
 public class SupportMessage {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ticket_id", nullable = false)

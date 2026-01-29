@@ -9,6 +9,7 @@ import tech.agrowerk.infrastructure.model.farming.enums.CropCategory;
 import tech.agrowerk.infrastructure.model.supplier.Supplier;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "crops")
@@ -19,8 +20,8 @@ import java.util.Set;
 public class Crop {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, length = 255)
     private String name;

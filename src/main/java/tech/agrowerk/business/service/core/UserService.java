@@ -20,6 +20,7 @@ import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.repository.core.RoleRepository;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -57,7 +58,7 @@ public class UserService {
 
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
 
-        newUser.setLastLogin(LocalDateTime.now());
+        newUser.setLastLogin(Instant.now());
 
         User savedUser = userRepository.save(newUser);
 

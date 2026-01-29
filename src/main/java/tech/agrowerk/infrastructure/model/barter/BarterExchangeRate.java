@@ -9,6 +9,7 @@ import tech.agrowerk.infrastructure.model.farming.Crop;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "barter_exchange_rates")
@@ -20,8 +21,8 @@ import java.time.LocalDateTime;
 public class BarterExchangeRate {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "crop_id", nullable = false)

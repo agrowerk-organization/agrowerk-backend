@@ -2,6 +2,10 @@ package tech.agrowerk.infrastructure.model.audit;
 
 import jakarta.persistence.*;
 import lombok.*;
+import tech.agrowerk.infrastructure.model.audit.enums.SecurityEvent;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "audit_logs", indexes = {
@@ -18,8 +22,8 @@ import lombok.*;
 public class AuditLog {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "event_type", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)

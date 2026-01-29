@@ -10,13 +10,14 @@ import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
+public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID> {
 
     Optional<FileMetadata> findByCloudinaryPublicIdAndDeletedFalse(String cloudinaryPublicId);
 
-    List<FileMetadata> findByFileCategoryAndEntityIdAndDeletedFalse(FileCategory category, Long entityId);
+    List<FileMetadata> findByFileCategoryAndEntityIdAndDeletedFalse(FileCategory category, UUID entityId);
 
     List<FileMetadata> findByFileCategoryAndDeletedFalse(FileCategory category);
 

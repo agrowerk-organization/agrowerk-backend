@@ -12,6 +12,7 @@ import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "invetory_assets")
@@ -22,8 +23,8 @@ import java.time.LocalDateTime;
 public class InventoryAsset {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false)
     private String name;

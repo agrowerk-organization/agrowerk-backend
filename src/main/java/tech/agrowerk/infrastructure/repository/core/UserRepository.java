@@ -5,14 +5,15 @@ import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.core.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
-    boolean existsByEmailAndIdNot(String email, Long id);
+    boolean existsByEmailAndIdNot(String email, UUID id);
 
-    boolean existsByCpfAndIdNot(String cpf, Long id);
+    boolean existsByCpfAndIdNot(String cpf, UUID id);
 
 
 }
