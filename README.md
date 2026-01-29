@@ -4,8 +4,8 @@
 
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
-![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
+![Postgres](https://img.shields.io/badge/Postgres-15-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 ## 📋 Sobre o Projeto
@@ -31,7 +31,7 @@
 - **Spring Security** - Autenticação e autorização
 - **Spring Data JPA** - Persistência de dados
 - **PostgreSQL 15** - Banco de dados relacional
-- **Redis** - Banco de dados em memória para cache
+- **Redis 7** - Banco de dados em memória para cache
 
 ### Segurança
 - **JWT (JSON Web Tokens)** - Autenticação stateless
