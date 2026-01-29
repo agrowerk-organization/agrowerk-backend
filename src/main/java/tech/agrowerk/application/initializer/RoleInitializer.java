@@ -2,9 +2,8 @@ package tech.agrowerk.application.initializer;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import tech.agrowerk.business.service.RoleService;
+import tech.agrowerk.business.service.core.RoleService;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
-import tech.agrowerk.infrastructure.repository.RoleRepository;
 
 import java.util.Arrays;
 import java.util.List;

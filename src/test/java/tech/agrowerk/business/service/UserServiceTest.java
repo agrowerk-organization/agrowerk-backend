@@ -12,11 +12,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
 import tech.agrowerk.application.dto.crud.get.UserResponse;
 import tech.agrowerk.business.mapper.UserMapper;
-import tech.agrowerk.infrastructure.enums.RoleType;
-import tech.agrowerk.infrastructure.model.Role;
-import tech.agrowerk.infrastructure.model.User;
-import tech.agrowerk.infrastructure.repository.RoleRepository;
-import tech.agrowerk.infrastructure.repository.UserRepository;
+import tech.agrowerk.business.service.core.UserService;
+import tech.agrowerk.infrastructure.model.core.enums.RoleType;
+import tech.agrowerk.infrastructure.model.core.Role;
+import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.repository.core.RoleRepository;
+import tech.agrowerk.infrastructure.repository.core.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

@@ -1,7 +1,7 @@
 package tech.agrowerk.infrastructure.exception.local;
 
 import lombok.Getter;
-import tech.agrowerk.infrastructure.enums.FileStorageErrorCode;
+import tech.agrowerk.infrastructure.model.file.enums.FileStorageErrorCode;
 
 @Getter
 public class FileStorageException extends RuntimeException {

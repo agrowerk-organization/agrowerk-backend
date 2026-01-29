@@ -12,15 +12,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import tech.agrowerk.application.dto.auth.ChangePassword;
 import tech.agrowerk.application.dto.auth.LoginRequest;
-import tech.agrowerk.application.dto.auth.LoginResponse;
 import tech.agrowerk.application.dto.user.UserInfoDto;
+import tech.agrowerk.business.service.auth.AuthService;
 import tech.agrowerk.business.service.security.JwtService;
 import tech.agrowerk.infrastructure.exception.local.BadCredentialsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.InvalidPasswordException;
 import tech.agrowerk.infrastructure.exception.local.InvalidTokenException;
-import tech.agrowerk.infrastructure.model.User;
-import tech.agrowerk.infrastructure.repository.UserRepository;
+import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.repository.core.UserRepository;
 
 import java.util.Optional;
 
@@ -68,7 +68,7 @@ class AuthServiceTest {
         when(jwtService.generateTokenFromUser(user)).thenReturn("access_token_123");
         when(jwtService.generateRefreshTokenFromUser(user)).thenReturn("refresh_token_123");
 
-        LoginResponse result = authService.login(loginRequest);
+        AuthResponse result = authService.login(loginRequest);
 
         assertThat(result).isNotNull();
         assertThat(result.accessToken()).isEqualTo("access_token_123");
@@ -130,7 +130,7 @@ class AuthServiceTest {
         when(jwtService.generateTokenFromUser(user)).thenReturn("new_access_token");
         when(jwtService.generateRefreshTokenFromUser(user)).thenReturn("new_refresh_token");
 
-        LoginResponse result = authService.refreshToken(refreshToken);
+        AuthResponse result = authService.refreshToken(refreshToken);
 
         assertThat(result).isNotNull();
         assertThat(result.accessToken()).isEqualTo("new_access_token");

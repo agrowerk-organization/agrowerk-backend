@@ -5,8 +5,8 @@ import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
 import tech.agrowerk.application.dto.crud.get.UserResponse;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.utils.AuthenticatedUser;
-import tech.agrowerk.infrastructure.model.Role;
-import tech.agrowerk.infrastructure.model.User;
+import tech.agrowerk.infrastructure.model.core.Role;
+import tech.agrowerk.infrastructure.model.core.User;
 
 @Component
 public class UserMapper {
@@ -35,11 +35,11 @@ public class UserMapper {
         );
     }
 
-    public UserInfoDto toUserInfoDto(AuthenticatedUser user) {
+    public UserInfoDto toUserInfoDto(User user) {
         return new UserInfoDto(
-                user.id(),
-                user.email(),
-                user.role()
+                user.getId(),
+                user.getName(),
+                user.getRole().getName().name()
         );
     }
 }

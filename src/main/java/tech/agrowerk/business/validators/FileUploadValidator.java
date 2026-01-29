@@ -4,7 +4,7 @@ package tech.agrowerk.business.validators;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import tech.agrowerk.infrastructure.enums.FileStorageErrorCode;
+import tech.agrowerk.infrastructure.model.file.enums.FileStorageErrorCode;
 import tech.agrowerk.infrastructure.exception.local.FileStorageException;
 
 import java.io.IOException;

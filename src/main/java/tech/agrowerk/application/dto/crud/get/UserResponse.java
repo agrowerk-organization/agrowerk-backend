@@ -1,6 +1,7 @@
 package tech.agrowerk.application.dto.crud.get;
 
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 
 public record UserResponse(
         Long id,
@@ -8,7 +9,7 @@ public record UserResponse(
         String email,
         String telephone,
         String role,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
 }
