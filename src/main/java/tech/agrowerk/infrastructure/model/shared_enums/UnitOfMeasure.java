@@ -1,4 +1,4 @@
-package tech.agrowerk.infrastructure.model.inventory.enums;
+package tech.agrowerk.infrastructure.model.shared_enums;
 
 public enum UnitOfMeasure {
     KILOGRAM("kg", "Kilogram"),

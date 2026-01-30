@@ -3,7 +3,7 @@ package tech.agrowerk.infrastructure.model.inventory;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import tech.agrowerk.infrastructure.model.inventory.enums.UnitOfMeasure;
+import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 
 import java.time.LocalDateTime;
 import java.util.List;

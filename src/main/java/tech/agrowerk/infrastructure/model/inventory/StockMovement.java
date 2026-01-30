@@ -53,7 +53,7 @@ public class StockMovement {
     private LocalDateTime movementDate;
 
     @Column
-    private Long reversedMovementId;
+    private UUID reversedMovementId;
 
     @Column(nullable = false)
     private Boolean reversed = false;
@@ -70,6 +70,10 @@ public class StockMovement {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_id", nullable = false)
+    private Stock stock;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 
@@ -80,4 +84,24 @@ public class StockMovement {
     @OneToOne
     @JoinColumn(name = "harvest_id")
     private Harvest harvest;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        registeredAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (movementDate == null) {
+            movementDate = LocalDateTime.now();
+        }
+        if (reversed == null) {
+            reversed = false;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

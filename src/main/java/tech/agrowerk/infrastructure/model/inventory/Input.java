@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.enums.ToxicologicalClass;
-import tech.agrowerk.infrastructure.model.inventory.enums.UnitOfMeasure;
+import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.PlantingInput;
 
