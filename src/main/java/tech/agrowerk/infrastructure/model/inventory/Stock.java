@@ -2,11 +2,13 @@ package tech.agrowerk.infrastructure.model.inventory;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.Harvest;
 import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -25,11 +27,11 @@ public class Stock {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_id", nullable = false)
     private Input input;
 
@@ -54,10 +56,26 @@ public class Stock {
     @Column(name = "last_exit_date")
     private LocalDateTime lastExitDate;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "stock")
+    @OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
     private List<Harvest> harvests;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

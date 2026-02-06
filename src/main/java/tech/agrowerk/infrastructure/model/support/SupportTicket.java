@@ -11,6 +11,7 @@ import tech.agrowerk.infrastructure.model.support.enums.SupportTicketPriority;
 import tech.agrowerk.infrastructure.model.support.enums.TicketCategory;
 import tech.agrowerk.infrastructure.model.core.User;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -53,13 +54,26 @@ public class SupportTicket {
     @OrderBy("createdAt ASC")
     private List<SupportMessage> messages;
 
+    private LocalDateTime deletedAt;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    private LocalDateTime deletedAt;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
+
 }

@@ -1,0 +1,21 @@
+spring:
+  cache:
+    type: caffeine
+    cache-names:
+      - weather
+      - properties
+      - suppliers
+      - inputs
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=30m
+
+  data:
+    redis:
+      repositories:
+        enabled: true
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 2
+      timeout: 3000ms

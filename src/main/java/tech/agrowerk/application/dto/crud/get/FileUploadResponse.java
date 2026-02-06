@@ -1,12 +1,10 @@
 package tech.agrowerk.application.dto.crud.get;
 
-import jdk.jshell.Snippet;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record FileUploadResponse(
-        Long id,
+        java.util.UUID id,
         String originalUrl,
         String optmizedUrl,
         String thumbnailUrl,
@@ -19,7 +17,7 @@ public record FileUploadResponse(
         String category,
         LocalDateTime createdAt
 ) {
-    public static FileUploadResponse simple(Long id, String originalUrl, String thumbnailUrl) {
+    public static FileUploadResponse simple(UUID id, String originalUrl, String thumbnailUrl) {
         return new FileUploadResponse(
                 id,
                 originalUrl,

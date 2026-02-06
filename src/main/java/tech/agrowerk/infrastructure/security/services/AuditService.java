@@ -9,6 +9,7 @@ import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.repository.audit.AuditLogRepository;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -18,7 +19,7 @@ public class AuditService {
     private final AuditLogRepository auditLogRepository;
 
     public void logSecurityEvent(SecurityEvent event, String ip, String userAgent,
-                                 Long userId, String details) {
+                                 UUID userId, String details) {
         AuditLog audit = AuditLog.builder()
                 .eventType(event)
                 .ipAddress(ip)
@@ -54,7 +55,7 @@ public class AuditService {
                 user.getId(), "Account blocked due to multiple attempts.");
     }
 
-    public void logSuspiciousActivity(Long userId, String ip, String reason) {
+    public void logSuspiciousActivity(UUID userId, String ip, String reason) {
         logSecurityEvent(SecurityEvent.SUSPICIOUS_ACTIVITY, ip, null,
                 userId, reason);
     }

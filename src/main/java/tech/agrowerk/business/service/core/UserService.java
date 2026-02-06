@@ -23,6 +23,7 @@ import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -66,7 +67,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse findUserById(Long id) {
+    public UserResponse findUserById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 

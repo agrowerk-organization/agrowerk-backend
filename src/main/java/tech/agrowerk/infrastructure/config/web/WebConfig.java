@@ -3,7 +3,7 @@ package tech.agrowerk.infrastructure.config.web;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import tech.agrowerk.business.interceptors.RateLimitInterceptor;
+import tech.agrowerk.infrastructure.security.interceptor.RateLimitInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

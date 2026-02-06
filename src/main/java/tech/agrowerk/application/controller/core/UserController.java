@@ -11,6 +11,8 @@ import tech.agrowerk.application.dto.crud.get.UserResponse;
 import tech.agrowerk.application.dto.crud.update.UpdateUserRequest;
 import tech.agrowerk.business.service.core.UserService;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -29,7 +31,7 @@ public class UserController {
 
     @GetMapping("/get-user-by-id/{id}")
     @PreAuthorize("hasRole('SUPPLIER_ADMIN') or #id == authentication.principal.claims['userId']")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
         UserResponse response = userService.findUserById(id);
         return ResponseEntity.ok(response);
     }

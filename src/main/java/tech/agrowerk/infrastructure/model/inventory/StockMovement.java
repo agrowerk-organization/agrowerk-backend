@@ -2,6 +2,8 @@ package tech.agrowerk.infrastructure.model.inventory;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.inventory.enums.MovementType;
 import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.Harvest;
@@ -9,6 +11,7 @@ import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -58,9 +61,6 @@ public class StockMovement {
     @Column(nullable = false)
     private Boolean reversed = false;
 
-    @Column(name = "registered_at", nullable = false, updatable = false)
-    private LocalDateTime registeredAt;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private MovementType movementType;
@@ -81,27 +81,26 @@ public class StockMovement {
     @JoinColumn(name = "batch_id", nullable = false)
     private Batch batch;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "harvest_id")
     private Harvest harvest;
 
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        registeredAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        if (movementDate == null) {
-            movementDate = LocalDateTime.now();
-        }
-        if (reversed == null) {
-            reversed = false;
-        }
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = Instant.now();
     }
 }

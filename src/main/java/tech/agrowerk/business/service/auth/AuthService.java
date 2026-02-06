@@ -122,7 +122,7 @@ public class AuthService {
                 throw new InvalidTokenException("Invalid token type");
             }
 
-            Long userId = jwt.getClaim("userId");
+            UUID userId = jwt.getClaim("userId");
             String username = jwt.getSubject();
             Integer tokenVersion = jwt.getClaim("tv");
 
@@ -182,7 +182,7 @@ public class AuthService {
             if (refreshToken != null && !refreshToken.isBlank()) {
                 try {
                     Jwt jwt = jwtService.decodeAndValidateToken(refreshToken);
-                    Long userId = jwt.getClaim("userId");
+                    UUID userId = jwt.getClaim("userId");
 
                     User user = userRepository.findById(userId).orElse(null);
                     if (user != null) {

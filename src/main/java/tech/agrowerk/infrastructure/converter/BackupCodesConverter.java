@@ -1,10 +1,10 @@
 package tech.agrowerk.infrastructure.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,11 @@ public class BackupCodesConverter implements AttributeConverter<List<String>, St
         if (attributes == null || attributes.isEmpty()) {
             return null;
         }
-        return objectMapper.writeValueAsString(attributes);
+        try {
+            return objectMapper.writeValueAsString(attributes);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -28,6 +32,10 @@ public class BackupCodesConverter implements AttributeConverter<List<String>, St
             return new ArrayList<>();
         }
 
-        return objectMapper.readValue(dbData, new TypeReference<List<String>>() {} );
+        try {
+            return objectMapper.readValue(dbData, new TypeReference<List<String>>() {} );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

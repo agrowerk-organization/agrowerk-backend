@@ -2,6 +2,8 @@ package tech.agrowerk.infrastructure.model.audit;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.audit.enums.SecurityEvent;
 
 import java.time.Instant;
@@ -30,7 +32,7 @@ public class AuditLog {
     private SecurityEvent eventType;
 
     @Column(name = "user_id")
-    private Long userId;
+    private UUID userId;
 
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
@@ -46,4 +48,23 @@ public class AuditLog {
 
     @Column(name = "geo_location", length = 100)
     private String geoLocation;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

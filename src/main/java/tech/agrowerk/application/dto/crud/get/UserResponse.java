@@ -4,7 +4,7 @@ package tech.agrowerk.application.dto.crud.get;
 import java.time.Instant;
 
 public record UserResponse(
-        Long id,
+        java.util.UUID id,
         String name,
         String email,
         String telephone,

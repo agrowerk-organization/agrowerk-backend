@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.9'
 
 services:
   postgres:
@@ -9,68 +9,129 @@ services:
       POSTGRES_USER: ${POSTGRESQL_USER}
       POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
     ports:
-      - "${POSTGRESQL_PORT:-5432}:5432"
+      - "${POSTGRESQL_PORT}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/main/resources/db/migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRESQL_USER} -d ${POSTGRESQL_DATABASE}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRESQL_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - agrowerk
+      - agrowerk-network
 
   redis:
     image: redis:7-alpine
     container_name: agrowerk-redis
-    command: redis-server --requirepass ${REDIS_PASSWORD:-agrowerk_redis_2026}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_PORT}:6379"
     volumes:
-      - redis_data:/data
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
     networks:
-      - agrowerk
+      - agrowerk-network
 
   backend:
     build:
       context: .
+      dockerfile: Dockerfile
+      target: runtime
     container_name: agrowerk-backend
-    restart: always
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRESQL_DATABASE}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRESQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRESQL_PASSWORD}
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-agrowerk_redis_2026}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
-      APP_LOG_LEVEL_HIBERNATE: ${APP_LOG_LEVEL_HIBERNATE:-WARN}
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE:-Strict}
-
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_DATABASE: ${POSTGRESQL_DATABASE}
+      POSTGRESQL_USER: ${POSTGRESQL_USER}
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      JWT_ISSUER: ${JWT_ISSUER}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
+      CLIENT_ENDPOINT: ${CLIENT_ENDPOINT}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0"
+
     ports:
       - "8080:8080"
+    volumes:
+      - ./keys:/app/keys:ro
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
     networks:
-      - agrowerk
-    entrypoint: ["java", "-jar", "app.jar"]
+      - agrowerk-network
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
-volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: agrowerk-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - agrowerk-network
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: agrowerk-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - agrowerk-network
+    profiles:
+      - monitoring
 
 networks:
-  agrowerk:
+  agrowerk-network:
     driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:

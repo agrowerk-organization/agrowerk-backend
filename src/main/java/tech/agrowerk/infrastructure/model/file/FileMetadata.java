@@ -52,7 +52,7 @@ public class FileMetadata {
     @Enumerated(EnumType.STRING)
     private FileCategory fileCategory;
 
-    private Long entityId;
+    private UUID entityId;
 
     @Column(nullable = false)
     @Builder.Default

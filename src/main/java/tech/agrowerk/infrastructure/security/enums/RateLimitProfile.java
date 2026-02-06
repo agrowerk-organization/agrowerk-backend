@@ -12,23 +12,23 @@ import java.time.Duration;
 public enum RateLimitProfile {
 
     SENSITIVE(
-            Bandwidth.classic(3, Refill.intervally(3, Duration.ofMinutes(1))),
-            Bandwidth.classic(10, Refill.intervally(10, Duration.ofHours(1)))
+            Bandwidth.builder().capacity(3).refillIntervally(3, Duration.ofMinutes(1)).build(),
+            Bandwidth.builder().capacity(10).refillIntervally(10, Duration.ofHours(1)).build()
     ),
 
     AUTHENTICATED(
-            Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))),
-            Bandwidth.classic(3000, Refill.intervally(3000, Duration.ofHours(1)))
+            Bandwidth.builder().capacity(100).refillIntervally(100, Duration.ofMinutes(1)).build(),
+            Bandwidth.builder().capacity(3000).refillIntervally(3000, Duration.ofHours(1)).build()
     ),
 
     PUBLIC(
-            Bandwidth.classic(20, Refill.intervally(20, Duration.ofMinutes(1))),
-            Bandwidth.classic(200, Refill.intervally(200, Duration.ofHours(1)))
+            Bandwidth.builder().capacity(20).refillIntervally(20, Duration.ofMinutes(1)).build(),
+            Bandwidth.builder().capacity(200).refillIntervally(200, Duration.ofHours(1)).build()
     ),
 
     GENERAL(
-            Bandwidth.classic(60, Refill.intervally(60, Duration.ofMinutes(1))),
-            Bandwidth.classic(1000, Refill.intervally(1000, Duration.ofHours(1)))
+            Bandwidth.builder().capacity(60).refillIntervally(60, Duration.ofMinutes(1)).build(),
+            Bandwidth.builder().capacity(1000).refillIntervally(1000, Duration.ofHours(1)).build()
     );
 
     private final Bandwidth primaryLimit;

@@ -5,9 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.enums.CropCategory;
 import tech.agrowerk.infrastructure.model.supplier.Supplier;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,4 +40,23 @@ public class Crop {
 
     @ManyToMany(mappedBy = "crops")
     private Set<Supplier> suppliers;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

@@ -47,6 +47,7 @@ public class BarterExchangeRate {
     @Column(nullable = false)
     private LocalDate validUntil;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean active = true;
 

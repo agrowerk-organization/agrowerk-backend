@@ -8,11 +8,12 @@ import tech.agrowerk.infrastructure.model.core.enums.RoleType;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
-
+@Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final Long id;
+    private final UUID id;
     private final String email;
     private final String password;
     private final RoleType role;
@@ -22,7 +23,7 @@ public class CustomUserDetails implements UserDetails {
     private final boolean emailVerified;
     private final Integer tokenVersion;
 
-    public CustomUserDetails(Long id, String email, String password, RoleType role,
+    public CustomUserDetails(UUID id, String email, String password, RoleType role,
                              boolean deleted, boolean active, boolean locked,
                              boolean emailVerified, Integer tokenVersion) {
         this.id = id;

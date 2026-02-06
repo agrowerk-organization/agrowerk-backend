@@ -2,6 +2,8 @@ package tech.agrowerk.infrastructure.model.supplier;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.br.CNPJ;
 import tech.agrowerk.infrastructure.model.core.Address;
 import tech.agrowerk.infrastructure.model.core.User;
@@ -9,6 +11,7 @@ import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.Crop;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -51,7 +54,7 @@ public class Supplier {
     @Embedded
     private Address address;
 
-    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "supplier", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<SupplierSpecialtyLink> specialties;
 
     @Column(precision = 3, scale = 2)
@@ -69,11 +72,11 @@ public class Supplier {
     @Column(columnDefinition = "TEXT")
     private String barterTerms;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "administrator_id", unique = true)
     private User administrator;
 
-    @OneToMany(mappedBy = "supplier")
+    @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
     private List<Batch> batches;
 
     @ManyToMany
@@ -83,4 +86,23 @@ public class Supplier {
             inverseJoinColumns = @JoinColumn(name = "crop_id")
     )
     private Set<Crop> crops;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

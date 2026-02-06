@@ -15,6 +15,7 @@ import tech.agrowerk.application.dto.crud.get.FileUploadResponse;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/files")
@@ -28,7 +29,7 @@ public class FileUploadController {
     public ResponseEntity<FileUploadResponse> uploadFile(
             @RequestParam("file") @NotNull MultipartFile file,
             @RequestParam("category") @NotNull FileCategory category,
-            @RequestParam(value = "entityId", required = false) Long entityId) {
+            @RequestParam(value = "entityId", required = false) UUID entityId) {
 
 
         FileUploadResponse response = fileStorageService.upload(file, category, entityId);
@@ -40,7 +41,7 @@ public class FileUploadController {
     public ResponseEntity<List<FileUploadResponse>> uploadMultipleFiles(
             @RequestParam("files") @NotNull List<MultipartFile> files,
             @RequestParam("category") @NotNull FileCategory category,
-            @RequestParam(value = "entityId", required = false) Long entityId) {
+            @RequestParam(value = "entityId", required = false) UUID entityId) {
 
         List<FileUploadResponse> responses = fileStorageService.uploadMultiple(files, category, entityId);
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
@@ -48,7 +49,7 @@ public class FileUploadController {
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<FileUploadResponse> getFile(@PathVariable Long id) {
+    public ResponseEntity<FileUploadResponse> getFile(@PathVariable UUID id) {
         FileUploadResponse response = fileStorageService.getFileById(id);
         return ResponseEntity.ok(response);
     }
@@ -64,7 +65,7 @@ public class FileUploadController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FileUploadResponse>> listFiles(
             @RequestParam FileCategory category,
-            @RequestParam(required = false) Long entityId) {
+            @RequestParam(required = false) UUID entityId) {
 
         List<FileUploadResponse> responses = fileStorageService.listFiles(category, entityId);
         return ResponseEntity.ok(responses);
@@ -72,14 +73,14 @@ public class FileUploadController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteFile(@PathVariable UUID id) {
         fileStorageService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}/hard")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-    public ResponseEntity<Void> hardDeleteFile(@PathVariable Long id) {
+    public ResponseEntity<Void> hardDeleteFile(@PathVariable UUID id) {
         fileStorageService.hardDelete(id);
         return ResponseEntity.noContent().build();
     }

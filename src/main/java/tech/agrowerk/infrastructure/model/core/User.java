@@ -56,7 +56,7 @@ public class User {
     @CPF
     private String cpf;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
     private Role role;
 
@@ -195,10 +195,10 @@ public class User {
     )
     private Set<Property> properties;
 
-    @OneToOne(mappedBy = "administrator")
+    @OneToOne(mappedBy = "administrator", fetch = FetchType.LAZY)
     private Supplier supplier;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<StockMovement> movements;
 
     public boolean isLoginCorrect(LoginRequest loginRequest, BCryptPasswordEncoder passwordEncoder) {

@@ -16,13 +16,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Builder
+
 @Entity
 @Table(name = "barter_offers")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BarterOffer {
 
     @Id
@@ -81,10 +82,11 @@ public class BarterOffer {
 
     private LocalDate expiresAt;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer viewCount = 0;
 
-    @OneToMany(mappedBy = "offer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "offer", orphanRemoval = false)
     @Builder.Default
     private List<BarterTransaction> transactions = new ArrayList<>();
 

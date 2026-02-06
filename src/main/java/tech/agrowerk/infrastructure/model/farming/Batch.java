@@ -3,12 +3,14 @@ package tech.agrowerk.infrastructure.model.farming;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.enums.BatchStatus;
 import tech.agrowerk.infrastructure.model.supplier.Supplier;
 import tech.agrowerk.infrastructure.model.inventory.Input;
 import tech.agrowerk.infrastructure.model.inventory.StockMovement;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,10 +63,6 @@ public class Batch {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_id", nullable = false)
     private Input input;
@@ -75,6 +73,25 @@ public class Batch {
 
     @OneToMany(mappedBy = "batch")
     private List<StockMovement> movements;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 
     public boolean isExpired() {
         return LocalDate.now().isAfter(expirationDate);

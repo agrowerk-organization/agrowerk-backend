@@ -6,6 +6,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import tech.agrowerk.infrastructure.exception.local.IllegalStateException;
 
+import java.util.UUID;
+
 @Component
 public class AuthUtil {
 
@@ -23,7 +25,7 @@ public class AuthUtil {
             throw new IllegalStateException("Principal is not an instance of Jwt");
         }
 
-        Long userId = jwt.getClaim("userId");
+        UUID userId = jwt.getClaim("userId");
         if (userId == null) {
             throw new IllegalArgumentException("userId not found in the token");
         }

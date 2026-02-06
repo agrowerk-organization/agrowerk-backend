@@ -10,6 +10,7 @@ import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.PlantingInput;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -37,10 +38,6 @@ public class Input {
 
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private InputCategory category;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -83,21 +80,35 @@ public class Input {
     @Column(nullable = false)
     private Boolean controlled = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private InputCategory category;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "input")
+    @OneToMany(mappedBy = "input", fetch = FetchType.LAZY)
     private List<Stock> stocks;
 
-    @OneToMany(mappedBy = "input")
+    @OneToMany(mappedBy = "input", fetch = FetchType.LAZY)
     private List<Batch> batches;
 
-    @OneToMany(mappedBy = "input")
+    @OneToMany(mappedBy = "input", fetch = FetchType.LAZY)
     private List<PlantingInput> plantingInputs;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

@@ -2,6 +2,8 @@ package tech.agrowerk.infrastructure.model.inventory;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.inventory.enums.WarehouseType;
 import tech.agrowerk.infrastructure.model.property.Property;
 
@@ -22,10 +24,6 @@ public class Warehouse {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id", nullable = false)
-    private Property property;
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -49,12 +47,19 @@ public class Warehouse {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id", nullable = false)
+    private Property property;
+
+    @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
 

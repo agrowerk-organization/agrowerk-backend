@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -31,7 +32,7 @@ public class TokenBlacklistService {
     }
 
 
-    public void blacklistAllUserTokens(Long userId) {
+    public void blacklistAllUserTokens(UUID userId) {
         String pattern = "blacklist:user:" + userId + ":*";
         Set<String> keys = redisTemplate.keys(pattern);
         if (!keys.isEmpty()) {
@@ -47,7 +48,7 @@ public class TokenBlacklistService {
         log.warn("All of the user's {} tokens have invalidated", userId);
     }
 
-    public boolean isTokenIssuedBeforeUserBlacklist(Long userId, Instant tokenIssuedAt) {
+    public boolean isTokenIssuedBeforeUserBlacklist(UUID userId, Instant tokenIssuedAt) {
         String key = "blacklist:user:" + userId;
         String blacklistTimestamp = redisTemplate.opsForValue().get(key);
 

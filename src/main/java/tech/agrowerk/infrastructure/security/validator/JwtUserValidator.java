@@ -12,6 +12,7 @@ import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.security.services.TokenBlacklistService;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class JwtUserValidator {
     private final UserRepository userRepository;
     private final TokenBlacklistService tokenBlacklistService;
 
-    public User validate(Long userId, Integer tokenVersion) {
+    public User validate(UUID userId, Integer tokenVersion) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("User not found"));
 
@@ -57,7 +58,7 @@ public class JwtUserValidator {
             throw new AccessDeniedException("Token has been revoked");
         }
 
-        Long userId = jwt.getClaim("userId");
+        UUID userId = jwt.getClaim("userId");
         Integer tokenVersion = jwt.getClaim("tv");
         Instant issuedAt = jwt.getIssuedAt();
 

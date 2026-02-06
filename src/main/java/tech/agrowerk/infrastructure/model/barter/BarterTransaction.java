@@ -83,7 +83,10 @@ public class BarterTransaction {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "transaction", fetch = FetchType.LAZY)
+    private BarterContract barterContract;
+
+    @OneToMany(mappedBy = "transaction", orphanRemoval = true)
     @Builder.Default
     private List<CropCommitment> cropCommitments = new ArrayList<>();
 

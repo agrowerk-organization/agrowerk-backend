@@ -41,7 +41,7 @@ public class CloudinaryStorageService implements FileStorageService {
 
     @Override
     @Transactional
-    public FileUploadResponse upload(MultipartFile file, FileCategory category, Long entityId) {
+    public FileUploadResponse upload(MultipartFile file, FileCategory category, UUID entityId) {
 
         validateFile(file, category);
 
@@ -72,7 +72,7 @@ public class CloudinaryStorageService implements FileStorageService {
 
     @Override
     @Transactional
-    public List<FileUploadResponse> uploadMultiple(List<MultipartFile> files, FileCategory category, Long entityId) {
+    public List<FileUploadResponse> uploadMultiple(List<MultipartFile> files, FileCategory category, UUID entityId) {
         return files.stream()
                 .map(file -> upload(file, category, entityId))
                 .collect(Collectors.toList());
@@ -80,7 +80,7 @@ public class CloudinaryStorageService implements FileStorageService {
 
     @Override
     @Transactional(readOnly = true)
-    public FileUploadResponse getFileById(Long id) {
+    public FileUploadResponse getFileById(UUID id) {
         FileMetadata metadata = fileMetadataRepository.findById(id)
                 .filter(f -> !f.isDeleted())
                 .orElseThrow(() -> new FileStorageException(
@@ -101,7 +101,7 @@ public class CloudinaryStorageService implements FileStorageService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<FileUploadResponse> listFiles(FileCategory category, Long entityId) {
+    public List<FileUploadResponse> listFiles(FileCategory category, UUID entityId) {
         List<FileMetadata> files = fileMetadataRepository.findByFileCategoryAndEntityIdAndDeletedFalse(category, entityId);
         return files.stream()
                 .map(this::mapToResponse)
@@ -110,7 +110,7 @@ public class CloudinaryStorageService implements FileStorageService {
 
     @Override
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID id) {
         FileMetadata metadata = fileMetadataRepository.findById(id)
                 .orElseThrow(() -> new FileStorageException(
                         FileStorageErrorCode.FILE_NOT_FOUND,
@@ -123,7 +123,7 @@ public class CloudinaryStorageService implements FileStorageService {
 
     @Override
     @Transactional
-    public void hardDelete(Long id) {
+    public void hardDelete(UUID id) {
         FileMetadata metadata = fileMetadataRepository.findById(id)
                 .orElseThrow(() -> new FileStorageException(
                         FileStorageErrorCode.FILE_NOT_FOUND,
@@ -237,7 +237,7 @@ public class CloudinaryStorageService implements FileStorageService {
     }
 
     private FileMetadata buildMetadata(Map uploadResult, MultipartFile file,
-                                       FileCategory category, Long entityId) {
+                                       FileCategory category, UUID entityId) {
         String publicId = (String) uploadResult.get("public_id");
         String secureUrl = (String) uploadResult.get("secure_url");
 

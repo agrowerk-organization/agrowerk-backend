@@ -39,6 +39,7 @@ public class CropCommitment {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal committedQuantity;
 
+    @Builder.Default
     @Column(precision = 10, scale = 2)
     private BigDecimal deliveredQuantity = BigDecimal.ZERO;
 

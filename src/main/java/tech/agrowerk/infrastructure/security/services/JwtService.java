@@ -62,7 +62,7 @@ public class JwtService {
         );
     }
 
-    private String generateAccessToken(Long userId, String email, String role, Integer tokenVersion) {
+    private String generateAccessToken(UUID userId, String email, String role, Integer tokenVersion) {
         Instant now = Instant.now();
         String jti = UUID.randomUUID().toString();
 
@@ -116,7 +116,7 @@ public class JwtService {
                 throw new AccessDeniedException("Token has expired");
             }
 
-            Long userId = jwt.getClaim("userId");
+            UUID userId = jwt.getClaim("userId");
             Integer tokenVersion = jwt.getClaim("tv");
 
             if (userId != null && tokenVersion != null) {
@@ -134,7 +134,7 @@ public class JwtService {
 
         } catch (JwtException e) {
             log.error("Invalid JWT token: {}", e.getMessage());
-            throw new AccessDeniedException("Invalid token", e);
+            throw new AccessDeniedException("Invalid token");
         }
     }
 
@@ -157,7 +157,7 @@ public class JwtService {
         }
     }
 
-    public void invalidateAllUserTokens(Long userId) {
+    public void invalidateAllUserTokens(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
