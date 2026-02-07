@@ -27,7 +27,7 @@
 
 ### Core
 - **Java 21** - Linguagem base
-- **Spring Boot 4.x** - Framework principal
+- **Spring Boot 3.x** - Framework principal
 - **Spring Security** - Autenticação e autorização
 - **Spring Data JPA** - Persistência de dados
 - **PostgreSQL 15** - Banco de dados relacional
