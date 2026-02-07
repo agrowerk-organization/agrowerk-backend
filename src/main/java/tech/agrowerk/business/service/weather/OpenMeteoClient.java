@@ -5,7 +5,9 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -13,13 +15,13 @@ import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.infrastructure.exception.local.WeatherApiException;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 
-@Slf4j
 @Service
+@Slf4j
 public class OpenMeteoClient {
 
-    private static final String BASE_URL = "https://api.open-meteo.com/v1/forecast";
+    @Value("${openmeteo.api.base-url}")
+    private String baseUrl;
 
     private static final String CURRENT_PARAMS = String.join(",",
             "temperature_2m",
@@ -69,7 +71,7 @@ public class OpenMeteoClient {
             RetryRegistry retryRegistry) {
 
         this.restClient = builder
-                .baseUrl(BASE_URL)
+                .baseUrl(baseUrl)
                 .defaultStatusHandler(HttpStatusCode::is4xxClientError, (request, response) -> {
                     String errorMsg = String.format(
                             "Client error calling Open-Meteo: %s - %s",
