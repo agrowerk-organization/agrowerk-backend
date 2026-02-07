@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,12 +12,10 @@ import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.*;
 import tech.agrowerk.business.mapper.WeatherMapper;
 import tech.agrowerk.infrastructure.exception.local.WeatherApiException;
-import tech.agrowerk.infrastructure.model.*;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherForecast;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertSeverity;
-import tech.agrowerk.infrastructure.repository.*;
 import tech.agrowerk.infrastructure.repository.weather.WeatherAlertRepository;
 import tech.agrowerk.infrastructure.repository.weather.WeatherCurrentRepository;
 import tech.agrowerk.infrastructure.repository.weather.WeatherForecastRepository;
@@ -33,6 +32,7 @@ import java.util.*;
 @Slf4j
 public class WeatherService {
 
+    private WeatherService self;
     private final OpenMeteoClient openMeteoClient;
     private final WeatherLocationRepository locationRepository;
     private final WeatherCurrentRepository currentRepository;
@@ -51,7 +51,7 @@ public class WeatherService {
     private static final BigDecimal STRESS_THRESHOLD_MEDIUM = BigDecimal.valueOf(0.5);
     private static final BigDecimal STRESS_THRESHOLD_HIGH = BigDecimal.valueOf(0.75);
 
-    @Cacheable(value = "weatherCurrent", key = "#locationId", unless = "#result == null")
+    @Cacheable(value = "weatherCurrent", key = "#locationId", unless = "#result == null", cacheManager = "redisCacheManager")
     @Transactional(readOnly = true)
     public Current getCurrentWeather(UUID locationId) {
         log.debug("Getting current weather for location: {}", locationId);
@@ -69,7 +69,7 @@ public class WeatherService {
         }
     }
 
-    @Cacheable(value = "weatherForecast", key = "#locationId + '-' + #days", unless = "#result == null")
+    @Cacheable(value = "weatherForecast", key = "#locationId + '-' + #days", unless = "#result == null", cacheManager = "redisCacheManager")
     @Transactional(readOnly = true)
     public List<Forecast> getForecast(UUID locationId, int days) {
         validateForecastDays(days);
@@ -88,7 +88,7 @@ public class WeatherService {
     }
 
 
-    @Cacheable(value = "weatherAlerts", key = "#locationId", unless = "#result == null")
+    @Cacheable(value = "weatherAlerts", key = "#locationId", unless = "#result == null", cacheManager = "redisCacheManager")
     @Transactional(readOnly = true)
     public List<Alert> getActiveAlerts(UUID locationId) {
         WeatherLocation location = findLocationOrThrow(locationId);
@@ -105,10 +105,10 @@ public class WeatherService {
 
         WeatherLocation location = findLocationOrThrow(locationId);
 
-        Current current = getCurrentWeather(locationId);
-        List<Forecast> dailyForecast = getForecast(locationId, DEFAULT_FORECAST_DAYS);
-        List<Alert> alerts = getActiveAlerts(locationId);
-        Statistics statistics = calculateStatistics(locationId);
+        Current current = self.getCurrentWeather(locationId);
+        List<Forecast> dailyForecast = self.getForecast(locationId, DEFAULT_FORECAST_DAYS);
+        List<Alert> alerts = self.getActiveAlerts(locationId);
+        Statistics statistics = self.calculateStatistics(locationId);
 
         return Dashboard.builder()
                 .locationId(location.getId())
@@ -123,7 +123,7 @@ public class WeatherService {
                 .build();
     }
 
-    @Cacheable(value = "weatherStatistics", key = "#locationId")
+    @Cacheable(value = "weatherStatistics", key = "#locationId", cacheManager = "redisCacheManager")
     @Transactional(readOnly = true)
     public Statistics calculateStatistics(UUID locationId) {
         WeatherLocation location = findLocationOrThrow(locationId);
@@ -167,7 +167,10 @@ public class WeatherService {
 
 
     @Scheduled(cron = "${weather.scheduler.cron:0 */10 * * * *}")
-    @CacheEvict(value = {"weatherCurrent", "weatherForecast", "weatherAlerts"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "weatherCurrent", allEntries = true, cacheManager = "caffeineCacheManager"),
+            @CacheEvict(value = "weatherCurrent", allEntries = true, cacheManager = "redisCacheManager")
+    })
     @Transactional
     public void scheduledWeatherUpdate() {
         log.info("Starting scheduled weather update");
@@ -240,13 +243,13 @@ public class WeatherService {
                 .filter(f -> f.getForecastHour() == null)
                 .limit(days)
                 .map(weatherMapper::toForecastDTO)
-                .toList(); // ✅ Java 16+
+                .toList();
     }
 
     private Current getFallbackCurrentWeather(WeatherLocation location) {
         return currentRepository
                 .findTopByLocationOrderByTimestampDesc(location)
-                .map(weatherMapper::toCurrentDTO)
+                .map(entity -> weatherMapper.toCurrentDTO(entity, false))
                 .orElseThrow(() -> new WeatherApiException(
                         "No weather data available for location: " + location.getId()));
     }

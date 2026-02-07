@@ -1,6 +1,12 @@
 package tech.agrowerk.infrastructure.config.cache;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +43,8 @@ public class CacheConfig {
         "weatherCurrent",
         "weatherForecast",
         "weatherAlerts",
-        "weatherLocations"
+        "weatherLocations",
+        "activeAlerts"
         );
 
         cacheManager.setCaffeine(Caffeine.newBuilder()
@@ -54,22 +61,26 @@ public class CacheConfig {
     }
 
     @Bean
-    public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory,
-            ObjectMapper objectMapper) {
+    public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+                .allowIfBaseType(Object.class)
+                .build();
+
+        mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
+
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .serializeKeysWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(
-                                new StringRedisSerializer()
-                        )
-                )
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(
-                                new GenericJackson2JsonRedisSerializer(objectMapper)
-                        )
-                )
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer))
                 .disableCachingNullValues()
-                .entryTtl(Duration.ofMinutes(30));
+                .entryTtl(Duration.ofMinutes(5));
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
@@ -96,6 +107,11 @@ public class CacheConfig {
         cacheConfigurations.put("weatherStatistics", defaultConfig
                 .entryTtl(Duration.ofMinutes(15))
                 .prefixCacheNameWith("agrowerk:weather:stats:")
+        );
+
+        cacheConfigurations.put("activeAlerts", defaultConfig
+                .entryTtl(Duration.ofMinutes(5))
+                .prefixCacheNameWith("agrowerk:weather:active-alerts:")
         );
 
         log.info("Redis cache manager initialized with {} cache configurations",

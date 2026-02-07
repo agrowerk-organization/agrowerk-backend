@@ -39,7 +39,7 @@ public class UserMapper {
         return new UserInfoDto(
                 user.getId(),
                 user.getName(),
-                user.getRole().getName().name()
+                user.getEmail()
         );
     }
 }

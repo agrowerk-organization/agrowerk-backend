@@ -12,7 +12,7 @@ public record Current(
         UUID id,
         UUID locationId,
         String locationName,
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "UTC")
         Instant timestamp,
         BigDecimal temperature,
         BigDecimal feelsLike,

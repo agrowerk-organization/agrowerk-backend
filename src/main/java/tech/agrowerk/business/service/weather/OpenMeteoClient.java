@@ -20,9 +20,6 @@ import java.math.BigDecimal;
 @Slf4j
 public class OpenMeteoClient {
 
-    @Value("${openmeteo.api.base-url}")
-    private String baseUrl;
-
     private static final String CURRENT_PARAMS = String.join(",",
             "temperature_2m",
             "relative_humidity_2m",
@@ -66,6 +63,7 @@ public class OpenMeteoClient {
     private final Retry retry;
 
     public OpenMeteoClient(
+            @Value("${openmeteo.api.base-url}") String baseUrl,
             RestClient.Builder builder,
             CircuitBreakerRegistry circuitBreakerRegistry,
             RetryRegistry retryRegistry) {

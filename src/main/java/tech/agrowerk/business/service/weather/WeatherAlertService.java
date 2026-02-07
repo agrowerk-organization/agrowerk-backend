@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,7 +51,10 @@ public class WeatherAlertService {
     private static final int OLD_ALERTS_RETENTION_DAYS = 30;
 
     @Transactional
-    @CacheEvict(value = "activeAlerts", key = "#current.location.id")
+    @Caching(evict = {
+            @CacheEvict(value = "activeAlerts", key = "#current.location.id", allEntries = true, cacheManager = "caffeineCacheManager"),
+            @CacheEvict(value = "activeAlerts", key = "#current.location.id", allEntries = true, cacheManager = "redisCacheManager")
+    })
     public List<WeatherAlert> processWeatherDataForAlerts(WeatherCurrent current) {
         log.debug("Processing weather data for alerts: location={}, temp={}, humidity={}",
                 current.getLocation().getName(), current.getTemperature(), current.getHumidity());
@@ -287,7 +291,7 @@ public class WeatherAlertService {
     }
 
 
-    @Cacheable(value = "activeAlerts", key = "#location.id")
+    @Cacheable(value = "activeAlerts", key = "#location.id", cacheManager = "redisCacheManager")
     @Transactional(readOnly = true)
     public List<Alert> getActiveAlertsByLocation(WeatherLocation location) {
         return alertRepository.findByLocationAndIsActiveTrue(location).stream()
@@ -317,7 +321,10 @@ public class WeatherAlertService {
     }
 
     @Transactional
-    @CacheEvict(value = "activeAlerts", key = "#alertId")
+    @Caching(evict = {
+            @CacheEvict(value = "activeAlerts", key = "#alertId", allEntries = true, cacheManager = "caffeineCacheManager"),
+            @CacheEvict(value = "activeAlerts", key = "#alertId", allEntries = true, cacheManager = "redisCacheManager")
+    })
     public void resolveAlert(UUID alertId, String resolvedBy) {
         WeatherAlert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new WeatherAlertException("Alert not found: " + alertId));
@@ -355,7 +362,7 @@ public class WeatherAlertService {
     public void cleanupOldAlerts() {
         log.info("Starting old alerts cleanup job");
 
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(OLD_ALERTS_RETENTION_DAYS);
+        Instant cutoffDate = Instant.now().minus(OLD_ALERTS_RETENTION_DAYS, ChronoUnit.DAYS);
 
         try {
             alertRepository.deleteByIsActiveFalseAndEndTimeBefore(cutoffDate);

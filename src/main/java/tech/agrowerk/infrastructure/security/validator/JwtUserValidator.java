@@ -51,27 +51,27 @@ public class JwtUserValidator {
         return user;
     }
 
-    public User validateToken(Jwt jwt) {
+    public void validateToken(Jwt jwt) {
         String jti = jwt.getClaimAsString("jti");
 
         if (tokenBlacklistService.isBlacklisted(jti)) {
             throw new AccessDeniedException("Token has been revoked");
         }
 
-        UUID userId = jwt.getClaim("userId");
-        Integer tokenVersion = jwt.getClaim("tv");
+        String userIdString = jwt.getClaimAsString("userId");
+        Number tvClaim = jwt.getClaim("tv");
+        Integer tokenVersion = (tvClaim != null) ? tvClaim.intValue() : null;
         Instant issuedAt = jwt.getIssuedAt();
 
-        if (userId == null) {
+        if (userIdString == null) {
             throw new AccessDeniedException("Invalid token: missing userId");
         }
 
+        UUID userId = UUID.fromString(userIdString);
         User user = validate(userId, tokenVersion);
 
         if (issuedAt != null && tokenBlacklistService.isTokenIssuedBeforeUserBlacklist(userId, issuedAt)) {
             throw new AccessDeniedException("Token was issued before user blacklist");
         }
-
-        return user;
     }
 }

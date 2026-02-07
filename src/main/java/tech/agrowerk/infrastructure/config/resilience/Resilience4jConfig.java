@@ -62,7 +62,6 @@ public class Resilience4jConfig {
     public RetryRegistry retryRegistry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(3)
-                .waitDuration(Duration.ofSeconds(1))
                 .intervalFunction(IntervalFunction
                         .ofExponentialBackoff(Duration.ofSeconds(1), 2))
                 .retryExceptions(

@@ -5,7 +5,7 @@ import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.Alert;
 import tech.agrowerk.application.dto.weather.Current;
 import tech.agrowerk.application.dto.weather.Forecast;
-import tech.agrowerk.infrastructure.model.*;
+import tech.agrowerk.application.dto.weather.location.WeatherLocationDto;
 import tech.agrowerk.infrastructure.model.weather.WeatherAlert;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherForecast;
@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class WeatherMapper {
 
         return WeatherCurrent.builder()
                 .location(location)
-                .timestamp(Instant.parse(current.time()))
+                .timestamp(Instant.parse(current.time() + ":00Z"))
                 .temperature(current.temperature2m())
                 .feelsLike(current.apparentTemperature())
                 .humidity(current.relativeHumidity2m())
@@ -53,7 +52,7 @@ public class WeatherMapper {
                 .build();
     }
 
-    public Current toCurrentDTO(WeatherCurrent entity) {
+    public Current toCurrentDTO(WeatherCurrent entity, boolean fromCache) {
         if (entity == null) return null;
 
         return Current.builder()
@@ -78,7 +77,7 @@ public class WeatherMapper {
                 .weatherCode(entity.getWeatherCode())
                 .weatherIcon(getWeatherIcon(entity.getWeatherCode()))
                 .source(entity.getSource())
-                .fromCache(true)
+                .fromCache(fromCache)
                 .fetchedAt(entity.getCreatedAt())
                 .build();
     }
@@ -159,6 +158,27 @@ public class WeatherMapper {
                 .notified(entity.getNotified())
                 .source(entity.getSource())
                 .createdAt(entity.getCreatedAt())
+                .build();
+    }
+
+    public WeatherLocationDto toLocationDTO(WeatherLocation entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        return WeatherLocationDto.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .latitude(entity.getLatitude())
+                .longitude(entity.getLongitude())
+                .state(entity.getState())
+                .country(entity.getCountry())
+                .timezone(entity.getTimezone())
+                .propertyId(entity.getProperty() != null ? entity.getProperty().getId() : null)
+                .propertyName(entity.getProperty() != null ? entity.getProperty().getName() : null)
+                .active(entity.getActive())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 
