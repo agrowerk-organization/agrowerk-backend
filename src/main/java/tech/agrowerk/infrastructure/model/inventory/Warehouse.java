@@ -63,17 +63,4 @@ public class Warehouse {
     @Column(nullable = false)
     private Instant updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
-        if (currentOccupancyKg == null) {
-            currentOccupancyKg = BigDecimal.ZERO;
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
-    }
 }

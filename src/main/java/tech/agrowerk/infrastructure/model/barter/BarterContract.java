@@ -59,15 +59,8 @@ public class BarterContract {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
         if (contractStatus == null) {
             contractStatus = ContractStatus.DRAFT;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
     }
 }

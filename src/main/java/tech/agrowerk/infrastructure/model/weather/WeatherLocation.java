@@ -34,8 +34,8 @@ public class WeatherLocation {
     @Column(nullable = false, precision = 10, scale = 7)
     private BigDecimal longitude;
 
-    @OneToMany(mappedBy = "weather_locations", fetch = FetchType.LAZY)
-    private List<State> states;
+    @Column(nullable = false, length = 2)
+    private String state;
 
     @Column(length = 2)
     @Builder.Default
@@ -60,14 +60,4 @@ public class WeatherLocation {
     @Column(nullable = false)
     private Instant updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
-    }
 }

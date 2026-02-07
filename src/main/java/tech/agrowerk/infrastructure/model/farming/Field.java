@@ -69,15 +69,8 @@ public class Field {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
         if (fieldStatus == null) {
             fieldStatus = FieldStatus.ACTIVE;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
     }
 }
