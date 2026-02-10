@@ -1,34 +1,8 @@
-package tech.agrowerk.business.service;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import tech.agrowerk.application.dto.auth.ChangePassword;
-import tech.agrowerk.application.dto.auth.LoginRequest;
-import tech.agrowerk.application.dto.user.UserInfoDto;
-import tech.agrowerk.business.service.auth.AuthService;
-import tech.agrowerk.infrastructure.exception.local.BadCredentialsException;
-import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
-import tech.agrowerk.infrastructure.exception.local.InvalidPasswordException;
-import tech.agrowerk.infrastructure.exception.local.InvalidTokenException;
-import tech.agrowerk.infrastructure.model.core.User;
-import tech.agrowerk.infrastructure.repository.core.UserRepository;
-import tech.agrowerk.infrastructure.security.services.JwtService;
-
-import java.util.Optional;
+package tech.agrowerk.business.service.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 /*@ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Tests")

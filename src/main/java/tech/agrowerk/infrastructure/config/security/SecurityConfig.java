@@ -11,6 +11,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -76,6 +77,7 @@ public class SecurityConfig {
             "/auth/oauth2/**",
             "/actuator/health",
             "/actuator/info",
+            "actuator/prometheus",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
@@ -84,6 +86,12 @@ public class SecurityConfig {
             "/favicon.ico",
             "/error"
     };
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers("/actuator/prometheus", "/actuator/health", "/favicon.ico");
+    }
 
     @PostConstruct
     public void validateKeys() {
@@ -138,18 +146,14 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers("/actuator/prometheus", "/actuator/metrics/**")
-                        .hasRole("SYSTEM_ADMIN")
                         .requestMatchers("/login/oauth2/code/**").permitAll()
-                        .requestMatchers("/admin/**", "/api/admin/**")
-                        .hasRole("SYSTEM_ADMIN")
+                        .requestMatchers("/admin/**", "/api/admin/**").hasAuthority("SYSTEM_ADMIN")
                         .requestMatchers("/suppliers/**", "/api/suppliers/**")
-                        .hasAnyRole("SYSTEM_ADMIN", "SUPPLIER_ADMIN")
+                        .hasAnyAuthority("SYSTEM_ADMIN", "SUPPLIER_ADMIN")
                         .requestMatchers("/producers/**", "/api/producers/**")
-                        .hasAnyRole("SYSTEM_ADMIN", "PRODUCER")
+                        .hasAnyAuthority("SYSTEM_ADMIN", "PRODUCER")
                         .anyRequest().authenticated()
                 )
-
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .sessionFixation().none()

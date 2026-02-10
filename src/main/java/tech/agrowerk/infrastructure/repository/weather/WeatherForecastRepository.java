@@ -23,5 +23,7 @@ public interface WeatherForecastRepository extends JpaRepository<WeatherForecast
             LocalDate date
     );
 
+    void deleteByLocationAndForecastDateBetween(WeatherLocation location, LocalDate start, LocalDate end);
+
     void deleteByForecastDateBefore(LocalDate date);
 }

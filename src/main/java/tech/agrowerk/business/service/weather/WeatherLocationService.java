@@ -31,7 +31,8 @@ public class WeatherLocationService {
     private final WeatherMapper weatherMapper;
 
 
-    @Cacheable(value = "weatherLocations", key = "'all'", cacheManager = "redisCacheManager")    @Transactional(readOnly = true)
+    @Cacheable(value = "weatherLocations", key = "'all'")
+    @Transactional(readOnly = true)
     public List<WeatherLocationDto> findAllLocations() {
         log.debug("Finding all weather locations");
 
@@ -41,7 +42,8 @@ public class WeatherLocationService {
                 .toList();
     }
 
-    @Cacheable(value = "weatherLocations", key = "'prop_'", cacheManager = "redisCacheManager")    @Transactional(readOnly = true)
+    @Cacheable(value = "weatherLocations", key = "'prop_'")
+    @Transactional(readOnly = true)
     public List<WeatherLocationDto> findActiveLocations() {
         log.debug("Finding active weather locations");
 
@@ -52,7 +54,8 @@ public class WeatherLocationService {
     }
 
 
-    @Cacheable(value = "weatherLocations", key = "#id", cacheManager = "redisCacheManager")    @Transactional(readOnly = true)
+    @Cacheable(value = "weatherLocations", key = "#id")
+    @Transactional(readOnly = true)
     public WeatherLocationDto findById(UUID id) {
         log.debug("Finding weather location by id: {}", id);
 
@@ -62,7 +65,7 @@ public class WeatherLocationService {
         return weatherMapper.toLocationDTO(location);
     }
 
-    @Cacheable(value = "weatherLocations", key = "'prop_' + #propertyId", cacheManager = "redisCacheManager")
+    @Cacheable(value = "weatherLocations", key = "'prop_' + #propertyId")
     @Transactional(readOnly = true)
     public WeatherLocationDto findByPropertyId(UUID propertyId) {
         log.debug("Finding weather location by property: {}", propertyId);
@@ -78,8 +81,9 @@ public class WeatherLocationService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "weatherLocations", allEntries = true, cacheManager = "caffeineCacheManager"),
-            @CacheEvict(value = "weatherLocations", allEntries = true, cacheManager = "redisCacheManager")
+            @CacheEvict(value = "weatherLocations", key = "'all'"),
+            @CacheEvict(value = "weatherLocations", key = "#result.id"),
+            @CacheEvict(value = "weatherLocations", key = "'prop_' + #result.propertyId")
     })
     @Transactional
     public WeatherLocationDto createLocation(WeatherLocationCreateRequest request) {
@@ -118,8 +122,9 @@ public class WeatherLocationService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "weatherLocations", allEntries = true, cacheManager = "caffeineCacheManager"),
-            @CacheEvict(value = "weatherLocations", allEntries = true, cacheManager = "redisCacheManager")
+            @CacheEvict(value = "weatherLocations", key = "'all'"),
+            @CacheEvict(value = "weatherLocations", key = "#id"),
+            @CacheEvict(value = "weatherLocations", key = "'prop_' + #request.propertyId")
     })
     @Transactional
     public WeatherLocationDto updateLocation(UUID id, WeatherLocationUpdateRequest request) {
@@ -156,8 +161,8 @@ public class WeatherLocationService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "weatherLocations", allEntries = true, cacheManager = "caffeineCacheManager"),
-            @CacheEvict(value = "weatherLocations", allEntries = true, cacheManager = "redisCacheManager")
+            @CacheEvict(value = "weatherLocations", key = "'all'"),
+            @CacheEvict(value = "weatherLocations", key = "#id"),
     })
     @Transactional
     public void setActive(UUID id, boolean active) {
@@ -173,7 +178,7 @@ public class WeatherLocationService {
     }
 
 
-    @CacheEvict(value = "weatherLocations", allEntries = true)
+    @CacheEvict(value = "weatherLocations", key = "'prop_' + #result.propertyId")
     @Transactional
     public void deleteLocation(UUID id) {
         log.warn("Deleting weather location: id={}", id);

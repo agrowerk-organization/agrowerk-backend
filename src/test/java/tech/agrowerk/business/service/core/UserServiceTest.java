@@ -1,32 +1,8 @@
-package tech.agrowerk.business.service;
-
-import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
-import tech.agrowerk.application.dto.crud.get.UserResponse;
-import tech.agrowerk.business.mapper.UserMapper;
-import tech.agrowerk.business.service.core.UserService;
-import tech.agrowerk.infrastructure.model.core.enums.RoleType;
-import tech.agrowerk.infrastructure.model.core.Role;
-import tech.agrowerk.infrastructure.model.core.User;
-import tech.agrowerk.infrastructure.repository.core.RoleRepository;
-import tech.agrowerk.infrastructure.repository.core.UserRepository;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
+package tech.agrowerk.business.service.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 /*
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService Tests")

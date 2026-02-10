@@ -51,10 +51,7 @@ public class WeatherAlertService {
     private static final int OLD_ALERTS_RETENTION_DAYS = 30;
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "activeAlerts", key = "#current.location.id", allEntries = true, cacheManager = "caffeineCacheManager"),
-            @CacheEvict(value = "activeAlerts", key = "#current.location.id", allEntries = true, cacheManager = "redisCacheManager")
-    })
+    @CacheEvict(value = "weatherAlerts", key = "#current.location.id")
     public List<WeatherAlert> processWeatherDataForAlerts(WeatherCurrent current) {
         log.debug("Processing weather data for alerts: location={}, temp={}, humidity={}",
                 current.getLocation().getName(), current.getTemperature(), current.getHumidity());
@@ -174,7 +171,6 @@ public class WeatherAlertService {
         }
     }
 
-
     private void processDiseaseRiskAlerts(WeatherCurrent current, List<WeatherAlert> alerts) {
         if (current.getHumidity() == null || current.getTemperature() == null) return;
 
@@ -252,7 +248,7 @@ public class WeatherAlertService {
         return alertRepository.findByLocationAndIsActiveTrue(location).stream()
                 .anyMatch(alert ->
                         alert.getAlertType() == type &&
-                                alert.getStartTime().isAfter(Instant.from(cutoffTime))
+                                alert.getStartTime().isAfter(cutoffTime)
                 );
     }
 
@@ -281,7 +277,6 @@ public class WeatherAlertService {
                     .timestamp(LocalDateTime.now())
                     .build();
 
-
             log.debug("WebSocket notification sent: alertId={}, locationId={}",
                     alert.getId(), alert.getLocation().getId());
 
@@ -290,20 +285,19 @@ public class WeatherAlertService {
         }
     }
 
-
-    @Cacheable(value = "activeAlerts", key = "#location.id", cacheManager = "redisCacheManager")
+    @Cacheable(value = "weatherAlerts", key = "#location.id", unless = "#result == null")
     @Transactional(readOnly = true)
     public List<Alert> getActiveAlertsByLocation(WeatherLocation location) {
+        log.debug("Fetching active alerts for location: {}", location.getName());
         return alertRepository.findByLocationAndIsActiveTrue(location).stream()
                 .map(weatherMapper::toAlertDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<WeatherAlert> getPendingNotifications() {
         return alertRepository.findByIsActiveTrueAndNotifiedFalse();
     }
-
 
     @Transactional(readOnly = true)
     public Map<String, Object> getAlertStatistics(WeatherLocation location) {
@@ -322,8 +316,7 @@ public class WeatherAlertService {
 
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "activeAlerts", key = "#alertId", allEntries = true, cacheManager = "caffeineCacheManager"),
-            @CacheEvict(value = "activeAlerts", key = "#alertId", allEntries = true, cacheManager = "redisCacheManager")
+            @CacheEvict(value = "weatherAlerts", allEntries = true)
     })
     public void resolveAlert(UUID alertId, String resolvedBy) {
         WeatherAlert alert = alertRepository.findById(alertId)
@@ -338,14 +331,12 @@ public class WeatherAlertService {
         log.info("Alert manually resolved: id={}, by={}", alertId, resolvedBy);
     }
 
-
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void deactivateExpiredAlerts() {
         log.info("Starting expired alerts deactivation job");
 
         Instant now = Instant.now();
-
         List<WeatherAlert> expiredAlerts = alertRepository.findByIsActiveTrueAndEndTimeBefore(now);
 
         for (WeatherAlert alert : expiredAlerts) {
@@ -371,7 +362,6 @@ public class WeatherAlertService {
             log.error("Error during old alerts cleanup", e);
         }
     }
-
 
     @Scheduled(fixedDelay = 900000)
     @Transactional

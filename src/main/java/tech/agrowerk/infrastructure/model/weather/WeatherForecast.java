@@ -11,7 +11,19 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "weather_forecasts")
+@Table(
+        name = "weather_forecasts",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_forecast_location_date_hour",
+                        columnNames = {"location_id", "forecast_date", "forecast_hour"}
+                )
+        },
+        indexes = {
+                @Index(name = "idx_forecast_location_date",
+                        columnList = "location_id, forecast_date")
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

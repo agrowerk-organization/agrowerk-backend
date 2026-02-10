@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tech.agrowerk.infrastructure.config.security.SecurityConfig;
 import tech.agrowerk.infrastructure.security.services.CookieService;
@@ -30,16 +31,14 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
     private final JwtUserValidator jwtUserValidator;
     private final JwtDecoder jwtDecoder;
     private final CookieService cookieService;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = request.getServletPath();
 
         boolean isPublic = Arrays.stream(SecurityConfig.PUBLIC_ENDPOINTS)
-                .anyMatch(pattern -> {
-                    String regex = pattern.replace("/**", ".*").replace("/*", "/[^/]*");
-                    return path.matches(regex);
-                });
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
 
         if (isPublic) {
             log.debug("Skipping JWT blacklist filter for public path: {}", path);
