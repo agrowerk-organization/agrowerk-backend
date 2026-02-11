@@ -29,7 +29,7 @@ check_state() {
     STATE=$(curl -s $MONITOR_URL/circuit-breaker/state || echo "ERROR")
     METRICS=$(curl -s $MONITOR_URL/circuit-breaker/metrics | jq '.' 2>/dev/null || echo "{}")
 
-    echo -e "${BLUE}📊 Circuit Breaker state: ${YELLOW}$STATE${NC}"
+    echo -e "${BLUE} Circuit Breaker state: ${YELLOW}$STATE${NC}"
     echo "$METRICS"
     echo ""
 }
@@ -47,32 +47,32 @@ call_weather() {
     fi
 }
 
-echo -e "\n${BLUE}1️⃣  INITIAL STATE (should be CLOSED)${NC}"
+echo -e "\n${BLUE} 1  INITIAL STATE (should be CLOSED)${NC}"
 check_state
 
-echo -e "${BLUE}2️⃣  Making 5 normal calls...${NC}"
+echo -e "${BLUE} 2 Making 5 normal calls...${NC}"
 for i in {1..5}; do
     call_weather $i
     sleep 1
 done
 check_state
 
-echo -e "${BLUE}3️⃣  Applying TOXIC - Extreme latency...${NC}"
+echo -e "${BLUE} 3 Applying TOXIC - Extreme latency...${NC}"
 ./scripts/toxiproxy-helper.sh toxic-remove-all openmeteo 2>/dev/null
 ./scripts/toxiproxy-helper.sh toxic-add-latency openmeteo 10000
-echo -e "${YELLOW}   ⚠️  10s latency applied (app timeout: 5s)${NC}"
+echo -e "${YELLOW}  10s latency applied (app timeout: 5s)${NC}"
 
-echo -e "\n${BLUE}4️⃣  Making 10 calls that will TIMEOUT...${NC}"
-echo -e "${YELLOW}   (Circuit Breaker should open after 5 calls with 50% failure)${NC}"
+echo -e "\n${BLUE} Making 10 calls that will TIMEOUT...${NC}"
+echo -e "${YELLOW} 4 (Circuit Breaker should open after 5 calls with 50% failure)${NC}"
 for i in {1..10}; do
     call_weather $i
     sleep 1
 done
 
-echo -e "\n${BLUE}5️⃣  STATE AFTER FAILURES (should be OPEN)${NC}"
+echo -e "\n${BLUE} 5 STATE AFTER FAILURES (should be OPEN)${NC}"
 check_state
 
-echo -e "${BLUE}6️⃣  Trying calls with Circuit OPEN (should be blocked)...${NC}"
+echo -e "${BLUE} 6 Trying calls with Circuit OPEN (should be blocked)...${NC}"
 for i in {1..3}; do
     echo -n "   Call $i... "
     if curl -s --max-time 10 "$WEATHER_ENDPOINT?latitude=-23.5505&longitude=-46.6333" > /dev/null 2>&1; then
@@ -83,11 +83,11 @@ for i in {1..3}; do
 done
 check_state
 
-echo -e "\n${BLUE}7️⃣  Removing TOXIC (simulating service recovery)...${NC}"
+echo -e "\n${BLUE} 7 Removing TOXIC (simulating service recovery)...${NC}"
 ./scripts/toxiproxy-helper.sh toxic-remove-all openmeteo
-echo -e "${GREEN}   ✅ Latency removed${NC}"
+echo -e "${GREEN}   Latency removed${NC}"
 
-echo -e "\n${BLUE}8️⃣  Waiting 60s for OPEN → HALF_OPEN transition...${NC}"
+echo -e "\n${BLUE} 8  Waiting 60s for OPEN → HALF_OPEN transition...${NC}"
 for i in {60..1}; do
     echo -ne "   ${YELLOW}$i seconds remaining...${NC}\r"
     sleep 1
@@ -97,21 +97,21 @@ echo ""
 echo -e "\n${BLUE}State after waiting (should be HALF_OPEN):${NC}"
 check_state
 
-echo -e "${BLUE}9️⃣  Making 3 test calls (allowed in HALF_OPEN)...${NC}"
+echo -e "${BLUE} 9  Making 3 test calls (allowed in HALF_OPEN)...${NC}"
 for i in {1..3}; do
     call_weather $i
     sleep 2
 done
 
-echo -e "\n${BLUE}🔟 FINAL STATE (should be CLOSED again)${NC}"
+echo -e "\n${BLUE} 10 FINAL STATE (should be CLOSED again)${NC}"
 check_state
 
 echo ""
 echo "=========================================="
-echo -e "${GREEN}✅ TEST COMPLETED!${NC}"
+echo -e "${GREEN} TEST COMPLETED!${NC}"
 echo "=========================================="
 echo ""
-echo "📝 Summary:"
+echo " Summary:"
 echo "   - Circuit Breaker tested: CLOSED → OPEN → HALF_OPEN → CLOSED"
 echo "   - Failures simulated successfully"
 echo "   - Automatic recovery verified"

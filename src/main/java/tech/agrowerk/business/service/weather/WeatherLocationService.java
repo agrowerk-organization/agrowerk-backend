@@ -34,67 +34,55 @@ public class WeatherLocationService {
     @Cacheable(value = "weatherLocations", key = "'all'")
     @Transactional(readOnly = true)
     public List<WeatherLocationDto> findAllLocations() {
-        log.debug("Finding all weather locations");
-
+        log.debug("Finding all weather locations - Cache MISS");
         return locationRepository.findAll()
                 .stream()
                 .map(weatherMapper::toLocationDTO)
                 .toList();
     }
 
-    @Cacheable(value = "weatherLocations", key = "'prop_'")
+    @Cacheable(value = "weatherLocations", key = "'active'")
     @Transactional(readOnly = true)
     public List<WeatherLocationDto> findActiveLocations() {
-        log.debug("Finding active weather locations");
-
+        log.debug("Finding active weather locations - Cache MISS");
         return locationRepository.findByActiveTrue()
                 .stream()
                 .map(weatherMapper::toLocationDTO)
                 .toList();
     }
 
-
     @Cacheable(value = "weatherLocations", key = "#id")
     @Transactional(readOnly = true)
     public WeatherLocationDto findById(UUID id) {
-        log.debug("Finding weather location by id: {}", id);
-
-        WeatherLocation location = locationRepository.findById(id)
+        log.debug("Finding weather location by id: {} - Cache MISS", id);
+        return locationRepository.findById(id)
+                .map(weatherMapper::toLocationDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Weather location not found: " + id));
-
-        return weatherMapper.toLocationDTO(location);
     }
 
     @Cacheable(value = "weatherLocations", key = "'prop_' + #propertyId")
     @Transactional(readOnly = true)
     public WeatherLocationDto findByPropertyId(UUID propertyId) {
-        log.debug("Finding weather location by property: {}", propertyId);
+        log.debug("Finding weather location by property: {} - Cache MISS", propertyId);
 
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new EntityNotFoundException("Property not found: " + propertyId));
 
-        WeatherLocation location = locationRepository.findByProperty(property)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No weather location found for property: " + propertyId));
-
-        return weatherMapper.toLocationDTO(location);
+        return locationRepository.findByProperty(property)
+                .map(weatherMapper::toLocationDTO)
+                .orElseThrow(() -> new EntityNotFoundException("No weather location found for property: " + propertyId));
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "weatherLocations", key = "'all'"),
-            @CacheEvict(value = "weatherLocations", key = "#result.id"),
-            @CacheEvict(value = "weatherLocations", key = "'prop_' + #result.propertyId")
-    })
+
+    @CacheEvict(value = "weatherLocations", allEntries = true)
     @Transactional
     public WeatherLocationDto createLocation(WeatherLocationCreateRequest request) {
-        log.info("Creating weather location: name={}, lat={}, lon={}",
-                request.name(), request.latitude(), request.longitude());
+        log.info("Creating weather location: {}. Clearing all location caches.", request.name());
 
         locationRepository.findByLatitudeAndLongitude(request.latitude(), request.longitude())
                 .ifPresent(existing -> {
-                    throw new EntityAlreadyExistsException(
-                            "Weather location already exists for these coordinates");
-        });
+                    throw new EntityAlreadyExistsException("Location already exists at these coordinates");
+                });
 
         WeatherLocation location = WeatherLocation.builder()
                 .name(request.name())
@@ -108,86 +96,50 @@ public class WeatherLocationService {
 
         if (request.propertyId() != null) {
             Property property = propertyRepository.findById(request.propertyId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Property not found: " + request.propertyId()));
-
+                    .orElseThrow(() -> new EntityNotFoundException("Property not found: " + request.propertyId()));
             location.setProperty(property);
         }
 
-        location = locationRepository.save(location);
-
-        log.info("Weather location created successfully: id={}", location.getId());
-
-        return weatherMapper.toLocationDTO(location);
+        return weatherMapper.toLocationDTO(locationRepository.save(location));
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "weatherLocations", key = "'all'"),
-            @CacheEvict(value = "weatherLocations", key = "#id"),
-            @CacheEvict(value = "weatherLocations", key = "'prop_' + #request.propertyId")
-    })
+    @CacheEvict(value = "weatherLocations", allEntries = true)
     @Transactional
     public WeatherLocationDto updateLocation(UUID id, WeatherLocationUpdateRequest request) {
-        log.info("Updating weather location: id={}", id);
+        log.info("Updating weather location: {}. Clearing all location caches.", id);
 
         WeatherLocation location = locationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Weather location not found: " + id));
 
-        if (request.name() != null) {
-            location.setName(request.name());
-        }
-
-        if (request.timezone() != null) {
-            location.setTimezone(request.timezone());
-        }
-
-        if (request.active() != null) {
-            location.setActive(request.active());
-        }
+        if (request.name() != null) location.setName(request.name());
+        if (request.timezone() != null) location.setTimezone(request.timezone());
+        if (request.active() != null) location.setActive(request.active());
 
         if (request.propertyId() != null) {
             Property property = propertyRepository.findById(request.propertyId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Property not found: " + request.propertyId()));
-
+                    .orElseThrow(() -> new EntityNotFoundException("Property not found: " + request.propertyId()));
             location.setProperty(property);
         }
 
-        location = locationRepository.save(location);
-
-        log.info("Weather location updated successfully: id={}", id);
-
-        return weatherMapper.toLocationDTO(location);
+        return weatherMapper.toLocationDTO(locationRepository.save(location));
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "weatherLocations", key = "'all'"),
-            @CacheEvict(value = "weatherLocations", key = "#id"),
-    })
+    @CacheEvict(value = "weatherLocations", allEntries = true)
     @Transactional
     public void setActive(UUID id, boolean active) {
-        log.info("Setting weather location active status: id={}, active={}", id, active);
-
+        log.info("Changing active status for location: {}. Clearing all location caches.", id);
         WeatherLocation location = locationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Weather location not found: " + id));
-
         location.setActive(active);
         locationRepository.save(location);
-
-        log.info("Weather location active status updated: id={}, active={}", id, active);
     }
 
-
-    @CacheEvict(value = "weatherLocations", key = "'prop_' + #result.propertyId")
+    @CacheEvict(value = "weatherLocations", allEntries = true)
     @Transactional
     public void deleteLocation(UUID id) {
-        log.warn("Deleting weather location: id={}", id);
-
+        log.warn("Deleting weather location: {}. Clearing all location caches.", id);
         WeatherLocation location = locationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Weather location not found: " + id));
-
         locationRepository.delete(location);
-
-        log.warn("Weather location deleted: id={}", id);
     }
 }

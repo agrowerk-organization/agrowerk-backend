@@ -66,8 +66,8 @@ public class WeatherService {
         WeatherLocation location = findLocationOrThrow(locationId);
 
         return currentRepository.findTopByLocationOrderByTimestampDesc(location)
-                .map(weather -> weatherMapper.toCurrentDTO(weather, true)) // true indica que é dado histórico/offline
-                .orElseThrow(() -> new WeatherApiException("API indisponível e nenhum dado histórico encontrado no banco."));
+                .map(weather -> weatherMapper.toCurrentDTO(weather, true))
+                .orElseThrow(() -> new WeatherApiException("API unavailable and no historical data found in the database."));
     }
 
     @Transactional(readOnly = true)
@@ -113,8 +113,8 @@ public class WeatherService {
 
         WeatherLocation location = findLocationOrThrow(locationId);
 
-        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(STATISTICS_PERIOD_DAYS);
-        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusMonths(STATISTICS_PERIOD_MONTHS);
+        Instant sevenDaysAgo = Instant.now().minus(STATISTICS_PERIOD_DAYS, ChronoUnit.DAYS);
+        Instant thirtyDaysAgo = Instant.now().minus(STATISTICS_PERIOD_MONTHS, ChronoUnit.DAYS);
 
         List<WeatherCurrent> last7Days =
                 currentRepository.findByLocationAndTimestampAfterOrderByTimestampDesc(

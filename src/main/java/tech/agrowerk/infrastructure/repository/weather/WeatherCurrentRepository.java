@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,7 @@ public interface WeatherCurrentRepository extends JpaRepository<WeatherCurrent, 
 
     List<WeatherCurrent> findByLocationAndTimestampAfterOrderByTimestampDesc(
             WeatherLocation location,
-            LocalDateTime after
+            Instant after
     );
 
     void deleteByTimestampBefore(LocalDateTime timestamp);}

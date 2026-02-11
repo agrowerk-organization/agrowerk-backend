@@ -102,7 +102,7 @@ public class WeatherAlertService {
                     current,
                     WeatherAlertType.HEAT_WAVE,
                     WeatherAlertSeverity.HIGH,
-                    "Alerta de Onda de Calor",
+                    "Alerta de onda de calor",
                     String.format("Temperatura de %.1f°C pode causar estresse térmico severo nas culturas. " +
                             "Risco de redução de produtividade e qualidade.", temp),
                     buildRecommendations(
@@ -129,7 +129,7 @@ public class WeatherAlertService {
                     current,
                     WeatherAlertType.HEAVY_RAIN,
                     severity,
-                    "Chuva Intensa Detectada",
+                    "Chuva intensa detectada",
                     String.format("Precipitação acumulada de %.1fmm. Alto risco de alagamento, erosão e " +
                             "compactação do solo.", rainfall),
                     buildRecommendations(
@@ -157,7 +157,7 @@ public class WeatherAlertService {
                     current,
                     WeatherAlertType.STRONG_WINDS,
                     severity,
-                    "Ventos Fortes Previstos",
+                    "Ventos fortes previstos",
                     String.format("Ventos de %.1f m/s (%.0f km/h) podem causar danos mecânicos às culturas, " +
                             "estruturas e sistemas de irrigação.", windSpeed, windSpeed.multiply(BigDecimal.valueOf(3.6))),
                     buildRecommendations(

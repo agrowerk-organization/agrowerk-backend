@@ -8,6 +8,13 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import tech.agrowerk.application.dto.weather.Current;
 import tech.agrowerk.application.dto.weather.Forecast;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
@@ -16,17 +23,47 @@ import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles({"test", "resilience4j", "cache"})
+@Testcontainers
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class WeatherServiceTest {
 
+    @Container
+    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>(
+            DockerImageName.parse("postgres:15-alpine"))
+            .withDatabaseName("testdb")
+            .withUsername("testuser")
+            .withPassword("testpass")
+            .withReuse(true);
+
+    @Container
+    static GenericContainer<?> redisContainer = new GenericContainer<>(
+            DockerImageName.parse("redis:7-alpine"))
+            .withExposedPorts(6379)
+            .withReuse(true);
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("spring.data.redis.host", redisContainer::getHost);
+        registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379));
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.show-sql", () -> "true");
+        registry.add("spring.jpa.properties.hibernate.format_sql", () -> "true");
+    }
+
     private final WeatherService weatherService;
+    private final WeatherCacheService cacheService;
     private final WeatherLocationRepository locationRepository;
     private final WeatherCurrentRepository currentRepository;
     private final CacheManager caffeineCacheManager;
@@ -39,17 +76,29 @@ class WeatherServiceTest {
     @Autowired
     public WeatherServiceTest(
             WeatherService weatherService,
+            WeatherCacheService cacheService,
             WeatherLocationRepository locationRepository,
             WeatherCurrentRepository currentRepository,
             CacheManager caffeineCacheManager,
             CacheManager redisCacheManager,
             RedisTemplate<String, Object> redisTemplate) {
         this.weatherService = weatherService;
+        this.cacheService = cacheService;
         this.locationRepository = locationRepository;
         this.currentRepository = currentRepository;
         this.caffeineCacheManager = caffeineCacheManager;
         this.redisCacheManager = redisCacheManager;
         this.redisTemplate = redisTemplate;
+    }
+
+    @BeforeAll
+    static void beforeAll() {
+        log.info("PostgreSQL Container started at: {}:{}",
+                postgresContainer.getHost(),
+                postgresContainer.getFirstMappedPort());
+        log.info("Redis Container started at: {}:{}",
+                redisContainer.getHost(),
+                redisContainer.getMappedPort(6379));
     }
 
     @BeforeEach
@@ -88,8 +137,7 @@ class WeatherServiceTest {
 
         assertThat(locationRepository.existsById(testLocationId)).isTrue();
 
-        Current current = weatherService.getCurrentWeather(testLocationId);
-
+        Current current = cacheService.getCurrentWeather(testLocationId);
 
         assertThat(current).isNotNull();
         log.info("First request finished");
@@ -121,7 +169,7 @@ class WeatherServiceTest {
         log.info("Running Test 2: Caffeine HIT");
 
         long startTime = System.currentTimeMillis();
-        weatherService.getCurrentWeather(testLocationId);
+        cacheService.getCurrentWeather(testLocationId);
         long duration = System.currentTimeMillis() - startTime;
 
         log.info("⏱️ Second request took: {}ms", duration);
@@ -134,15 +182,14 @@ class WeatherServiceTest {
     void testRedisHit_AfterCaffeineClear() {
         log.info("Running Test 3: Redis HIT after clearing Caffeine");
 
-        caffeineCacheManager.getCache("weatherCurrent").clear();
+        Objects.requireNonNull(caffeineCacheManager.getCache("weatherCurrent")).clear();
         log.info("Caffeine cleared");
 
         long startTime = System.currentTimeMillis();
-        weatherService.getCurrentWeather(testLocationId);
+        cacheService.getCurrentWeather(testLocationId);
         long duration = System.currentTimeMillis() - startTime;
 
         log.info("Request after Caffeine clear took: {}ms", duration);
-
 
         assertThat(duration).as("Redis response time should be fast but realistic")
                 .isLessThan(500);
@@ -154,12 +201,12 @@ class WeatherServiceTest {
     void testPostgreSQLHit_AfterCachesClear() {
         log.info("Running Test 4: PostgreSQL HIT after clearing all caches");
 
-        caffeineCacheManager.getCache("weatherCurrent").clear();
-        redisCacheManager.getCache("weatherCurrent").clear();
+        Objects.requireNonNull(caffeineCacheManager.getCache("weatherCurrent")).clear();
+        Objects.requireNonNull(redisCacheManager.getCache("weatherCurrent")).clear();
         log.info("Caffeine and Redis cleared");
 
         long startTime = System.currentTimeMillis();
-        weatherService.getCurrentWeather(testLocationId);
+        cacheService.getCurrentWeather(testLocationId);
         long duration = System.currentTimeMillis() - startTime;
 
         log.info("Request after clearing caches took: {}ms", duration);
@@ -175,18 +222,35 @@ class WeatherServiceTest {
         clearCacheByName("weatherForecast");
 
         long startTime1 = System.currentTimeMillis();
-        List<Forecast> forecast1 = weatherService.getForecast(testLocationId, 7);
+        List<Forecast> forecast1 = cacheService.getForecast(testLocationId, 7);
         long duration1 = System.currentTimeMillis() - startTime1;
 
         assertThat(forecast1).isNotEmpty();
         log.info("First forecast request: {}ms", duration1);
 
         long startTime2 = System.currentTimeMillis();
-        weatherService.getForecast(testLocationId, 7);
+        cacheService.getForecast(testLocationId, 7);
         long duration2 = System.currentTimeMillis() - startTime2;
 
         log.info("Second forecast request (HIT): {}ms", duration2);
         assertThat(duration2).isLessThan(duration1);
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("6. Verify Testcontainers are running")
+    void testContainersAreRunning() {
+        log.info("Running Test 6: Container health check");
+
+        assertThat(postgresContainer.isRunning())
+                .as("PostgreSQL container should be running")
+                .isTrue();
+
+        assertThat(redisContainer.isRunning())
+                .as("Redis container should be running")
+                .isTrue();
+
+        log.info("✅ All containers are running properly");
     }
 
     private void clearAllCaches() {
@@ -195,7 +259,9 @@ class WeatherServiceTest {
     }
 
     private void clearCacheByName(String name) {
-        if (caffeineCacheManager.getCache(name) != null) caffeineCacheManager.getCache(name).clear();
-        if (redisCacheManager.getCache(name) != null) redisCacheManager.getCache(name).clear();
+        if (caffeineCacheManager.getCache(name) != null)
+            Objects.requireNonNull(caffeineCacheManager.getCache(name)).clear();
+        if (redisCacheManager.getCache(name) != null)
+            Objects.requireNonNull(redisCacheManager.getCache(name)).clear();
     }
 }
