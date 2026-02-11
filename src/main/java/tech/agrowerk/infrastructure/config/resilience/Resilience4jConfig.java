@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Configuration
@@ -24,18 +25,19 @@ public class Resilience4jConfig {
     public CircuitBreakerRegistry circuitBreakerRegistry() {
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
                 .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
-                .slidingWindowSize(100)
-                .minimumNumberOfCalls(10)
+                .slidingWindowSize(10)
+                .minimumNumberOfCalls(5)
                 .failureRateThreshold(50)
                 .slowCallRateThreshold(50)
-                .slowCallDurationThreshold(Duration.ofSeconds(5))
+                .slowCallDurationThreshold(Duration.ofSeconds(3))
                 .permittedNumberOfCallsInHalfOpenState(3)
-                .waitDurationInOpenState(Duration.ofSeconds(60))
+                .waitDurationInOpenState(Duration.ofSeconds(20))
                 .automaticTransitionFromOpenToHalfOpenEnabled(true)
                 .recordExceptions(
                         ConnectException.class,
                         SocketTimeoutException.class,
-                        IOException.class
+                        IOException.class,
+                        TimeoutException.class
                 )
                 .ignoreExceptions(
                         IllegalArgumentException.class

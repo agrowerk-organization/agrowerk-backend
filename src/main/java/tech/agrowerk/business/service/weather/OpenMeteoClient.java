@@ -5,16 +5,21 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
-import lombok.RequiredArgsConstructor;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
+import tech.agrowerk.application.dto.weather.CircuitBreakerMetrics;
 import tech.agrowerk.infrastructure.exception.local.WeatherApiException;
 
 import java.math.BigDecimal;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -61,12 +66,15 @@ public class OpenMeteoClient {
     private final RestClient restClient;
     private final CircuitBreaker circuitBreaker;
     private final Retry retry;
+    private final TimeLimiter timeLimiter;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
 
     public OpenMeteoClient(
             @Value("${openmeteo.api.base-url}") String baseUrl,
             RestClient.Builder builder,
             CircuitBreakerRegistry circuitBreakerRegistry,
-            RetryRegistry retryRegistry) {
+            RetryRegistry retryRegistry,
+            TimeLimiterRegistry timeLimiterRegistry) {
 
         this.restClient = builder
                 .baseUrl(baseUrl)
@@ -90,8 +98,9 @@ public class OpenMeteoClient {
                 })
                 .build();
 
-        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("weatherApi");
-        this.retry = retryRegistry.retry("weatherApi");
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("weatherApiCircuitBreaker");
+        this.retry = retryRegistry.retry("weatherApiRetry");
+        this.timeLimiter = timeLimiterRegistry.timeLimiter("weatherApiTimeLimiter");
 
         setupEventListeners();
     }
@@ -102,20 +111,17 @@ public class OpenMeteoClient {
         log.debug("Fetching weather data for lat={}, lon={}", latitude, longitude);
 
         try {
-            OpenMeteoResponse response = Decorators
-                    .ofSupplier(() -> makeApiCall(latitude, longitude))
+            return Decorators
+                    .ofCompletionStage(() -> CompletableFuture.supplyAsync(() -> makeApiCall(latitude, longitude)))
+                    .withRetry(retry, scheduler)
                     .withCircuitBreaker(circuitBreaker)
-                    .withRetry(retry)
-                    .get();
-
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("Weather data fetched successfully in {}ms (lat={}, lon={})",
-                    duration, latitude, longitude);
-
-            return response;
+                    .withTimeLimiter(timeLimiter, scheduler)
+                    .get()
+                    .toCompletableFuture()
+                    .join();
 
         } catch (Exception e) {
-            log.error("Failed to fetch weather data after all retries: {}", e.getMessage());
+            log.error("Failed to fetch weather data: {}", e.getMessage());
             throw new WeatherApiException("Weather API unavailable", e);
         }
     }
@@ -136,7 +142,6 @@ public class OpenMeteoClient {
     }
 
     private void setupEventListeners() {
-        // Circuit Breaker events
         circuitBreaker.getEventPublisher()
                 .onStateTransition(event ->
                         log.warn("⚡ Circuit Breaker state transition: {} -> {}",
@@ -152,7 +157,6 @@ public class OpenMeteoClient {
                                 event.getSlowCallRate())
                 );
 
-        // Retry events
         retry.getEventPublisher()
                 .onRetry(event ->
                         log.warn("🔄 Retry attempt {} of {} for Open-Meteo API",
@@ -191,13 +195,4 @@ public class OpenMeteoClient {
         circuitBreaker.transitionToForcedOpenState();
         log.warn("Circuit Breaker forced to OPEN state");
     }
-
-    public record CircuitBreakerMetrics(
-            String state,
-            float failureRate,
-            float slowCallRate,
-            int successfulCalls,
-            int failedCalls,
-            int slowCalls
-    ) {}
 }

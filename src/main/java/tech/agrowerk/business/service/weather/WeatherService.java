@@ -1,5 +1,7 @@
 package tech.agrowerk.business.service.weather;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -8,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.*;
 import tech.agrowerk.business.mapper.WeatherMapper;
+import tech.agrowerk.infrastructure.exception.local.WeatherApiException;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherForecast;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
@@ -43,28 +46,29 @@ public class WeatherService {
     private static final int STATISTICS_PERIOD_MONTHS = 30;
 
 
-    @Transactional(readOnly = true)
+    @CircuitBreaker(name = "weatherApiCircuitBreaker", fallbackMethod = "getCurrentWeatherFallback")
+    @Transactional(readOnly = true, noRollbackFor = {WeatherApiException.class, CallNotPermittedException.class})
     public Current getCurrentWeatherInternal(UUID locationId) {
-
         WeatherLocation location = findLocationOrThrow(locationId);
 
-        Optional<WeatherCurrent> cachedData =
-                currentRepository.findTopByLocationOrderByTimestampDesc(location);
+        Optional<WeatherCurrent> cachedData = currentRepository.findTopByLocationOrderByTimestampDesc(location);
 
-        if (cachedData.isPresent()) {
-
-            WeatherCurrent weatherCurrent = cachedData.get();
-
-            if (weatherCurrent.getTimestamp()
-                    .isAfter(Instant.now().minus(10, ChronoUnit.MINUTES))) {
-
-                return weatherMapper.toCurrentDTO(weatherCurrent, false);
-            }
+        if (cachedData.isPresent() &&
+                cachedData.get().getTimestamp().isAfter(Instant.now().minus(10, ChronoUnit.MINUTES))) {
+            return weatherMapper.toCurrentDTO(cachedData.get(), false);
         }
 
         return fetchAndSaveCurrentWeather(location);
     }
 
+    public Current getCurrentWeatherFallback(UUID locationId, Throwable t) {
+
+        WeatherLocation location = findLocationOrThrow(locationId);
+
+        return currentRepository.findTopByLocationOrderByTimestampDesc(location)
+                .map(weather -> weatherMapper.toCurrentDTO(weather, true)) // true indica que é dado histórico/offline
+                .orElseThrow(() -> new WeatherApiException("API indisponível e nenhum dado histórico encontrado no banco."));
+    }
 
     @Transactional(readOnly = true)
     public List<Forecast> getForecastInternal(UUID locationId, int days) {

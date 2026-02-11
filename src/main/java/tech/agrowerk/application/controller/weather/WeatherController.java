@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.Current;
 import tech.agrowerk.application.dto.weather.Forecast;
 import tech.agrowerk.application.dto.weather.Alert;
@@ -17,6 +18,7 @@ import tech.agrowerk.business.service.weather.WeatherCacheService;
 import tech.agrowerk.business.service.weather.WeatherDashboardService;
 import tech.agrowerk.business.service.weather.WeatherService;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +112,13 @@ public class WeatherController implements WeatherApi {
         return ResponseEntity.status(status).body(health);
     }
 
+    @GetMapping("/test-circuit")
+    public ResponseEntity<OpenMeteoResponse> testCircuit() {
+        return ResponseEntity.ok(openMeteoClient.fetchWeatherData(
+                new BigDecimal("-7.1895"),
+                new BigDecimal("-39.3328")
+        ));
+    }
 
     @Override
     @PostMapping("/refresh/{locationId}")

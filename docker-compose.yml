@@ -37,6 +37,33 @@ services:
     networks:
       - agrowerk-network
 
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: agrowerk-nginx-proxy
+    ports:
+      - "20000:20000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    networks:
+      - agrowerk-network
+    profiles:
+      - testing
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:latest
+    container_name: agrowerk-toxiproxy
+    ports:
+      - "8474:8474"
+      - "20001:20001"
+    restart: unless-stopped
+    networks:
+      - agrowerk-network
+    depends_on:
+      - nginx-proxy
+    profiles:
+      - testing
+
   backend:
     build:
       context: .
@@ -106,10 +133,10 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-   # ports:
-   #  - "9090:9090"
-   # networks:
-   #  - agrowerk-network*/
+    # ports:
+    #  - "9090:9090"
+    # networks:
+    #  - agrowerk-network*/
     profiles:
       - monitoring
 
