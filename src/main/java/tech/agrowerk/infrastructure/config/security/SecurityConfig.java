@@ -76,6 +76,7 @@ public class SecurityConfig {
             "/auth/verify-email",
             "/auth/oauth2/**",
             "/monitoring/**",
+            "/laws/**",
             "weather/health",
             "weather/test-circuit",
             "/actuator/health",

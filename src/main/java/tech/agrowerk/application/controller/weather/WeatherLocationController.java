@@ -19,11 +19,14 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/weather/locations")
-@RequiredArgsConstructor
 @Slf4j
 public class WeatherLocationController implements WeatherLocationApi {
 
     private final WeatherLocationService locationService;
+
+    public WeatherLocationController(WeatherLocationService locationService) {
+        this.locationService = locationService;
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")

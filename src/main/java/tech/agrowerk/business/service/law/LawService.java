@@ -20,14 +20,14 @@ import java.util.stream.Collectors;
 @Service
 public class LawService {
 
-    public LawResponse getLawContent(String fileName) {
+    public LawResponse getLawContent(String slug) {
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, Collections.singletonList(YamlFrontMatterExtension.create()));
 
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
 
-        String mdContent = readMarkdownFile(fileName);
+        String mdContent = readMarkdownFile(slug);
 
         var document = parser.parse(mdContent);
 
@@ -35,23 +35,23 @@ public class LawService {
         visitor.visit(document);
 
         Map<String, List<String>> rawData = visitor.getData();
-        Map<String, String> data = rawData.entrySet().stream()
+        Map<String, String> metadata = rawData.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         e -> String.join(", ", e.getValue())
                 ));
 
-        String html = renderer.render(document);
+        String htmlContent  = renderer.render(document);
 
-        return new LawResponse(fileName, data, html);
+        return new LawResponse(slug, metadata, htmlContent);
     }
 
-    private String readMarkdownFile(String fileName) {
+    private String readMarkdownFile(String slug) {
         try {
-            var resource = new ClassPathResource("laws/" + fileName);
+            var resource = new ClassPathResource("content/laws/" + slug + ".md");
             return Files.readString(resource.getFile().toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("Error reading markdonw file: " + fileName, e);
+            throw new RuntimeException("Error reading markdonw file: " + slug, e);
         }
     }
 }

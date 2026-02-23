@@ -30,7 +30,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class WeatherAlertService {
 
@@ -49,6 +48,12 @@ public class WeatherAlertService {
     private static final int ALERT_DEDUPLICATION_HOURS = 6;
     private static final int ALERT_VALIDITY_HOURS = 24;
     private static final int OLD_ALERTS_RETENTION_DAYS = 30;
+
+    public WeatherAlertService(WeatherAlertRepository alertRepository, WeatherMapper weatherMapper, ApplicationEventPublisher eventPublisher) {
+        this.alertRepository = alertRepository;
+        this.weatherMapper = weatherMapper;
+        this.eventPublisher = eventPublisher;
+    }
 
     @Transactional
     @CacheEvict(value = "weatherAlerts", key = "#current.location.id")

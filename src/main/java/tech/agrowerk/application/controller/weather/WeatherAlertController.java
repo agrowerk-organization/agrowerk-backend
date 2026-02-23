@@ -20,12 +20,16 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/weather/alerts")
-@RequiredArgsConstructor
 @Slf4j
 public class WeatherAlertController {
 
     private final WeatherAlertService alertService;
     private final WeatherLocationRepository locationRepository;
+
+    public WeatherAlertController(WeatherAlertService alertService, WeatherLocationRepository locationRepository) {
+        this.alertService = alertService;
+        this.locationRepository = locationRepository;
+    }
 
     @GetMapping("/location/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")

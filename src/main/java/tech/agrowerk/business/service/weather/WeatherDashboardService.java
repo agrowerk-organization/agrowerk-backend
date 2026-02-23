@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class WeatherDashboardService {
 
@@ -20,6 +19,11 @@ public class WeatherDashboardService {
     private final WeatherLocationRepository locationRepository;
 
     private static final int DEFAULT_FORECAST_DAYS = 7;
+
+    public WeatherDashboardService(WeatherCacheService cacheService, WeatherLocationRepository locationRepository) {
+        this.cacheService = cacheService;
+        this.locationRepository = locationRepository;
+    }
 
     public Dashboard getDashboard(UUID locationId) {
 

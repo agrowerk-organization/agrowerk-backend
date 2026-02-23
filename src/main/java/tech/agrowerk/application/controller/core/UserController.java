@@ -15,53 +15,56 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
-public class UserController {
+public class UserController implements UserApi {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
+    @Override
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(
-            @Valid @RequestBody CreateUserRequest request) {
-        UserResponse response = userService.createUser(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserResponse> register(CreateUserRequest request) {
+        return ResponseEntity.ok(userService.createUser(request));
     }
 
+    @Override
     @GetMapping("/get-user-by-id/{id}")
-    @PreAuthorize("hasRole('SUPPLIER_ADMIN') or #id == authentication.principal.claims['userId']")
+    @PreAuthorize("hasRole('SUPPLIER_ADMIN') or #id.toString() == authentication.principal.claims['userId']")
     public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
-        UserResponse response = userService.findUserById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.findUserById(id));
     }
 
+    @Override
     @GetMapping("/get-user-by-email/{email}")
     @PreAuthorize("isAuthenticated() and hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
-        UserResponse response = userService.findUserByEmail(email);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.findUserByEmail(email));
     }
 
+    @Override
     @GetMapping("/get/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserResponse> getCurrentUser() {
-        UserResponse response = userService.getCurrentUser();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.getCurrentUser());
     }
 
+    @Override
     @GetMapping("/list-users")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<Page<UserResponse>> listUsers(Pageable pageable) {
         return ResponseEntity.ok(userService.listUsers(pageable));
     }
 
+    @Override
     @PutMapping("/update/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserResponse> updateUser(@Valid @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<UserResponse> updateUser(UpdateUserRequest request) {
         return ResponseEntity.ok(userService.updateUser(request));
     }
 
+    @Override
     @DeleteMapping("/delete/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteUser() {

@@ -19,7 +19,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${security.cors.allowed-origins")
+    @Value("${security.cors.allowed-origins}")
     private String[] allowedOrigins;
 
     @Value("${security.cors.allowed-methods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")

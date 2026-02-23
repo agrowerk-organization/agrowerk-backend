@@ -26,7 +26,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/weather")
-@RequiredArgsConstructor
 @Slf4j
 public class WeatherController implements WeatherApi {
 
@@ -34,6 +33,13 @@ public class WeatherController implements WeatherApi {
     private final WeatherDashboardService dashboardService;
     private final WeatherService weatherService;
     private final OpenMeteoClient openMeteoClient;
+
+    public WeatherController(WeatherCacheService cacheService, WeatherDashboardService dashboardService, WeatherService weatherService, OpenMeteoClient openMeteoClient) {
+        this.cacheService = cacheService;
+        this.dashboardService = dashboardService;
+        this.weatherService = weatherService;
+        this.openMeteoClient = openMeteoClient;
+    }
 
 
     @Override

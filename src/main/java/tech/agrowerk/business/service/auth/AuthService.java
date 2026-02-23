@@ -36,7 +36,6 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -50,6 +49,16 @@ public class AuthService {
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final Duration LOCK_DURATION = Duration.ofMinutes(15);
     private static final String FAKE_HASH = "$2a$12$fakehashtopreventtimingattack";
+
+    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, CookieService cookieService, TokenBlacklistService tokenBlacklistService, AuditService auditService, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+        this.cookieService = cookieService;
+        this.tokenBlacklistService = tokenBlacklistService;
+        this.auditService = auditService;
+        this.userMapper = userMapper;
+    }
 
 
     @Transactional

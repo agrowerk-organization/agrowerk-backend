@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class WeatherLocationService {
 
@@ -30,6 +29,11 @@ public class WeatherLocationService {
     private final PropertyRepository propertyRepository;
     private final WeatherMapper weatherMapper;
 
+    public WeatherLocationService(WeatherLocationRepository locationRepository, PropertyRepository propertyRepository, WeatherMapper weatherMapper) {
+        this.locationRepository = locationRepository;
+        this.propertyRepository = propertyRepository;
+        this.weatherMapper = weatherMapper;
+    }
 
     @Cacheable(value = "weatherLocations", key = "'all'")
     @Transactional(readOnly = true)

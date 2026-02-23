@@ -24,12 +24,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class WeatherService {
 
@@ -45,6 +43,15 @@ public class WeatherService {
     private static final int STATISTICS_PERIOD_DAYS = 7;
     private static final int STATISTICS_PERIOD_MONTHS = 30;
 
+    public WeatherService(OpenMeteoClient openMeteoClient, WeatherLocationRepository locationRepository, WeatherCurrentRepository currentRepository, WeatherForecastRepository forecastRepository, WeatherAlertRepository alertRepository, WeatherMapper weatherMapper, WeatherAlertService alertService) {
+        this.openMeteoClient = openMeteoClient;
+        this.locationRepository = locationRepository;
+        this.currentRepository = currentRepository;
+        this.forecastRepository = forecastRepository;
+        this.alertRepository = alertRepository;
+        this.weatherMapper = weatherMapper;
+        this.alertService = alertService;
+    }
 
     @CircuitBreaker(name = "weatherApiCircuitBreaker", fallbackMethod = "getCurrentWeatherFallback")
     @Transactional(readOnly = true, noRollbackFor = {WeatherApiException.class, CallNotPermittedException.class})

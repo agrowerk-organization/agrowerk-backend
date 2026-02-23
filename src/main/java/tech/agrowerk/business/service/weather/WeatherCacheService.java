@@ -13,11 +13,14 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class WeatherCacheService {
 
     private final WeatherService weatherService;
+
+    public WeatherCacheService(WeatherService weatherService) {
+        this.weatherService = weatherService;
+    }
 
     @Cacheable(value = "weatherCurrent", key = "#locationId", unless = "#result == null")
     public Current getCurrentWeather(UUID locationId) {
