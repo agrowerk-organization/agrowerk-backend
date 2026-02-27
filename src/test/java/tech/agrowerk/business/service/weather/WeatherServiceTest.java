@@ -8,15 +8,10 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 import tech.agrowerk.application.dto.weather.Current;
 import tech.agrowerk.application.dto.weather.Forecast;
+import tech.agrowerk.business.service.base.BaseIntegrationTest;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.repository.weather.WeatherCurrentRepository;
 import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
@@ -33,34 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class WeatherServiceTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>(
-            DockerImageName.parse("postgres:15-alpine"))
-            .withDatabaseName("testdb")
-            .withUsername("testuser")
-            .withPassword("testpass")
-            .withReuse(true);
-
-    @Container
-    static GenericContainer<?> redisContainer = new GenericContainer<>(
-            DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379)
-            .withReuse(true);
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
-        registry.add("spring.data.redis.host", redisContainer::getHost);
-        registry.add("spring.data.redis.port", () -> redisContainer.getMappedPort(6379));
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-        registry.add("spring.jpa.show-sql", () -> "true");
-        registry.add("spring.jpa.properties.hibernate.format_sql", () -> "true");
-    }
+class WeatherServiceTest extends BaseIntegrationTest {
 
     private final WeatherService weatherService;
     private final WeatherCacheService cacheService;

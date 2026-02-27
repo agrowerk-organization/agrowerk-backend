@@ -71,7 +71,7 @@ public class JwtService {
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(accessTokenExpiration))
                 .subject(email)
-                .claim("userId", userId)
+                .claim("userId", userId.toString())
                 .claim("email", email)
                 .claim("role", role)
                 .claim("tv", tokenVersion)
@@ -93,7 +93,7 @@ public class JwtService {
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(refreshTokenExpiration))
                 .subject(user.getEmail())
-                .claim("userId", user.getId())
+                .claim("userId", user.getId().toString())
                 .claim("type", "refresh")
                 .claim("jti", jti)
                 .claim("tv", user.getTokenVersion())
@@ -116,14 +116,15 @@ public class JwtService {
                 throw new AccessDeniedException("Token has expired");
             }
 
-            UUID userId = jwt.getClaim("userId");
-            Integer tokenVersion = jwt.getClaim("tv");
+            String userIdStr = jwt.getClaimAsString("userId");
+            UUID userId = userIdStr != null ? UUID.fromString(userIdStr) : null;
+            Integer tokenVersion = ((Number) jwt.getClaim("tv")).intValue();
 
-            if (userId != null && tokenVersion != null) {
+            if (userId != null) {
                 User user = userRepository.findById(userId)
                         .orElseThrow(() -> new AccessDeniedException("User not found"));
 
-                if (tokenVersion != user.getTokenVersion()) {
+                if (!tokenVersion.equals(user.getTokenVersion())) {
                     throw new AccessDeniedException("Token has been revoked (version mismatch)");
                 }
 
@@ -149,7 +150,7 @@ public class JwtService {
                 long ttl = expiration.getEpochSecond() - Instant.now().getEpochSecond();
                 if (ttl > 0) {
                     tokenBlacklistService.blacklistToken(jti, ttl);
-                    log.info("Token invalidado: jti={}", jti);
+                    log.info("Invalided token: jti={}", jti);
                 }
             }
         } catch (JwtException e) {
@@ -167,7 +168,6 @@ public class JwtService {
         tokenBlacklistService.blacklistAllUserTokens(userId);
         log.warn("Todos os tokens do usuário {} foram invalidados", userId);
     }
-
 
     public Long extractUserId(Jwt jwt) {
         return jwt.getClaim("userId");

@@ -3,6 +3,7 @@ package tech.agrowerk.business.service.auth;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import tech.agrowerk.application.dto.auth.ChangePassword;
@@ -45,12 +46,12 @@ public class AuthService {
     private final TokenBlacklistService tokenBlacklistService;
     private final AuditService auditService;
     private final UserMapper userMapper;
+    private final AuthHelperService authHelperService;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final Duration LOCK_DURATION = Duration.ofMinutes(15);
     private static final String FAKE_HASH = "$2a$12$fakehashtopreventtimingattack";
 
-    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, CookieService cookieService, TokenBlacklistService tokenBlacklistService, AuditService auditService, UserMapper userMapper) {
+    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, CookieService cookieService, TokenBlacklistService tokenBlacklistService, AuditService auditService, UserMapper userMapper, AuthHelperService authHelperService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -58,6 +59,7 @@ public class AuthService {
         this.tokenBlacklistService = tokenBlacklistService;
         this.auditService = auditService;
         this.userMapper = userMapper;
+        this.authHelperService = authHelperService;
     }
 
 
@@ -77,7 +79,10 @@ public class AuthService {
 
         if (user == null || !validPassword) {
             if (user != null) {
-                handleFailedLogin(user, request);
+                authHelperService.saveFailedAttempt(user);
+                if (user.isLocked()) {
+                    auditService.logAccountLocked(user, getClientIp(request));
+                }
             }
 
             auditService.logSecurityEvent(
@@ -102,12 +107,14 @@ public class AuthService {
 
         validateUserCanLogin(user);
 
-        resetFailedAttempts(user);
-        updateLastLogin(user, request);
-
         String accessToken = jwtService.generateTokenFromUser(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+        user.setLastLogin(Instant.now());
+        user.setLastIpAddress(getClientIp(request));
+        user.setLastUserAgent(request.getHeader("User-Agent"));
         user.setRefreshToken(refreshToken, passwordEncoder, 7);
         user.setRefreshTokenFamilyId(UUID.randomUUID().toString());
         userRepository.save(user);
@@ -131,9 +138,8 @@ public class AuthService {
                 throw new InvalidTokenException("Invalid token type");
             }
 
-            UUID userId = jwt.getClaim("userId");
-            String username = jwt.getSubject();
-            Integer tokenVersion = jwt.getClaim("tv");
+            UUID userId = UUID.fromString(jwt.getClaim("userId"));
+            Integer tokenVersion = ((Number) jwt.getClaim("tv")).intValue();
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new AuthenticationException("User not found"));
@@ -174,12 +180,13 @@ public class AuthService {
 
             return createLoginResult(user, newAccessToken, newRefreshToken);
 
+        } catch (InvalidTokenException | AuthenticationException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error refreshing token: {}", e.getMessage());
             throw new InvalidTokenException("Invalid or expired refresh token");
         }
     }
-
 
     @Transactional
     public void logout(String accessToken, String refreshToken, HttpServletRequest request) {
@@ -191,7 +198,7 @@ public class AuthService {
             if (refreshToken != null && !refreshToken.isBlank()) {
                 try {
                     Jwt jwt = jwtService.decodeAndValidateToken(refreshToken);
-                    UUID userId = jwt.getClaim("userId");
+                    UUID userId = UUID.fromString(jwt.getClaim("userId"));
 
                     User user = userRepository.findById(userId).orElse(null);
                     if (user != null) {
@@ -275,46 +282,12 @@ public class AuthService {
         }
     }
 
-
-    private void handleFailedLogin(User user, HttpServletRequest request) {
-        int attempts = user.getFailedLoginAttempts() + 1;
-        user.setFailedLoginAttempts(attempts);
-
-        if (attempts >= MAX_FAILED_ATTEMPTS) {
-            user.setLocked(true);
-            user.setLockedUntil(Instant.now().plus(LOCK_DURATION));
-
-            log.warn("Account locked due to {} failed login attempts: {}", attempts, user.getEmail());
-
-            auditService.logAccountLocked(user, getClientIp(request));
-        }
-
-        userRepository.save(user);
-    }
-
-    private void resetFailedAttempts(User user) {
-        if (user.getFailedLoginAttempts() > 0) {
-            user.setFailedLoginAttempts(0);
-            user.setLockedUntil(null);
-            userRepository.save(user);
-        }
-    }
-
-    private void updateLastLogin(User user, HttpServletRequest request) {
-        user.setLastLogin(Instant.now());
-        user.setLastIpAddress(getClientIp(request));
-        user.setLastUserAgent(request.getHeader("User-Agent"));
-
-        userRepository.save(user);
-    }
-
     private boolean isUnlockTimeExpired(User user) {
         if (user.getLockedUntil() == null) {
             return false;
         }
         return Instant.now().isAfter(user.getLockedUntil());
     }
-
 
     private void unlockAccount(User user) {
         user.setLocked(false);

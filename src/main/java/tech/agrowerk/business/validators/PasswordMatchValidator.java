@@ -9,28 +9,34 @@ public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch
 
     @Override
     public boolean isValid(Object obj, ConstraintValidatorContext context) {
-        if (obj == null) {
-            return true;
+        if (obj == null) return true;
+
+        if (obj instanceof PasswordConfirmable pc) {
+            String password = pc.getPassword();
+            String confirm = pc.getConfirmPassword();
+            return password != null && password.equals(confirm);
         }
 
         try {
-            Field passwordField = obj.getClass().getDeclaredField("password");
-            Field confirmPasswordField = obj.getClass().getDeclaredField("confirmPassword");
+            String password = getFieldValue(obj, "newPassword");
+            if (password == null) password = getFieldValue(obj, "password");
 
-            passwordField.setAccessible(true);
-            confirmPasswordField.setAccessible(true);
+            String confirm = getFieldValue(obj, "confirmPassword");
 
-            String password = (String) passwordField.get(obj);
-            String confirmPassword = (String) confirmPasswordField.get(obj);
-
-            if (password == null || confirmPassword == null) {
-                return false;
-            }
-
-            return password.equals(confirmPassword);
-
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+            if (password == null || confirm == null) return false;
+            return password.equals(confirm);
+        } catch (Exception e) {
             return false;
+        }
+    }
+
+    private String getFieldValue(Object obj, String fieldName) throws Exception {
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return (String) field.get(obj);
+        } catch (NoSuchFieldException e) {
+            return null;
         }
     }
 }

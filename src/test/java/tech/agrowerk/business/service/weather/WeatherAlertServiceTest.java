@@ -6,13 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import tech.agrowerk.business.service.base.BaseIntegrationTest;
 import tech.agrowerk.infrastructure.model.weather.WeatherAlert;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
@@ -34,23 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class WeatherAlertServiceTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
-
-    @Container
-    static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379);
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
-    }
+class WeatherAlertServiceTest extends BaseIntegrationTest {
 
     private final WeatherAlertService alertService;
     private final WeatherAlertRepository alertRepository;
@@ -91,7 +70,7 @@ class WeatherAlertServiceTest {
 
     @Test
     @Order(1)
-    @DisplayName("Should generate CRITICAL Frost Alert when temperature is low")
+    @DisplayName("1. Should generate CRITICAL Frost Alert when temperature is low")
     void testFrostAlertGeneration() {
         WeatherCurrent coldWeather = WeatherCurrent.builder()
                 .location(quixeramobim)
@@ -112,7 +91,7 @@ class WeatherAlertServiceTest {
 
     @Test
     @Order(2)
-    @DisplayName("Should NOT generate duplicate alerts within the 6-hour window")
+    @DisplayName("2. Should NOT generate duplicate alerts within the 6-hour window")
     void testDuplicateAlertDeduplication() {
         WeatherCurrent hotWeather = WeatherCurrent.builder()
                 .location(quixeramobim)
@@ -131,7 +110,7 @@ class WeatherAlertServiceTest {
 
     @Test
     @Order(3)
-    @DisplayName("Should generate Disease Risk Alert for high humidity")
+    @DisplayName("3. Should generate Disease Risk Alert for high humidity")
     void testDiseaseRiskAlert() {
         WeatherCurrent humidWeather = WeatherCurrent.builder()
                 .location(quixeramobim)
@@ -149,7 +128,7 @@ class WeatherAlertServiceTest {
 
     @Test
     @Order(4)
-    @DisplayName("Should clear cache when resolving an alert")
+    @DisplayName("4. Should clear cache when resolving an alert")
     void testCacheEvictionOnResolution() {
         WeatherCurrent current = WeatherCurrent.builder()
                 .location(quixeramobim)
@@ -171,7 +150,7 @@ class WeatherAlertServiceTest {
 
     @Test
     @Order(5)
-    @DisplayName("Should generate HIGH Heat Wave Alert when temperature is high")
+    @DisplayName("6. Should generate HIGH Heat Wave Alert when temperature is high")
     void testHeatWaveAlert() {
         WeatherCurrent hot = WeatherCurrent.builder()
                 .location(quixeramobim)
@@ -189,7 +168,7 @@ class WeatherAlertServiceTest {
 
     @Test
     @Order(6)
-    @DisplayName("Should NOT generate alert when conditions are normal")
+    @DisplayName("6. Should NOT generate alert when conditions are normal")
     void testNoAlertNormalConditions() {
         WeatherCurrent normal = WeatherCurrent.builder()
                 .location(quixeramobim)
@@ -208,7 +187,7 @@ class WeatherAlertServiceTest {
 
     @Test
     @Order(7)
-    @DisplayName("Should generate CRITICAL Heavy Rain Alert above 80mm")
+    @DisplayName("7. Should generate CRITICAL Heavy Rain Alert above 80mm")
     void testHeavyRainCritical() {
         WeatherCurrent flood = WeatherCurrent.builder()
                 .location(quixeramobim)

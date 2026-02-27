@@ -2,6 +2,7 @@ package tech.agrowerk.application.controller.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import tech.agrowerk.application.dto.auth.LoginResult;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.service.auth.AuthService;
 import tech.agrowerk.infrastructure.security.services.CookieService;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/auth")
@@ -29,9 +32,9 @@ public class AuthController implements AuthApi {
 
     @Override
     @PostMapping("/login")
-    public ResponseEntity<UserInfoDto> login(LoginRequest loginRequest, HttpServletResponse response, HttpServletRequest httpServletRequest) {
-        log.info("Login attempt for email: {}", loginRequest.email());
-        LoginResult loginResult = authService.login(loginRequest, httpServletRequest);
+    public ResponseEntity<UserInfoDto> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response, HttpServletRequest httpServletRequest) {
+        log.info("Login attempt for email: {}", (loginRequest != null) ? loginRequest.email() : "empty body");
+        LoginResult loginResult = authService.login(Objects.requireNonNull(loginRequest), httpServletRequest);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, loginResult.accessCookie().toString())
@@ -76,9 +79,11 @@ public class AuthController implements AuthApi {
     @Override
     @PutMapping("/change-password")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> changePassword(ChangePassword changePassword) {
-        log.info("Password change request for email: {}", changePassword.email());
-        authService.changePassword(changePassword);
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePassword changePassword) {
+
+        log.info("Password change request for email: {}", (changePassword != null) ? changePassword.email() : "empty body");
+
+        authService.changePassword(Objects.requireNonNull(changePassword));
 
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, cookieService.deleteAccessTokenCookie().toString())

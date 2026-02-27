@@ -25,7 +25,7 @@ public class UserController implements UserApi {
 
     @Override
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(CreateUserRequest request) {
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.ok(userService.createUser(request));
     }
 

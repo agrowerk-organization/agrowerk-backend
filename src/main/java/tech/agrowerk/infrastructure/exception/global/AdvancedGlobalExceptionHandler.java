@@ -3,6 +3,7 @@ package tech.agrowerk.infrastructure.exception.global;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class AdvancedGlobalExceptionHandler {
 
     private static final Map<Class<? extends Exception>, ErrorConfig> ERROR_REGISTRY = Map.ofEntries(
-            entry(BadCredentialsException.class, badRequest("Invalid credentials provided")),
+            entry(BadCredentialsException.class, unauthorized("Invalid credentials provided")),
             entry(IllegalArgumentException.class, badRequest("Invalid argument provided")),
             entry(InvalidTokenException.class, badRequest("Invalid or expired token")),
             entry(InvalidPasswordException.class, badRequest("Password does not meet requirements")),
@@ -86,6 +87,13 @@ public class AdvancedGlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadableMessage(HttpMessageNotReadableException ex) {
+        log.warn("Unreadable request body: {}", ex.getMessage());
+        ErrorResponse response = new ErrorResponse("Invalid or missing request body");
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpectedError(Exception ex) {
         log.error("Unexpected error occurred", ex);
@@ -103,11 +111,14 @@ public class AdvancedGlobalExceptionHandler {
         return new ResponseEntity<>(response, status);
     }
 
-    // Factory methods para ErrorConfig
     private static Map.Entry<Class<? extends Exception>, ErrorConfig> entry(
             Class<? extends Exception> exClass,
             ErrorConfig config) {
         return Map.entry(exClass, config);
+    }
+
+    private static ErrorConfig unauthorized(String friendly) {
+        return new ErrorConfig(HttpStatus.UNAUTHORIZED, "Unauthorized", friendly);
     }
 
     private static ErrorConfig badRequest(String friendly) {

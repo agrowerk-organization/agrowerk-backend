@@ -74,6 +74,7 @@ public class SecurityConfig {
             "/auth/forgot-password",
             "/auth/reset-password",
             "/auth/verify-email",
+            "auth/refresh",
             "/auth/oauth2/**",
             "/monitoring/**",
             "/laws/**",

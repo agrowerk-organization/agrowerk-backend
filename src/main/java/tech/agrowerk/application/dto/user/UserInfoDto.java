@@ -1,7 +1,9 @@
 package tech.agrowerk.application.dto.user;
 
+import java.util.UUID;
+
 public record UserInfoDto(
-        java.util.UUID id,
+        UUID id,
         String name,
         String email
 ) {
