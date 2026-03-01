@@ -13,6 +13,7 @@ import tech.agrowerk.infrastructure.model.core.enums.DeletionReason;
 import tech.agrowerk.infrastructure.model.core.enums.RoleType;
 import tech.agrowerk.infrastructure.model.property.Property;
 import tech.agrowerk.infrastructure.model.inventory.StockMovement;
+import tech.agrowerk.infrastructure.model.property.UserProperty;
 import tech.agrowerk.infrastructure.model.supplier.Supplier;
 
 import java.time.Instant;
@@ -187,13 +188,8 @@ public class User {
     @Column(name = "phone_verified", nullable = false)
     private boolean phoneVerified = false;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_property",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "property_id")
-    )
-    private Set<Property> properties;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<UserProperty> propertyLinks;
 
     @OneToOne(mappedBy = "administrator", fetch = FetchType.LAZY)
     private Supplier supplier;

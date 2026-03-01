@@ -6,9 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
-import tech.agrowerk.application.dto.crud.get.UserResponse;
-import tech.agrowerk.application.dto.crud.update.UpdateUserRequest;
+import tech.agrowerk.application.dto.request.CreateUserRequest;
+import tech.agrowerk.application.dto.response.UserResponse;
+import tech.agrowerk.application.dto.request.UpdateUserRequest;
+import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.service.core.UserService;
 
 import java.util.UUID;
@@ -31,14 +32,14 @@ public class UserController implements UserApi {
 
     @Override
     @GetMapping("/get-user-by-id/{id}")
-    @PreAuthorize("hasRole('SUPPLIER_ADMIN') or #id.toString() == authentication.principal.claims['userId']")
+    @PreAuthorize("hasAuthority('SUPPLIER_ADMIN') or #id.toString() == authentication.principal.claims['userId']")
     public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.findUserById(id));
     }
 
     @Override
     @GetMapping("/get-user-by-email/{email}")
-    @PreAuthorize("isAuthenticated() and hasRole('SYSTEM_ADMIN')")
+    @PreAuthorize("isAuthenticated() and hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
         return ResponseEntity.ok(userService.findUserByEmail(email));
     }
@@ -55,6 +56,14 @@ public class UserController implements UserApi {
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<Page<UserResponse>> listUsers(Pageable pageable) {
         return ResponseEntity.ok(userService.listUsers(pageable));
+    }
+
+    @GetMapping("/search/producers")
+    @PreAuthorize("hasAuthority('PRODUCER')")
+    public ResponseEntity<Page<UserInfoDto>> searchProducers(
+            @RequestParam String query,
+            Pageable pageable) {
+        return ResponseEntity.ok(userService.searchProducers(query, pageable));
     }
 
     @Override

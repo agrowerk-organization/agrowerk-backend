@@ -41,9 +41,6 @@ public class Stock {
     @Column(precision = 10, scale = 3)
     private BigDecimal reservedQuantity = BigDecimal.ZERO;
 
-    @Column(precision = 10, scale = 3)
-    private BigDecimal availableQuantity;
-
     @Column(precision = 12, scale = 2)
     private BigDecimal totalValue;
 
@@ -56,9 +53,12 @@ public class Stock {
     @Column(name = "last_exit_date")
     private LocalDateTime lastExitDate;
 
-
     @OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
     private List<Harvest> harvests;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -68,4 +68,9 @@ public class Stock {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    public BigDecimal getAvailableQuantity() {
+        return currentQuantity.subtract(
+                reservedQuantity != null ? reservedQuantity : BigDecimal.ZERO
+        );
+    }
 }

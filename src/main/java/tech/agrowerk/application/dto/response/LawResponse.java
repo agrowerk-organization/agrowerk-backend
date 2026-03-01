@@ -1,4 +1,4 @@
-package tech.agrowerk.application.dto.crud.get;
+package tech.agrowerk.application.dto.response;
 
 import java.util.Map;
 

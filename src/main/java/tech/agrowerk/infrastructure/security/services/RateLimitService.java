@@ -3,6 +3,7 @@ package tech.agrowerk.infrastructure.security.services;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,7 +35,6 @@ public class RateLimitService {
                 .maximumSize(10_000)
                 .expireAfterAccess(Duration.ofMinutes(15))
                 .build();
-
         loadBlockedIpsFromRedis();
     }
 

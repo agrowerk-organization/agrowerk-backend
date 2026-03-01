@@ -50,7 +50,7 @@ class WeatherControllerTest extends BaseControllerTest {
     private static final UUID LOCATION_ID = UUID.randomUUID();
 
     @Override
-    protected void setUp() {
+    public void setUp() {
         super.setUpSecurity();
     }
 

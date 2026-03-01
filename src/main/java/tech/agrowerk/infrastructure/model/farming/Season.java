@@ -8,13 +8,20 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.enums.SeasonStatus;
+import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "seasons")
+@Table(name = "seasons", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"property_id", "name"})
+        },
+        indexes = {
+        @Index(name = "idx_season_status", columnList = "season_status"),
+        @Index(name = "idx_season_dates", columnList = "start_date, end_date")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,6 +44,10 @@ public class Season {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SeasonStatus seasonStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id", nullable = false)
+    private Property property;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

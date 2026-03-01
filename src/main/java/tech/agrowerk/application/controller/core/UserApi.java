@@ -10,9 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
-import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
-import tech.agrowerk.application.dto.crud.get.UserResponse;
-import tech.agrowerk.application.dto.crud.update.UpdateUserRequest;
+import org.springframework.web.bind.annotation.RequestParam;
+import tech.agrowerk.application.dto.request.CreateUserRequest;
+import tech.agrowerk.application.dto.response.UserResponse;
+import tech.agrowerk.application.dto.request.UpdateUserRequest;
+import tech.agrowerk.application.dto.user.UserInfoDto;
 
 import java.util.UUID;
 
@@ -37,6 +39,16 @@ public interface UserApi {
 
     @Operation(summary = "List all users", description = "Returns a paginated list of all registered users. Admin only.")
     ResponseEntity<Page<UserResponse>> listUsers(@Parameter(hidden = true) Pageable pageable);
+
+    @Operation(summary = "Search producers", description = "Returns a paginated list of producers filtered by name or email.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Producers found"),
+            @ApiResponse(responseCode = "403", description = "Access denied")
+    })
+    ResponseEntity<Page<UserInfoDto>> searchProducers(
+            @Parameter(description = "Name or email to search") @RequestParam String query,
+            Pageable pageable
+    );
 
     @Operation(summary = "Update current user", description = "Updates the profile information of the logged-in user.")
     ResponseEntity<UserResponse> updateUser(@Valid @RequestBody UpdateUserRequest request);

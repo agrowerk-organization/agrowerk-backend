@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "file_metadata")
+@Table(name = "file_metadata", indexes = {
+        @Index(name = "idx_file_entity", columnList = "entity_id, file_category"),
+        @Index(name = "idx_file_deleted", columnList = "deleted")
+})
 @Getter
 @Setter
 @NoArgsConstructor

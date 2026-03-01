@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.Planting;
+import tech.agrowerk.infrastructure.model.farming.Season;
 import tech.agrowerk.infrastructure.model.inventory.Stock;
 import tech.agrowerk.infrastructure.model.inventory.StockMovement;
 import tech.agrowerk.infrastructure.model.core.Address;
@@ -62,8 +63,8 @@ public class Property {
     @JoinColumn(name = "state_id")
     private State state;
 
-    @ManyToMany(mappedBy = "properties", fetch = FetchType.LAZY)
-    private Set<User> users;
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
+    private List<UserProperty> userLinks;
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Stock> stocks;
@@ -76,6 +77,9 @@ public class Property {
 
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
     private List<Warehouse> warehouses;
+
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
+    private List<Season> seasons;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

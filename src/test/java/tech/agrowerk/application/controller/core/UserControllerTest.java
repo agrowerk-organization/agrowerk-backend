@@ -9,17 +9,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import tech.agrowerk.application.controller.base.BaseControllerTest;
-import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
-import tech.agrowerk.application.dto.crud.get.UserResponse;
-import tech.agrowerk.application.dto.crud.update.UpdateUserRequest;
+import tech.agrowerk.application.dto.request.CreateUserRequest;
+import tech.agrowerk.application.dto.response.UserResponse;
+import tech.agrowerk.application.dto.request.UpdateUserRequest;
 import tech.agrowerk.business.service.core.UserService;
 import tech.agrowerk.infrastructure.config.TestSecurityConfig;
 import tech.agrowerk.infrastructure.exception.global.AdvancedGlobalExceptionHandler;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
+import tech.agrowerk.infrastructure.security.services.CookieService;
+import tech.agrowerk.infrastructure.security.services.RateLimitService;
+import tech.agrowerk.infrastructure.security.services.TokenBlacklistService;
+import tech.agrowerk.infrastructure.security.validator.JwtUserValidator;
 
 import java.time.Instant;
 import java.util.List;
@@ -33,8 +38,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @Import({TestSecurityConfig.class, AdvancedGlobalExceptionHandler.class})
+@ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class UserControllerTest extends BaseControllerTest {
+class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,12 +51,32 @@ class UserControllerTest extends BaseControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private RateLimitService rateLimitService;
+
+    @MockitoBean
+    private TokenBlacklistService tokenBlacklistService;
+
+    @MockitoBean
+    private JwtUserValidator jwtUserValidator;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private CookieService cookieService;
+
     private static final UUID USER_ID = UUID.randomUUID();
     private static final String USER_EMAIL = "user@agrowerk.tech";
 
-    @Override
-    protected void setUp() {
-        super.setUpSecurity();
+    @BeforeEach
+    void setUp() {
+        when(rateLimitService.isAllowedForPublicEndpoint(anyString())).thenReturn(true);
+        when(rateLimitService.isAllowedByIp(anyString())).thenReturn(true);
+        when(rateLimitService.isAllowedForSensitiveEndpoint(anyString(), anyString())).thenReturn(true);
+        when(rateLimitService.isAllowedByUser(anyString())).thenReturn(true);
+        when(jwtUserValidator.validate(any(), any())).thenReturn(null);
+        when(cookieService.extractAccessToken(any())).thenReturn(null);
     }
 
     private UserResponse buildUserResponse() {

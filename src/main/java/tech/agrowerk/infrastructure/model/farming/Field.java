@@ -12,7 +12,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "fields")
+@Table(name = "fields", indexes = {
+        @Index(name = "idx_field_property", columnList = "property_id"),
+        @Index(name = "idx_field_status", columnList = "field_status")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,7 +33,7 @@ public class Field {
     @Column(length = 20)
     private String code;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(precision = 10, scale = 2)
     private BigDecimal areaHectares;
 
     @Column(columnDefinition = "TEXT")

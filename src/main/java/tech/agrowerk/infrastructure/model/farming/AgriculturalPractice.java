@@ -14,7 +14,11 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "agricultural_practices")
+@Table(name = "agricultural_practices", indexes = {
+        @Index(name = "idx_practice_planting", columnList = "planting_id"),
+        @Index(name = "idx_practice_type", columnList = "practipe_type"),
+        @Index(name = "idx_practice_date", columnList = "application_date")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -52,6 +56,10 @@ public class AgriculturalPractice {
 
     @Column(columnDefinition = "TEXT")
     private String observations;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "planting_id", nullable = false)
+    private Planting planting;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

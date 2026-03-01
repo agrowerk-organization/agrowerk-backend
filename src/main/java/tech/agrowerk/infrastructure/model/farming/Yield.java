@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "yields")
+@Table(name = "yields", indexes = {
+        @Index(name = "idx_yield_harvest", columnList = "harvest_id"),
+        @Index(name = "idx_yield_field", columnList = "field_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor

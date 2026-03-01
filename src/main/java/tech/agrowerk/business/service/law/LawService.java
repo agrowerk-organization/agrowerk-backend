@@ -7,7 +7,7 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import tech.agrowerk.application.dto.crud.get.LawResponse;
+import tech.agrowerk.application.dto.response.LawResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

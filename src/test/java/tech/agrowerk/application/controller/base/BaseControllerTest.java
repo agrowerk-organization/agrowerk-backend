@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
+import tech.agrowerk.business.service.core.UserService;
 import tech.agrowerk.infrastructure.config.TestSecurityConfig;
 import tech.agrowerk.infrastructure.exception.global.AdvancedGlobalExceptionHandler;
 import tech.agrowerk.infrastructure.security.services.CookieService;
@@ -20,8 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest
-@Import({TestSecurityConfig.class, AdvancedGlobalExceptionHandler.class})
+@ActiveProfiles("test")
 public abstract class BaseControllerTest {
 
     @Autowired
@@ -48,6 +49,9 @@ public abstract class BaseControllerTest {
     @MockitoBean
     protected CookieService cookieService;
 
+    @MockitoBean
+    protected UserService userService;
+
     @BeforeEach
     protected void setUpSecurity() {
         when(rateLimitService.isAllowedForPublicEndpoint(anyString())).thenReturn(true);
@@ -59,5 +63,5 @@ public abstract class BaseControllerTest {
     }
 
     @BeforeEach
-    protected abstract void setUp();
+    public abstract void setUp();
 }

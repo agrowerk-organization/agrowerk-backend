@@ -8,20 +8,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import tech.agrowerk.application.dto.crud.create.CreateUserRequest;
-import tech.agrowerk.application.dto.crud.get.UserResponse;
-import tech.agrowerk.application.dto.crud.update.UpdateUserRequest;
+import tech.agrowerk.application.dto.request.CreateUserRequest;
+import tech.agrowerk.application.dto.response.UserResponse;
+import tech.agrowerk.application.dto.request.UpdateUserRequest;
+import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.mapper.UserMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.model.core.Role;
 import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.model.core.enums.RoleType;
 import tech.agrowerk.infrastructure.repository.core.RoleRepository;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -97,6 +98,14 @@ public class UserService {
         Page<User> page = userRepository.findAll(pageable);
 
         return page.map(userMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserInfoDto> searchProducers(String query, Pageable pageable) {
+        return userRepository
+                .findByRole_NameAndNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        RoleType.PRODUCER, query, query, pageable)
+                .map(userMapper::toUserInfoDto);
     }
 
     @Transactional

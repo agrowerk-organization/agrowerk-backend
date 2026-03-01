@@ -16,7 +16,10 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "harvests")
+@Table(name = "harvests", indexes = {
+        @Index(name = "idx_harvest_date", columnList = "harvest_date"),
+        @Index(name = "idx_harvest_planting", columnList = "planting_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,8 +42,12 @@ public class Harvest {
     @JoinColumn(name = "stock_id", nullable = false)
     private Stock stock;
 
-    @OneToOne(mappedBy = "harvest", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "harvest")
     private StockMovement stockMovement;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "planting_id", nullable = false)
+    private Planting planting;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

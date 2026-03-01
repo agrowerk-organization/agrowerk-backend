@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import tech.agrowerk.application.dto.crud.get.FileUploadResponse;
+import tech.agrowerk.application.dto.response.FileUploadResponse;
 import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 

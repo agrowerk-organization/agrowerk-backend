@@ -1,13 +1,14 @@
 package tech.agrowerk.business.service.file;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import tech.agrowerk.application.dto.crud.get.FileUploadResponse;
+import tech.agrowerk.application.dto.response.FileUploadResponse;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import tech.agrowerk.infrastructure.model.file.enums.FileStorageErrorCode;
 import tech.agrowerk.infrastructure.exception.local.FileStorageException;
@@ -265,10 +266,8 @@ public class CloudinaryStorageService implements FileStorageService {
 
     private String generateTransformationUrl(String publicId, String transformation) {
         return cloudinary.url()
-                .transformation()
-                .zoom("auto")
-                .quality("auto")
-                .generate();
+                .transformation(new Transformation().rawTransformation(transformation))
+                .generate(publicId);
     }
 
     private FileUploadResponse mapToResponse(FileMetadata metadata) {

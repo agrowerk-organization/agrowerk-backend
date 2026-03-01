@@ -45,7 +45,7 @@ class WeatherAlertControllerTest extends BaseControllerTest {
     private static final UUID ALERT_ID    = UUID.randomUUID();
 
     @Override
-    protected void setUp() {
+    public void setUp() {
         super.setUpSecurity();
     }
 
