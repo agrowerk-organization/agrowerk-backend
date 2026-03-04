@@ -1,7 +1,7 @@
 package tech.agrowerk.business.mapper;
 
 import org.springframework.stereotype.Component;
-import tech.agrowerk.application.dto.request.CreateUserRequest;
+import tech.agrowerk.application.dto.request.create.CreateUserRequest;
 import tech.agrowerk.application.dto.response.UserResponse;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.infrastructure.model.core.Role;

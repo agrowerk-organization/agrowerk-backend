@@ -10,7 +10,7 @@ import java.util.UUID;
 @Repository
 public interface UserPropertyRepository extends JpaRepository<UserProperty, UUID> {
 
-    boolean existsByProperty_IdAndUser_IdAndIsActiveTrue(UUID propertyId, UUID userId);
+    boolean existsByPropertyIdAndUserIdAndIsActiveTrue(UUID propertyId, UUID userId);
 
-    Optional<UserProperty> findByProperty_IdAndUser_IdAndIsActiveTrue(UUID propertyId, UUID userId);
+    Optional<UserProperty> findByPropertyIdAndUserIdAndIsActiveTrue(UUID propertyId, UUID userId);
 }

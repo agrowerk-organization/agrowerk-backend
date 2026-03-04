@@ -119,6 +119,41 @@ public class CacheConfig {
                 .prefixCacheNameWith("agrowerk:weather:active-alerts:")
         );
 
+        cacheConfigurations.put("fieldProductivity", defaultConfig
+                .entryTtl(Duration.ofMinutes(30))
+                .prefixCacheNameWith("agrowerk:farming:field-productivity:")
+        );
+
+        cacheConfigurations.put("seasons", defaultConfig
+                .entryTtl(Duration.ofMinutes(30))
+                .prefixCacheNameWith("agrowerk:farming:season:")
+        );
+
+        cacheConfigurations.put("crops", defaultConfig
+                .entryTtl(Duration.ofHours(24))
+                .prefixCacheNameWith("agrowerk:farming:crop:")
+        );
+
+        cacheConfigurations.put("cropVarieties", defaultConfig
+                .entryTtl(Duration.ofHours(12))
+                .prefixCacheNameWith("agrowerk:farming:crop-variety:")
+        );
+
+        cacheConfigurations.put("fields", defaultConfig
+                .entryTtl(Duration.ofMinutes(30))
+                .prefixCacheNameWith("agrowerk:farming:field:")
+        );
+
+        cacheConfigurations.put("seasonDashboard", defaultConfig
+                .entryTtl(Duration.ofHours(1))
+                .prefixCacheNameWith("agrowerk:farming:dashboard:")
+        );
+
+        cacheConfigurations.put("batchExpiring", defaultConfig
+                .entryTtl(Duration.ofHours(6))
+                .prefixCacheNameWith("agrowerk:inventory:batch:")
+        );
+
         log.info("Redis cache manager initialized with {} cache configurations",
                 cacheConfigurations.size());
 

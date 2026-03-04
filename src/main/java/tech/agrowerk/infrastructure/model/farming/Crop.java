@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.farming.enums.CropCategory;
 import tech.agrowerk.infrastructure.model.supplier.Supplier;
 
@@ -37,6 +38,10 @@ public class Crop {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CropCategory cropCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
 
     @ManyToMany(mappedBy = "crops")
     private Set<Supplier> suppliers;

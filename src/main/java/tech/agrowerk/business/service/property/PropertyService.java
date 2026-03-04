@@ -1,18 +1,18 @@
 package tech.agrowerk.business.service.property;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import tech.agrowerk.application.dto.request.AddOwnerRequest;
-import tech.agrowerk.application.dto.request.CreatePropertyRequest;
-import tech.agrowerk.application.dto.request.UpdatePropertyRequest;
+import tech.agrowerk.application.dto.request.create.AddOwnerRequest;
+import tech.agrowerk.application.dto.request.create.CreatePropertyRequest;
+import tech.agrowerk.application.dto.request.update.UpdatePropertyRequest;
 import tech.agrowerk.application.dto.response.FileUploadResponse;
 import tech.agrowerk.application.dto.response.PropertyResponse;
 import tech.agrowerk.business.mapper.PropertyMapper;
-import tech.agrowerk.business.service.file.CloudinaryStorageService;
 import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
@@ -160,7 +160,7 @@ public class PropertyService {
             throw new IllegalArgumentException("User is not a producer");
         }
 
-        if (userPropertyRepository.existsByProperty_IdAndUser_IdAndIsActiveTrue(propertyId, request.userId())) {
+        if (userPropertyRepository.existsByPropertyIdAndUserIdAndIsActiveTrue(propertyId, request.userId())) {
             throw new EntityAlreadyExistsException("User is already an owner");
         }
 
@@ -177,7 +177,7 @@ public class PropertyService {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
         UserProperty requesterLink = userPropertyRepository
-                .findByProperty_IdAndUser_IdAndIsActiveTrue(propertyId, auth.id())
+                .findByPropertyIdAndUserIdAndIsActiveTrue(propertyId, auth.id())
                 .orElseThrow(() -> new AccessDeniedException("You don't have access"));
 
         if (!requesterLink.isMasterOwner()) {
@@ -185,7 +185,7 @@ public class PropertyService {
         }
 
         UserProperty targetLink = userPropertyRepository
-                .findByProperty_IdAndUser_IdAndIsActiveTrue(propertyId, targetUserId)
+                .findByPropertyIdAndUserIdAndIsActiveTrue(propertyId, targetUserId)
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found"));
 
         if (targetLink.isMasterOwner()) {
@@ -202,7 +202,7 @@ public class PropertyService {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
         UserProperty requesterLink = userPropertyRepository
-                .findByProperty_IdAndUser_IdAndIsActiveTrue(propertyId, auth.id())
+                .findByPropertyIdAndUserIdAndIsActiveTrue(propertyId, auth.id())
                 .orElseThrow(() -> new AccessDeniedException("You don't have access"));
 
         if (!requesterLink.isMasterOwner()) {
@@ -214,7 +214,7 @@ public class PropertyService {
         }
 
         UserProperty targetLink = userPropertyRepository
-                .findByProperty_IdAndUser_IdAndIsActiveTrue(propertyId, targetUserId)
+                .findByPropertyIdAndUserIdAndIsActiveTrue(propertyId, targetUserId)
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found"));
 
         targetLink.setActive(false);
@@ -234,15 +234,15 @@ public class PropertyService {
         return fileStorageService.upload(file, FileCategory.PROPERTY_PHOTO, propertyId);
     }
 
-    private void validateOwnership(UUID propertyId, UUID userId) {
-        if (!userPropertyRepository.existsByProperty_IdAndUser_IdAndIsActiveTrue(propertyId, userId)) {
+    public void validateOwnership(UUID propertyId, UUID userId) {
+        if (!userPropertyRepository.existsByPropertyIdAndUserIdAndIsActiveTrue(propertyId, userId)) {
             throw new AccessDeniedException("You don't have access to this property");
         }
     }
 
-    private void validateEditPermission(UUID propertyId, UUID userId) {
+    public void validateEditPermission(UUID propertyId, UUID userId) {
         UserProperty link = userPropertyRepository
-                .findByProperty_IdAndUser_IdAndIsActiveTrue(propertyId, userId)
+                .findByPropertyIdAndUserIdAndIsActiveTrue(propertyId, userId)
                 .orElseThrow(() -> new AccessDeniedException("You don't have access"));
 
         if (!link.isMasterOwner() && !link.isCanEdit()) {

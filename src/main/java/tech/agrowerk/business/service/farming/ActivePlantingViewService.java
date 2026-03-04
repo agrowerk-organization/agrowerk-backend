@@ -24,7 +24,7 @@ public class ActivePlantingViewService {
     }
 
     public Optional<ActivePlantingResponse> findActivePlantingByPlantingId(UUID plantingId) {
-        return Optional.ofNullable(activePlantingViewRepository.findByPlantingId(plantingId))
+        return activePlantingViewRepository.findByPlantingId(plantingId)
                 .map(farmingViewMapper::toActivePlantingResponse);
     }
 }

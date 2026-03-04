@@ -2,9 +2,10 @@ package tech.agrowerk.application.dto.response;
 
 
 import java.time.Instant;
+import java.util.UUID;
 
 public record UserResponse(
-        java.util.UUID id,
+        UUID id,
         String name,
         String email,
         String telephone,

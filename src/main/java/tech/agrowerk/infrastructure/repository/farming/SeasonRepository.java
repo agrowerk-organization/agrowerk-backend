@@ -1,6 +1,8 @@
 package tech.agrowerk.infrastructure.repository.farming;
 
 import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -15,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface SeasonRepository extends JpaRepository<Season, UUID> {
 
-    List<Season> findByPropertyId(UUID propertyUd);
+    Page<Season> findByPropertyId(UUID propertyUd, Pageable pageable);
 
     Optional<Season> findByPropertyIdAndSeasonStatus(UUID propertyId, SeasonStatus seasonStatus);
 

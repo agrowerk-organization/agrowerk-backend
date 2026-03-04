@@ -1,4 +1,4 @@
-package tech.agrowerk.application.dto.request;
+package tech.agrowerk.application.dto.request.create;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

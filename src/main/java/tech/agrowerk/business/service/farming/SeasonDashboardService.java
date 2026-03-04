@@ -1,6 +1,7 @@
 package tech.agrowerk.business.service.farming;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import tech.agrowerk.application.dto.views.SeasonDashboardResponse;
 import tech.agrowerk.business.mapper.FarmingViewMapper;
@@ -23,6 +24,9 @@ public class SeasonDashboardService {
         this.farmingViewMapper = farmingViewMapper;
     }
 
+    @Cacheable(value = "seasonDashboard", key = "#propertyId",
+            cacheManager = "redisCacheManager",
+            unless = "#result.isEmpty()")
     public List<SeasonDashboardResponse> getDashboard(UUID propertyId) {
         List<SeasonDashboardView> results = seasonDashboardViewRepository
                 .findByPropertyId(propertyId);

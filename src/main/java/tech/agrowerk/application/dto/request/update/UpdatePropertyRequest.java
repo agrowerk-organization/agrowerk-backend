@@ -1,4 +1,6 @@
-package tech.agrowerk.application.dto.request;
+package tech.agrowerk.application.dto.request.update;
+
+import tech.agrowerk.application.dto.request.create.AddressRequest;
 
 import java.math.BigDecimal;
 

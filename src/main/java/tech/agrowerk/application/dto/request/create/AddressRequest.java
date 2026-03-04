@@ -1,4 +1,4 @@
-package tech.agrowerk.application.dto.request;
+package tech.agrowerk.application.dto.request.create;
 
 public record AddressRequest(
         String municipality,

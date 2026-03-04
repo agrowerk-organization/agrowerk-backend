@@ -11,9 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import tech.agrowerk.application.dto.request.CreateUserRequest;
+import tech.agrowerk.application.dto.request.create.CreateUserRequest;
 import tech.agrowerk.application.dto.response.UserResponse;
-import tech.agrowerk.application.dto.request.UpdateUserRequest;
+import tech.agrowerk.application.dto.request.update.UpdateUserRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 
 import java.util.UUID;

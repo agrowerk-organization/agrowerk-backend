@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record FileUploadResponse(
-        java.util.UUID id,
+        UUID id,
         String originalUrl,
         String optmizedUrl,
         String thumbnailUrl,

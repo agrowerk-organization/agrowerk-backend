@@ -6,9 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.CreateUserRequest;
+import tech.agrowerk.application.dto.request.create.CreateUserRequest;
 import tech.agrowerk.application.dto.response.UserResponse;
-import tech.agrowerk.application.dto.request.UpdateUserRequest;
+import tech.agrowerk.application.dto.request.update.UpdateUserRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.service.core.UserService;
 

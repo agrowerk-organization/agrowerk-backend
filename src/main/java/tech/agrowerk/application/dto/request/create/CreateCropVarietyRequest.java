@@ -1,0 +1,22 @@
+package tech.agrowerk.application.dto.request.create;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import java.util.UUID;
+
+public record CreateCropVarietyRequest(
+        @NotNull
+        UUID cropId,
+
+        @NotBlank
+        @Size(max = 100)
+        String name,
+
+        @Size(max = 200)
+        String description,
+
+        @Size(max = 100)
+        String region
+) {}

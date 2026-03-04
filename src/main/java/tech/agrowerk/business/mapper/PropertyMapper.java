@@ -2,8 +2,8 @@ package tech.agrowerk.business.mapper;
 
 import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
-import tech.agrowerk.application.dto.request.AddressRequest;
-import tech.agrowerk.application.dto.request.CreatePropertyRequest;
+import tech.agrowerk.application.dto.request.create.AddressRequest;
+import tech.agrowerk.application.dto.request.create.CreatePropertyRequest;
 import tech.agrowerk.application.dto.response.PropertyResponse;
 import tech.agrowerk.application.dto.response.AddressResponse;
 import tech.agrowerk.infrastructure.model.core.Address;

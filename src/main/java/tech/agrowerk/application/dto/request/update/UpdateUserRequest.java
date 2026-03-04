@@ -1,4 +1,4 @@
-package tech.agrowerk.application.dto.request;
+package tech.agrowerk.application.dto.request.update;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;

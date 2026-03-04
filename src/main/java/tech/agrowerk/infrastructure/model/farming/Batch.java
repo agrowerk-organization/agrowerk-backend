@@ -87,6 +87,7 @@ public class Batch {
     }
 
     public boolean isNearExpiration(int days) {
-        return LocalDate.now().isBefore(expirationDate.plusDays(days));
+
+        return !isExpired() && LocalDate.now().isBefore(expirationDate.minusDays(days));
     }
 }
