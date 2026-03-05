@@ -31,7 +31,8 @@ public class AdvancedGlobalExceptionHandler {
             entry(FileStorageException.class, internalError("File operation failed")),
             entry(AuthenticationException.class, internalError("Authentication system error")),
             entry(WeatherApiException.class, serviceUnavailable("Weather service temporarily unavailable")),
-            entry(WeatherAlertException.class, notFound("Alert not found"))
+            entry(WeatherAlertException.class, notFound("Alert not found")),
+            entry(InsufficientStockException.class, badRequest("Insufficient stock"))
     );
 
     @ExceptionHandler({
@@ -47,7 +48,8 @@ public class AdvancedGlobalExceptionHandler {
             FileStorageException.class,
             AuthenticationException.class,
             WeatherApiException.class,
-            WeatherAlertException.class
+            WeatherAlertException.class,
+            InsufficientStockException.class
     })
     public ResponseEntity<ErrorResponse> handleMappedException(Exception ex) {
         ErrorConfig config = ERROR_REGISTRY.get(ex.getClass());

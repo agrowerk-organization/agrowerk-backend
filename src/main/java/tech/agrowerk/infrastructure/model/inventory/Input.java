@@ -4,23 +4,23 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import tech.agrowerk.infrastructure.model.farming.enums.ToxicologicalClass;
-import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.PlantingInput;
+import tech.agrowerk.infrastructure.model.farming.enums.ToxicologicalClass;
+import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "inputs")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Input {
 
     @Id
@@ -85,6 +85,9 @@ public class Input {
     private InputCategory category;
 
     @OneToMany(mappedBy = "input", fetch = FetchType.LAZY)
+    private List<InputCrop> cropRecommendations;
+
+    @OneToMany(mappedBy = "input", fetch = FetchType.LAZY)
     private List<Stock> stocks;
 
     @OneToMany(mappedBy = "input", fetch = FetchType.LAZY)
@@ -100,4 +103,5 @@ public class Input {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
+
 }

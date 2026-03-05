@@ -16,6 +16,7 @@ import tech.agrowerk.business.mapper.PropertyMapper;
 import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
+import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
@@ -43,8 +44,9 @@ public class PropertyService {
     private final FileStorageService fileStorageService;
     private final AuthUtil authUtil;
     private final PropertyMapper propertyMapper;
+    private final OwnershipValidator ownershipValidator;
 
-    public PropertyService(PropertyRepository propertyRepository, UserRepository userRepository, UserPropertyRepository userPropertyRepository, StateRepository stateRepository, FileStorageService fileStorageService, AuthUtil authUtil, PropertyMapper propertyMapper) {
+    public PropertyService(PropertyRepository propertyRepository, UserRepository userRepository, UserPropertyRepository userPropertyRepository, StateRepository stateRepository, FileStorageService fileStorageService, AuthUtil authUtil, PropertyMapper propertyMapper, OwnershipValidator ownershipValidator) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
         this.userPropertyRepository = userPropertyRepository;
@@ -52,6 +54,7 @@ public class PropertyService {
         this.fileStorageService = fileStorageService;
         this.authUtil = authUtil;
         this.propertyMapper = propertyMapper;
+        this.ownershipValidator = ownershipValidator;
     }
 
     @Transactional
@@ -93,7 +96,7 @@ public class PropertyService {
     @Transactional
     public PropertyResponse updateProperty(UUID propertyId, UpdatePropertyRequest request) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
-        validateEditPermission(propertyId, auth.id());
+        ownershipValidator.validateOwnership(propertyId, auth.id());
 
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
@@ -148,7 +151,7 @@ public class PropertyService {
     @Transactional
     public void addOwner(UUID propertyId, AddOwnerRequest request) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
-        validateOwnership(propertyId, auth.id());
+        ownershipValidator.validateOwnership(propertyId, auth.id());
 
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
@@ -226,7 +229,7 @@ public class PropertyService {
     @Transactional
     public FileUploadResponse uploadPhoto(UUID propertyId, MultipartFile file) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
-        validateEditPermission(propertyId, auth.id());
+        ownershipValidator.validateEditPermission(propertyId, auth.id());
 
         propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
@@ -234,19 +237,4 @@ public class PropertyService {
         return fileStorageService.upload(file, FileCategory.PROPERTY_PHOTO, propertyId);
     }
 
-    public void validateOwnership(UUID propertyId, UUID userId) {
-        if (!userPropertyRepository.existsByPropertyIdAndUserIdAndIsActiveTrue(propertyId, userId)) {
-            throw new AccessDeniedException("You don't have access to this property");
-        }
-    }
-
-    public void validateEditPermission(UUID propertyId, UUID userId) {
-        UserProperty link = userPropertyRepository
-                .findByPropertyIdAndUserIdAndIsActiveTrue(propertyId, userId)
-                .orElseThrow(() -> new AccessDeniedException("You don't have access"));
-
-        if (!link.isMasterOwner() && !link.isCanEdit()) {
-            throw new AccessDeniedException("You don't have permission to edit this property");
-        }
-    }
 }

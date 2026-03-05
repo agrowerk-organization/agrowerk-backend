@@ -12,6 +12,7 @@ import tech.agrowerk.business.mapper.SeasonMapper;
 import tech.agrowerk.business.service.property.PropertyService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
+import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.farming.Planting;
@@ -35,30 +36,30 @@ public class SeasonService {
     private final PropertyRepository propertyRepository;
     private final UserPropertyRepository userPropertyRepository;
     private final PlantingRepository plantingRepository;
-    private final PropertyService propertyService;
     private final SeasonMapper seasonMapper;
     private final AuthUtil authUtil;
+    private final OwnershipValidator ownershipValidator;
 
     public SeasonService(SeasonRepository seasonRepository,
                          PropertyRepository propertyRepository,
                          UserPropertyRepository userPropertyRepository,
-                         PlantingRepository plantingRepository, PropertyService propertyService,
+                         PlantingRepository plantingRepository,
                          SeasonMapper seasonMapper,
-                         AuthUtil authUtil) {
+                         AuthUtil authUtil, OwnershipValidator ownershipValidator) {
         this.seasonRepository = seasonRepository;
         this.propertyRepository = propertyRepository;
         this.userPropertyRepository = userPropertyRepository;
         this.plantingRepository = plantingRepository;
-        this.propertyService = propertyService;
         this.seasonMapper = seasonMapper;
         this.authUtil = authUtil;
+        this.ownershipValidator = ownershipValidator;
     }
 
     @Transactional
     public SeasonResponse createSeason(CreateSeasonRequest request) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
-        propertyService.validateOwnership(request.propertyId(), auth.id());
+        ownershipValidator.validateOwnership(request.propertyId(), auth.id());
 
         Property property = propertyRepository.findById(request.propertyId())
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
@@ -132,7 +133,7 @@ public class SeasonService {
     @Transactional(readOnly = true)
     public Page<SeasonResponse> findMySeasons(UUID propertyId, Pageable pageable) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
-        propertyService.validateOwnership(propertyId, auth.id());
+        ownershipValidator.validateOwnership(propertyId, auth.id());
 
         return seasonRepository.findByPropertyId(propertyId, pageable)
                 .map(seasonMapper::toResponse);
@@ -142,7 +143,7 @@ public class SeasonService {
         Season season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new EntityNotFoundException("Season not found"));
 
-        propertyService.validateOwnership(season.getProperty().getId(), userId);
+        ownershipValidator.validateOwnership(season.getProperty().getId(), userId);
         return season;
     }
 }

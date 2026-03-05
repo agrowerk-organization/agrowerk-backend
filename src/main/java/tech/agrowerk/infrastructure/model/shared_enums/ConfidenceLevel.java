@@ -1,4 +1,4 @@
-package tech.agrowerk.infrastructure.model.barter.enums;
+package tech.agrowerk.infrastructure.model.shared_enums;
 
 public enum ConfidenceLevel {
     LOW,

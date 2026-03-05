@@ -1,9 +1,13 @@
 package tech.agrowerk.infrastructure.model.supplier;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.validator.constraints.br.CNPJ;
 import tech.agrowerk.infrastructure.model.core.Address;
 import tech.agrowerk.infrastructure.model.core.User;
@@ -11,8 +15,10 @@ import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.Crop;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,7 +28,6 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Supplier {
 
     @Id
@@ -54,11 +59,11 @@ public class Supplier {
     @Embedded
     private Address address;
 
+    @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
+    private List<SupplierRating> ratings;
+
     @OneToMany(mappedBy = "supplier", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<SupplierSpecialtyLink> specialties;
-
-    @Column(precision = 3, scale = 2)
-    private BigDecimal averageRating;
 
     @Column(columnDefinition = "TEXT")
     private String observations;
@@ -73,7 +78,7 @@ public class Supplier {
     private String barterTerms;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "administrator_id", unique = true)
+    @JoinColumn(name = "administrator_id", unique = true, nullable = false)
     private User administrator;
 
     @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
@@ -94,4 +99,13 @@ public class Supplier {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
+
+    public BigDecimal getAverageRating() {
+        if (ratings == null || ratings.isEmpty()) return BigDecimal.ZERO;
+
+        return ratings.stream()
+                .map(SupplierRating::getRating)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(ratings.size()), 2, RoundingMode.HALF_UP);
+    }
 }

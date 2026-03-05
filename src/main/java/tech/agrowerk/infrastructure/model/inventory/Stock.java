@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.Harvest;
+import tech.agrowerk.infrastructure.model.inventory.enums.StockType;
 import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.math.BigDecimal;
@@ -20,7 +21,6 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Stock {
 
     @Id
@@ -32,8 +32,12 @@ public class Stock {
     private Property property;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "input_id", nullable = false)
+    @JoinColumn(name = "input_id")
     private Input input;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StockType stockType;
 
     @Column(nullable = false, precision = 10, scale = 3)
     private BigDecimal currentQuantity = BigDecimal.ZERO;

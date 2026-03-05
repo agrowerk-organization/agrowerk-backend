@@ -2,7 +2,9 @@ package tech.agrowerk.infrastructure.model.farming;
 
 import jakarta.persistence.*;
 import lombok.*;
-import tech.agrowerk.infrastructure.model.barter.enums.ConfidenceLevel;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import tech.agrowerk.infrastructure.model.shared_enums.ConfidenceLevel;
 import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.math.BigDecimal;
@@ -35,6 +37,10 @@ public class HarvestForecast {
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "planting_id", nullable = false)
+    private Planting planting;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal estimatedQuantity;
 
@@ -51,9 +57,11 @@ public class HarvestForecast {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 

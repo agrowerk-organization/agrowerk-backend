@@ -24,7 +24,7 @@ public class CropVarietyController {
         this.cropVarietyService = cropVarietyService;
     }
 
-    @PostMapping("/create")
+    @PostMapping("/create-crop-variety")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<CropVarietyResponse> createCropVariety(
             @Valid @RequestBody CreateCropVarietyRequest request) {
@@ -32,14 +32,14 @@ public class CropVarietyController {
                 .body(cropVarietyService.createVariety(request));
     }
 
-    @GetMapping("/crop/{cropVarietyId}")
+    @GetMapping("/find-by-crop/{cropVarietyId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CropVarietyResponse>> findByCrop(
             @PathVariable UUID cropVarietyId, Pageable pageable) {
         return ResponseEntity.ok(cropVarietyService.findByCrop(cropVarietyId, pageable));
     }
 
-    @GetMapping("/crop/{cropVarietyId}/search")
+    @GetMapping("/search-crop-variety/{cropVarietyId}/search")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CropVarietyResponse>> search(
             @PathVariable UUID cropVarietyId,
@@ -48,6 +48,8 @@ public class CropVarietyController {
         return ResponseEntity.ok(cropVarietyService.searchByName(cropVarietyId, name, pageable));
     }
 
+    @PutMapping("/update-crop-variety/{cropVarietyId}")
+    @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<CropVarietyResponse> updateCropVariety(
             @PathVariable UUID cropVarietyId,
             @Valid @RequestBody UpdateCropVarietyRequest request) {
