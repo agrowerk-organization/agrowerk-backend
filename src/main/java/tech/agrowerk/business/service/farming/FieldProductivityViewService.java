@@ -27,7 +27,7 @@ public class FieldProductivityViewService {
             cacheManager = "redisCacheManager",
             unless = "#result.isEmpty()")
     public Optional<FieldProductivityResponse> findFieldProductivityViewById(UUID fieldId) {
-        return fieldProductivityViewRepository.findByFieldId(fieldId)
+        return fieldProductivityViewRepository.findByField_Id(fieldId)
                 .map(farmingViewMapper::toFieldProductivityResponse);
     }
 }

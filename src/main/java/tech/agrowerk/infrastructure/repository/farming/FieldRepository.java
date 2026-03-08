@@ -16,11 +16,11 @@ import java.util.UUID;
 @Repository
 public interface FieldRepository extends JpaRepository<Field, UUID> {
 
-    Page<Field> findByPropertyId(UUID propertyId, Pageable pageable);
+    Page<Field> findByProperty_Id(UUID propertyId, Pageable pageable);
 
-    boolean existsByNameIgnoreCaseAndPropertyId(String name, UUID propertyId);
+    boolean existsByNameIgnoreCaseAndProperty_Id(String name, UUID propertyId);
 
-    List<Field> findByPropertyIdAndFieldStatus(UUID propertyId, FieldStatus fieldStatus);
+    List<Field> findByProperty_IdAndFieldStatus(UUID propertyId, FieldStatus fieldStatus);
 
     @Query("""
             SELECT COALESCE(SUM(f.areaHectares), 0) FROM Field f

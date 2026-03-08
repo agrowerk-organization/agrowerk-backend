@@ -119,7 +119,7 @@ public class PlantingInputService {
 
         ownershipValidator.validateOwnership(planting.getProperty().getId(), auth.id());
 
-        return plantingInputRepository.findByPlantingId(plantingId, pageable)
+        return plantingInputRepository.findByPlanting_Id(plantingId, pageable)
                 .map(plantingInputMapper::toResponse);
     }
 
@@ -127,16 +127,12 @@ public class PlantingInputService {
     public Page<PlantingInputResponse> findByInput(UUID inputId, Pageable pageable) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
-        Input input = inputRepository.findById(inputId)
+        inputRepository.findById(inputId)
                 .orElseThrow(() -> new EntityNotFoundException("Input not found"));
 
-        Page<PlantingInput> plantingInputs = plantingInputRepository.findByInputId(inputId, pageable);
-
-        return plantingInputs
-                .map(pi -> {
-                    ownershipValidator.validateOwnership(pi.getPlanting().getProperty().getId(), auth.id());
-                    return plantingInputMapper.toResponse(pi);
-                });
+        return plantingInputRepository
+                .findByInputIdAndUserId(inputId, auth.id(), pageable)
+                .map(plantingInputMapper::toResponse);
     }
 
     private void consumeStockFEFO(Planting planting, Input input,

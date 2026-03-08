@@ -15,12 +15,26 @@ import java.util.UUID;
 @Repository
 public interface PlantingInputRepository extends JpaRepository<PlantingInput, UUID> {
 
-    Page<PlantingInput> findByPlantingId(UUID plantingId, Pageable pageable);
+    Page<PlantingInput> findByPlanting_Id(UUID plantingId, Pageable pageable);
 
-    Page<PlantingInput> findByInputId(UUID inputId, Pageable pageable);
+    Page<PlantingInput> findByInput_Id(UUID inputId, Pageable pageable);
 
-    boolean existsByPlantingId(UUID plantingId);
+    boolean existsByPlanting_Id(UUID plantingId);
 
+    @Query("""
+        SELECT pi FROM PlantingInput pi
+        WHERE pi.input.id = :inputId
+        AND pi.planting.property.id IN (
+            SELECT up.property.id FROM UserProperty up
+            WHERE up.user.id = :userId
+            AND up.isActive = true
+        )
+    """)
+    Page<PlantingInput> findByInputIdAndUserId(
+            @Param("inputId") UUID inputId,
+            @Param("userId") UUID userId,
+            Pageable pageable
+    );
     @Query("""
         SELECT COALESCE(SUM(pi.quantity), 0) FROM PlantingInput pi
         WHERE pi.planting.id = :plantingId

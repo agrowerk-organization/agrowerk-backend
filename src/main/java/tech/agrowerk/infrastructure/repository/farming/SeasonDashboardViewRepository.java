@@ -11,6 +11,6 @@ import java.util.UUID;
 public interface SeasonDashboardViewRepository
         extends JpaRepository<SeasonDashboardView, UUID> {
 
-    List<SeasonDashboardView> findByPropertyId(UUID propertyId);
-    List<SeasonDashboardView> findBySeasonId(UUID seasonId);
+    List<SeasonDashboardView> findByProperty_Id(UUID propertyId);
+    List<SeasonDashboardView> findBySeason_Id(UUID seasonId);
 }

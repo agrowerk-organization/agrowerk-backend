@@ -17,9 +17,9 @@ import java.util.UUID;
 @Repository
 public interface SeasonRepository extends JpaRepository<Season, UUID> {
 
-    Page<Season> findByPropertyId(UUID propertyUd, Pageable pageable);
+    Page<Season> findByProperty_Id(UUID propertyUd, Pageable pageable);
 
-    Optional<Season> findByPropertyIdAndSeasonStatus(UUID propertyId, SeasonStatus seasonStatus);
+    Optional<Season> findByProperty_IdAndSeasonStatus(UUID propertyId, SeasonStatus seasonStatus);
 
     @Query("""
         SELECT COUNT(s) > 0 FROM Season s
@@ -34,5 +34,5 @@ public interface SeasonRepository extends JpaRepository<Season, UUID> {
             @Param("endDate") LocalDate endDate
             );
 
-    boolean existsByPropertyIdAndName(UUID propertyId, String propertyName);
+    boolean existsByProperty_IdAndName(UUID propertyId, String propertyName);
 }

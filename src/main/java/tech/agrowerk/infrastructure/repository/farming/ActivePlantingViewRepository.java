@@ -10,5 +10,5 @@ import java.util.UUID;
 @Repository
 public interface ActivePlantingViewRepository extends JpaRepository<ActivePlantingView, UUID> {
 
-    Optional<ActivePlantingView> findByPlantingId(UUID plantingId);
+    Optional<ActivePlantingView> findByPlanting_Id(UUID plantingId);
 }

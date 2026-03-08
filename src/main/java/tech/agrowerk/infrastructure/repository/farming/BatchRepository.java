@@ -60,7 +60,7 @@ public interface BatchRepository extends JpaRepository<Batch, UUID> {
         AND b.status = :status
         ORDER BY b.expirationDate ASC
     """)
-    Page<Batch> findBySupplierId(
+    Page<Batch> findBySupplier_Id(
             @Param("supplierId") UUID supplierId,
             @Param("status") BatchStatus status,
             Pageable pageable

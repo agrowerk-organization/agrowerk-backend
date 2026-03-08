@@ -63,7 +63,7 @@ public class FieldService {
         Property property = propertyRepository.findById(request.propertyId())
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
 
-        if (fieldRepository.existsByNameIgnoreCaseAndPropertyId(request.name(), request.propertyId())) {
+        if (fieldRepository.existsByNameIgnoreCaseAndProperty_Id(request.name(), request.propertyId())) {
             throw new EntityAlreadyExistsException("Field name already exists in this property");
         }
 
@@ -100,7 +100,7 @@ public class FieldService {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
         ownershipValidator.validateOwnership(propertyId, auth.id());
 
-        return fieldRepository.findByPropertyId(propertyId, pageable)
+        return fieldRepository.findByProperty_Id(propertyId, pageable)
                 .map(fieldMapper::toResponse);
     }
 
@@ -147,7 +147,7 @@ public class FieldService {
 
             if (request.fieldStatus() == FieldStatus.ACTIVE) {
                 boolean hasActivePlanting = plantingRepository
-                        .existsByFieldIdAndPlantingStatus(
+                        .existsByField_IdAndPlantingStatus(
                                 fieldId, PlantingStatus.IN_PROGRESS);
                 if (hasActivePlanting) {
                     throw new IllegalArgumentException(

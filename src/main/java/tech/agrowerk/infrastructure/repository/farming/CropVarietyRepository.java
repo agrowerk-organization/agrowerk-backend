@@ -10,8 +10,10 @@ import java.util.UUID;
 
 @Repository
 public interface CropVarietyRepository extends JpaRepository<CropVariety, UUID> {
-    Page<CropVariety> findByCropId(UUID cropId, Pageable pageable);
-    boolean existsByNameIgnoreCaseAndCropId(String name, UUID cropId);
-    Page<CropVariety> findByCropIdAndNameContainingIgnoreCase(
+    Page<CropVariety> findByCrop_Id(UUID cropId, Pageable pageable);
+
+    boolean existsByNameIgnoreCaseAndCrop_Id(String name, UUID cropId);
+
+    Page<CropVariety> findByCrop_IdAndNameContainingIgnoreCase(
             UUID cropId, String name, Pageable pageable);
 }

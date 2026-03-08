@@ -1,6 +1,9 @@
 package tech.agrowerk.application.controller.farming;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +45,10 @@ public class SeasonController {
 
     @GetMapping("/property/{propertyId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
-    public ResponseEntity<List<SeasonResponse>> mySeasons(@PathVariable UUID propertyId) {
-        return ResponseEntity.ok(seasonService.findMySeasons(propertyId));
+    public ResponseEntity<Page<SeasonResponse>> mySeasons(
+            @PathVariable UUID propertyId,
+            @PageableDefault(size = 10)Pageable pageable
+            ) {
+        return ResponseEntity.ok(seasonService.findMySeasons(propertyId, pageable));
     }
 }

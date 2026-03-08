@@ -68,7 +68,7 @@ public class SeasonService {
             throw new IllegalArgumentException("Start date must be before end date");
         }
 
-        if (seasonRepository.existsByPropertyIdAndName(request.propertyId(), request.name())) {
+        if (seasonRepository.existsByProperty_IdAndName(request.propertyId(), request.name())) {
             throw new EntityAlreadyExistsException("Season name already exists for this property");
         }
 
@@ -89,7 +89,7 @@ public class SeasonService {
 
         Season season = findAndValidateOwnership(seasonId, auth.id());
 
-        seasonRepository.findByPropertyIdAndSeasonStatus(
+        seasonRepository.findByProperty_IdAndSeasonStatus(
                 season.getProperty().getId(), SeasonStatus.IN_PROGRESS
         ).ifPresent(s -> {
             throw new IllegalArgumentException("There is already an active season for this property");
@@ -115,7 +115,7 @@ public class SeasonService {
         }
 
         List<Planting> activePlantings = plantingRepository
-                .findBySeasonIdAndPlantingStatus(seasonId, PlantingStatus.FINISHED);
+                .findBySeason_IdAndPlantingStatus(seasonId, PlantingStatus.FINISHED);
 
         activePlantings.forEach(p -> {
             p.setPlantingStatus(PlantingStatus.FINISHED);
@@ -135,7 +135,7 @@ public class SeasonService {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
         ownershipValidator.validateOwnership(propertyId, auth.id());
 
-        return seasonRepository.findByPropertyId(propertyId, pageable)
+        return seasonRepository.findByProperty_Id(propertyId, pageable)
                 .map(seasonMapper::toResponse);
     }
 

@@ -50,7 +50,7 @@ public class CropVarietyService {
         Crop crop = cropRepository.findById(request.cropId())
                 .orElseThrow(() -> new EntityNotFoundException("Crop not found"));
 
-        if (cropVarietyRepository.existsByNameIgnoreCaseAndCropId(
+        if (cropVarietyRepository.existsByNameIgnoreCaseAndCrop_Id(
                 request.name(), request.cropId())) {
             throw new EntityAlreadyExistsException("Variety already exists for this crop");
         }
@@ -70,7 +70,7 @@ public class CropVarietyService {
             unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public Page<CropVarietyResponse> findByCrop(UUID cropId, Pageable pageable) {
-        return cropVarietyRepository.findByCropId(cropId, pageable)
+        return cropVarietyRepository.findByCrop_Id(cropId, pageable)
                 .map(cropVarietyMapper::toResponse);
     }
 
@@ -81,7 +81,7 @@ public class CropVarietyService {
     public Page<CropVarietyResponse> searchByName(
             UUID cropId, String name, Pageable pageable) {
         return cropVarietyRepository
-                .findByCropIdAndNameContainingIgnoreCase(cropId, name, pageable)
+                .findByCrop_IdAndNameContainingIgnoreCase(cropId, name, pageable)
                 .map(cropVarietyMapper::toResponse);
     }
 

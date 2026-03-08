@@ -13,6 +13,7 @@ import tech.agrowerk.infrastructure.model.inventory.StockMovement;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -33,10 +34,19 @@ public class Harvest {
     @Column(nullable = false)
     private LocalDate harvestDate;
 
+    @Column
+    private LocalDate finalizedAt;
+
     @Column(nullable = false, precision = 12, scale = 3)
     private BigDecimal quantityKg;
 
     private String qualityGrade;
+
+    @Column(nullable = false)
+    private Boolean finalized = false;
+
+    @OneToMany(mappedBy = "harvest", cascade = CascadeType.ALL)
+    private List<HarvestPartial> partials;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_id", nullable = false)
@@ -57,4 +67,10 @@ public class Harvest {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    public BigDecimal getTotalQuantity() {
+        if (partials == null || partials.isEmpty()) return BigDecimal.ZERO;
+        return partials.stream()
+                .map(HarvestPartial::getQuantityKg)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

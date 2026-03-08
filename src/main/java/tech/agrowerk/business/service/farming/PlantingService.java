@@ -137,7 +137,7 @@ public class PlantingService {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
         ownershipValidator.validateOwnership(propertyId, auth.id());
 
-        return plantingRepository.findByPropertyId(propertyId, pageable)
+        return plantingRepository.findByProperty_Id(propertyId, pageable)
                 .map(plantingMapper::toResponse);
     }
 
@@ -164,7 +164,7 @@ public class PlantingService {
         boolean hasChanges = false;
 
         if (request.cropVarietyId() != null) {
-            if (plantingInputRepository.existsByPlantingId(plantingId)) {
+            if (plantingInputRepository.existsByPlanting_Id(plantingId)) {
                 throw new IllegalArgumentException(
                         "Crop variety cannot be changed after inputs have been registered"
                 );
@@ -176,7 +176,7 @@ public class PlantingService {
         }
 
         if (request.plantingDate() != null) {
-            if (plantingInputRepository.existsByPlantingId(plantingId)) {
+            if (plantingInputRepository.existsByPlanting_Id(plantingId)) {
                 throw new IllegalArgumentException(
                         "Planting date cannot be changed after inputs have been registered"
                 );
@@ -215,7 +215,7 @@ public class PlantingService {
         planting.setPlantingStatus(PlantingStatus.CANCELLED);
 
         boolean hasOtherActivePlantings = plantingRepository
-                .existsByFieldIdAndPlantingStatus(
+                .existsByField_IdAndPlantingStatus(
                         planting.getField().getId(), PlantingStatus.IN_PROGRESS);
 
         if (!hasOtherActivePlantings) {
