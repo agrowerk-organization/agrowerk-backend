@@ -16,22 +16,33 @@ import java.util.UUID;
 @Repository
 public interface BatchRepository extends JpaRepository<Batch, UUID> {
 
+    Page<Batch> findBySupplier_Id(UUID supplierId, Pageable pageable);
+
+    Page<Batch> findByInput_Id(UUID inputId, Pageable pageable);
+
+    Page<Batch> findByProperty_Id(UUID propertyId, Pageable pageable);
+
+    boolean existsByBatchNumber(String batchNumber);
+
+    boolean existsByBatchNumberAndIdNot(String batchNumber, UUID id);
+
     @Query("""
         SELECT b FROM Batch b
         WHERE b.input.id = :inputId
         AND b.status = :status
+        AND b.property.id = :propertyId
         AND b.expirationDate > CURRENT_DATE
         ORDER BY b.expirationDate ASC
     """)
-    List<Batch> findActiveByInputOrderByExpirationDateAsc(
+    List<Batch> findActiveByInputAndPropertyOrderByExpirationDateAsc(
             @Param("inputId") UUID inputId,
+            @Param("propertyId") UUID propertyId,
             @Param("status") BatchStatus status
     );
 
     @Query("""
         SELECT b FROM Batch b
-        JOIN b.movements m
-        WHERE m.property.id = :propertyId
+        WHERE b.property.id = :propertyId
         AND b.status = :status
         AND b.expirationDate <= :alertDate
         AND b.expirationDate > CURRENT_DATE
@@ -46,23 +57,16 @@ public interface BatchRepository extends JpaRepository<Batch, UUID> {
 
     @Query("""
         SELECT b FROM Batch b
-        WHERE b.status = :status
+        WHERE b.property.id = :propertyId
+        AND b.status = :status
         AND b.expirationDate < CURRENT_DATE
         AND b.currentQuantity > 0
     """)
-    List<Batch> findExpiredWithRemainingStock(
-            @Param("status") BatchStatus status
-    );
-
-    @Query("""
-        SELECT b FROM Batch b
-        WHERE b.supplier.id = :supplierId
-        AND b.status = :status
-        ORDER BY b.expirationDate ASC
-    """)
-    Page<Batch> findBySupplier_Id(
-            @Param("supplierId") UUID supplierId,
+    Page<Batch> findExpiredWithRemainingStock(
+            @Param("propertyId") UUID propertyId,
             @Param("status") BatchStatus status,
             Pageable pageable
     );
+
+
 }

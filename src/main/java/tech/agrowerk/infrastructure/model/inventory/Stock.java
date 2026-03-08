@@ -16,9 +16,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "stocks", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"property_id", "input_id"})
+        @UniqueConstraint(columnNames = {"property_id", "input_id", "stock_type"})
 })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Stock {
@@ -56,9 +57,6 @@ public class Stock {
 
     @Column(name = "last_exit_date")
     private LocalDateTime lastExitDate;
-
-    @OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
-    private List<Harvest> harvests;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id")

@@ -1,7 +1,5 @@
 package tech.agrowerk.infrastructure.repository.inventory;
 
-import io.micrometer.core.instrument.config.validate.Validated;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.inventory.Stock;
@@ -16,5 +14,5 @@ public interface StockRepository extends JpaRepository<Stock, UUID> {
 
     Optional<Stock> findByProperty_IdAndInput_Id(UUID propertyId, UUID inputId);
 
-    Optional<Stock> findByProperty_IdAndStockType(UUID uuid, StockType stockType);
+    Optional<Stock> findByProperty_IdAndInput_IdAndStockType(UUID propertyId, UUID inputId, StockType stockType);
 }

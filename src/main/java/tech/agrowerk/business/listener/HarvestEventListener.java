@@ -68,7 +68,7 @@ public class HarvestEventListener {
     public void onPartialAdded(HarvestPartialAddedEvent event) {
         Stock stock = stockRepository
                 .findByProperty_IdAndStockType(
-                        event.propertyId(), StockType.PRODUCTION)
+                        event.propertyId(), event.inputId(), StockType.PRODUCTION)
                 .orElseGet(() -> createProductionStock(event.propertyId()));
 
         stock.setCurrentQuantity(
@@ -98,7 +98,7 @@ public class HarvestEventListener {
 
         Stock stock = stockRepository
                 .findByProperty_IdAndStockType(
-                        event.propertyId(), StockType.PRODUCTION)
+                        event.propertyId(), event.inputId(), StockType.PRODUCTION)
                 .orElseThrow(() -> new EntityNotFoundException("Stock not found"));
 
         stock.setCurrentQuantity(
@@ -126,7 +126,7 @@ public class HarvestEventListener {
     private void updateCMP(HarvestFinalizedEvent event) {
         Stock stock = stockRepository
                 .findByProperty_IdAndStockType(
-                        event.propertyId(), StockType.PRODUCTION)
+                        event.propertyId(), event.inputId(), StockType.PRODUCTION)
                 .orElseThrow(() -> new EntityNotFoundException("Stock not found"));
 
         BigDecimal newTotalValue = stock.getTotalValue()

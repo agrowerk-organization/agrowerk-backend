@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.model.farming.enums.BatchReceiptStatus;
 import tech.agrowerk.infrastructure.model.farming.enums.BatchStatus;
+import tech.agrowerk.infrastructure.model.property.Property;
 import tech.agrowerk.infrastructure.model.supplier.Supplier;
 import tech.agrowerk.infrastructure.model.inventory.Input;
 import tech.agrowerk.infrastructure.model.inventory.StockMovement;
@@ -59,6 +62,21 @@ public class Batch {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private BatchStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BatchReceiptStatus receiptStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id")
+    private Property property;
+
+    @Column
+    private LocalDateTime receivedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "received_by")
+    private User receivedBy;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

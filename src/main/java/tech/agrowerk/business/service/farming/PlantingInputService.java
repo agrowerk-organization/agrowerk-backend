@@ -140,8 +140,8 @@ public class PlantingInputService {
                                   User user) {
 
         List<Batch> batches = batchRepository
-                .findActiveByInputOrderByExpirationDateAsc(
-                        input.getId(), BatchStatus.AVAILABLE);
+                .findActiveByInputAndPropertyOrderByExpirationDateAsc(
+                        input.getId(), planting.getProperty().getId(), BatchStatus.AVAILABLE);
 
         BigDecimal remaining = quantityNeeded;
 
