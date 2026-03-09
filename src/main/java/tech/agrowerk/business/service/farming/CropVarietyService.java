@@ -35,7 +35,11 @@ public class CropVarietyService {
     private final UserRepository userRepository;
     private final AuthUtil authUtil;
 
-    public CropVarietyService(CropVarietyRepository cropVarietyRepository, CropRepository cropRepository, CropVarietyMapper cropVarietyMapper, UserRepository userRepository, AuthUtil authUtil) {
+    public CropVarietyService(CropVarietyRepository cropVarietyRepository,
+                              CropRepository cropRepository,
+                              CropVarietyMapper cropVarietyMapper,
+                              UserRepository userRepository,
+                              AuthUtil authUtil) {
         this.cropVarietyRepository = cropVarietyRepository;
         this.cropRepository = cropRepository;
         this.cropVarietyMapper = cropVarietyMapper;

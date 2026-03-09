@@ -33,7 +33,6 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
 
     @Id
@@ -60,6 +59,9 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @Embedded
+    private Address address;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -191,7 +193,7 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<UserProperty> propertyLinks;
 
-    @OneToOne(mappedBy = "administrator", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "administrator")
     private Supplier supplier;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)

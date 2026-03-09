@@ -16,7 +16,6 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

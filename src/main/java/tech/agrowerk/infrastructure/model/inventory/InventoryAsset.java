@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.inventory.enums.AssetCategory;
 import tech.agrowerk.infrastructure.model.inventory.enums.AssetCondition;
 import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.model.inventory.enums.AssetValuationMethod;
 import tech.agrowerk.infrastructure.model.property.Property;
 
 import java.math.BigDecimal;
@@ -50,6 +51,19 @@ public class InventoryAsset {
     private BigDecimal referenceValue;
 
     private String unit;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AssetValuationMethod valuationMethod;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal agreedValue;
+
+    @Column(length = 50)
+    private String commodityReference;
+
+    @Column(precision = 10, scale = 3)
+    private BigDecimal commodityQuantityEquivalent;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

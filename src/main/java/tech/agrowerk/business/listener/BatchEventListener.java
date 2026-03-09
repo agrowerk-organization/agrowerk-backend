@@ -31,7 +31,11 @@ public class BatchEventListener {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
 
-    public BatchEventListener(StockRepository stockRepository, StockMovementRepository stockMovementRepository, InputRepository inputRepository, PropertyRepository propertyRepository, UserRepository userRepository) {
+    public BatchEventListener(StockRepository stockRepository,
+                              StockMovementRepository stockMovementRepository,
+                              InputRepository inputRepository,
+                              PropertyRepository propertyRepository,
+                              UserRepository userRepository) {
         this.stockRepository = stockRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.inputRepository = inputRepository;

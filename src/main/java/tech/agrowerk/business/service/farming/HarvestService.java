@@ -70,7 +70,6 @@ public class HarvestService {
         this.eventPublisher = eventPublisher;
     }
 
-
     @Transactional
     public HarvestResponse createHarvest(CreateHarvestRequest request) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();

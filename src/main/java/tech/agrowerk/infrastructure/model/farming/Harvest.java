@@ -37,9 +37,6 @@ public class Harvest {
     @Column
     private LocalDate finalizedAt;
 
-    @Column(nullable = false, precision = 12, scale = 3)
-    private BigDecimal quantityKg;
-
     private String qualityGrade;
 
     @Column(nullable = false)
@@ -66,11 +63,4 @@ public class Harvest {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
-
-    public BigDecimal getTotalQuantity() {
-        if (partials == null || partials.isEmpty()) return BigDecimal.ZERO;
-        return partials.stream()
-                .map(HarvestPartial::getQuantityKg)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 }
