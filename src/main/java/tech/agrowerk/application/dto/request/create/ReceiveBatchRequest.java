@@ -6,6 +6,9 @@ import java.util.UUID;
 
 public record ReceiveBatchRequest(
         @NotNull
-        UUID propertyId
+        UUID propertyId,
+
+        @NotNull
+        UUID warehouseId
 ) {
 }

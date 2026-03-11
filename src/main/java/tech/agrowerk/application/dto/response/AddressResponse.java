@@ -1,9 +1,12 @@
 package tech.agrowerk.application.dto.response;
 
 public record AddressResponse(
-        String municipality,
+        boolean rural,
         String code,
-        int number,
+        String municipality,
+        String locationName,
         String street,
-        String neighborhood
+        Integer number,
+        String neighborhood,
+        String landmark
 ) {}

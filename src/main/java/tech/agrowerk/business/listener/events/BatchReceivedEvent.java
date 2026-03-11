@@ -8,6 +8,7 @@ public record BatchReceivedEvent(
         UUID inputId,
         UUID propertyId,
         UUID receivedBy,
+        UUID warehouseId,
         BigDecimal quantity,
         BigDecimal unitPrice,
         BigDecimal totalValue

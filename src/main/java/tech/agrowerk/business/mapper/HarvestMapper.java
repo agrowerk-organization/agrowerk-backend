@@ -16,7 +16,6 @@ public class HarvestMapper {
         Harvest harvest = new Harvest();
         harvest.setPlanting(planting);
         harvest.setHarvestDate(request.harvestDate());
-        harvest.setQuantityKg(request.quantityKg());
         harvest.setQualityGrade(request.qualityGrade());
         harvest.setStock(stock);
         return harvest;
@@ -33,7 +32,6 @@ public class HarvestMapper {
                 planting.getProperty().getName(),
                 planting.getSeason().getName(),
                 harvest.getHarvestDate(),
-                harvest.getQuantityKg(),
                 harvest.getQualityGrade(),
                 totalPlantingCost,
                 totalQuantityKg,

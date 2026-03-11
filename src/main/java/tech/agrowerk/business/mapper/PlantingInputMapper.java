@@ -6,6 +6,7 @@ import tech.agrowerk.application.dto.response.PlantingInputResponse;
 import tech.agrowerk.infrastructure.model.farming.Planting;
 import tech.agrowerk.infrastructure.model.farming.PlantingInput;
 import tech.agrowerk.infrastructure.model.inventory.Input;
+import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 
 @Component
 public class PlantingInputMapper {
@@ -17,7 +18,7 @@ public class PlantingInputMapper {
         plantingInput.setPlanting(planting);
         plantingInput.setInput(input);
         plantingInput.setQuantity(request.quantity());
-        plantingInput.setUnit(input.getUnitOfMeasure().name());
+        plantingInput.setUnitOfMeasure(request.unitOfMeasure());
         plantingInput.setApplicationDate(request.applicationDate());
         return plantingInput;
     }
@@ -28,7 +29,7 @@ public class PlantingInputMapper {
                 plantingInput.getPlanting().getId(),
                 plantingInput.getInput().getId(),
                 plantingInput.getInput().getName(),
-                plantingInput.getUnit(),
+                plantingInput.getUnitOfMeasure().toString(),
                 plantingInput.getQuantity(),
                 plantingInput.getApplicationDate(),
                 plantingInput.getCreatedAt()

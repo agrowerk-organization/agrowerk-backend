@@ -44,7 +44,13 @@ public class FieldService {
 
     private static final int MAX_ACTIVE_CROPS_PER_FIELD = 3;
 
-    public FieldService(FieldRepository fieldRepository, PropertyRepository propertyRepository, UserPropertyRepository userPropertyRepository, PlantingRepository plantingRepository, FieldMapper fieldMapper, AuthUtil authUtil, OwnershipValidator ownershipValidator) {
+    public FieldService(FieldRepository fieldRepository,
+                        PropertyRepository propertyRepository,
+                        UserPropertyRepository userPropertyRepository,
+                        PlantingRepository plantingRepository,
+                        FieldMapper fieldMapper,
+                        AuthUtil authUtil,
+                        OwnershipValidator ownershipValidator) {
         this.fieldRepository = fieldRepository;
         this.propertyRepository = propertyRepository;
         this.userPropertyRepository = userPropertyRepository;

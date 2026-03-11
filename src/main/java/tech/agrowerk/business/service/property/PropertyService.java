@@ -7,8 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import tech.agrowerk.application.dto.request.create.AddFarmUnitRequest;
 import tech.agrowerk.application.dto.request.create.AddOwnerRequest;
 import tech.agrowerk.application.dto.request.create.CreatePropertyRequest;
+import tech.agrowerk.application.dto.request.update.UpdateFarmUnitRequest;
 import tech.agrowerk.application.dto.request.update.UpdatePropertyRequest;
 import tech.agrowerk.application.dto.response.FileUploadResponse;
 import tech.agrowerk.application.dto.response.PropertyResponse;
@@ -22,6 +24,7 @@ import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
+import tech.agrowerk.infrastructure.model.property.FarmUnit;
 import tech.agrowerk.infrastructure.model.property.Property;
 import tech.agrowerk.infrastructure.model.property.State;
 import tech.agrowerk.infrastructure.model.property.UserProperty;
@@ -31,7 +34,9 @@ import tech.agrowerk.infrastructure.repository.property.PropertyRepository;
 import tech.agrowerk.infrastructure.repository.property.StateRepository;
 import tech.agrowerk.infrastructure.repository.property.UserPropertyRepository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -70,6 +75,8 @@ public class PropertyService {
         if (propertyRepository.existsByStateRegistration(request.stateRegistration())) {
             throw new EntityAlreadyExistsException("Property already registered");
         }
+
+        validateFarmUnitsArea(request.totalArea(), request.units());
 
         Property property = propertyMapper.toEntity(request, state);
 
@@ -137,6 +144,23 @@ public class PropertyService {
         }
         if (request.isActive() != null) {
             property.setIsActive(request.isActive());
+            hasChanges = true;
+        }
+
+        if (request.totalArea() != null) {
+            property.setTotalArea(request.totalArea());
+            hasChanges = true;
+        }
+
+        if (request.units() != null) {
+            validateFarmUnitsArea(property.getTotalArea(), request.units());
+
+            property.getUnits().clear();
+            property.getUnits().addAll(
+                    request.units().stream()
+                            .map(unitReq -> propertyMapper.toFarmUnitEntity(unitReq, property))
+                            .toList()
+            );
             hasChanges = true;
         }
 
@@ -237,4 +261,29 @@ public class PropertyService {
         return fileStorageService.upload(file, FileCategory.PROPERTY_PHOTO, propertyId);
     }
 
+    private void validateFarmUnitsArea(BigDecimal totalArea, List<?> units) {
+        if (units == null || units.isEmpty() || totalArea == null) return;
+
+        BigDecimal unitsTotalArea = BigDecimal.ZERO;
+
+        for (Object unit : units) {
+            BigDecimal area = BigDecimal.ZERO;
+            if (unit instanceof AddFarmUnitRequest addRequest) {
+                area = addRequest.area();
+            } else if (unit instanceof UpdateFarmUnitRequest updateRequest) {
+                area = updateRequest.area();
+            }
+
+            if (area != null) {
+                unitsTotalArea = unitsTotalArea.add(area);
+            }
+        }
+
+        if (unitsTotalArea.compareTo(totalArea) > 0) {
+            throw new IllegalArgumentException(
+                    String.format("The sum of farm unit areas (%.2f) exceeds the property total area (%.2f)",
+                            unitsTotalArea, totalArea)
+            );
+        }
+    }
 }

@@ -10,7 +10,7 @@ public record PlantingInputResponse(
         UUID plantingId,
         UUID inputId,
         String inputName,
-        String unit,
+        String measureUnit,
         BigDecimal quantity,
         LocalDate applicationDate,
         Instant createdAt

@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface StockRepository extends JpaRepository<Stock, UUID> {
     Stock findByPropertyIdAndInputId(UUID propertyId,  UUID inputId);
 
-    Optional<Stock> findByProperty_IdAndInput_Id(UUID propertyId, UUID inputId);
-
     Optional<Stock> findByProperty_IdAndInput_IdAndStockType(UUID propertyId, UUID inputId, StockType stockType);
+
+    Optional<Stock> findByProperty_IdAndStockType(UUID propertyId, StockType stockType);
 }

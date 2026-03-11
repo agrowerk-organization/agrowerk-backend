@@ -9,12 +9,14 @@ import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.inventory.Input;
 import tech.agrowerk.infrastructure.model.inventory.Stock;
 import tech.agrowerk.infrastructure.model.inventory.StockMovement;
+import tech.agrowerk.infrastructure.model.inventory.Warehouse;
 import tech.agrowerk.infrastructure.model.inventory.enums.MovementType;
 import tech.agrowerk.infrastructure.model.inventory.enums.StockType;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.repository.inventory.InputRepository;
 import tech.agrowerk.infrastructure.repository.inventory.StockMovementRepository;
 import tech.agrowerk.infrastructure.repository.inventory.StockRepository;
+import tech.agrowerk.infrastructure.repository.inventory.WarehouseRepository;
 import tech.agrowerk.infrastructure.repository.property.PropertyRepository;
 
 import java.math.BigDecimal;
@@ -30,30 +32,37 @@ public class BatchEventListener {
     private final InputRepository inputRepository;
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
+    private final WarehouseRepository warehouseRepository;
 
     public BatchEventListener(StockRepository stockRepository,
                               StockMovementRepository stockMovementRepository,
                               InputRepository inputRepository,
                               PropertyRepository propertyRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository, WarehouseRepository warehouseRepository) {
         this.stockRepository = stockRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.inputRepository = inputRepository;
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
+        this.warehouseRepository = warehouseRepository;
     }
 
     @EventListener
     @Transactional
-    public void onBatchREceived(BatchReceivedEvent event) {
+    public void onBatchReceived(BatchReceivedEvent event) {
         Input input = inputRepository.findById(event.inputId())
                 .orElseThrow(() -> new EntityNotFoundException("Input not found"));
 
-        Stock stock = stockRepository.findByProperty_IdAndInput_IdAndStockType(
-                event.propertyId(),
-                event.inputId(),
-                StockType.INPUT
-        ).orElseGet(() -> createInputStock(event, input));
+        if (event.warehouseId() != null) {
+            validateAndUpdateWarehouse(event);
+        }
+
+        Stock stock = stockRepository
+                .findByProperty_IdAndInput_IdAndStockType(
+                        event.propertyId(),
+                        event.inputId(),
+                        StockType.INPUT)
+                .orElseGet(() -> createInputStock(event, input));
 
         BigDecimal newQuantity = stock.getCurrentQuantity()
                 .add(event.quantity());
@@ -71,13 +80,20 @@ public class BatchEventListener {
         stock.setWeightedAverageCost(newCMP);
         stock.setLastEntryDate(LocalDateTime.now());
 
+        if (event.warehouseId() != null) {
+            stock.setWarehouse(warehouseRepository
+                    .getReferenceById(event.warehouseId()));
+        }
+
         input.setAveragePurchasePrice(newCMP);
         input.setLastPurchasePrice(event.unitPrice());
 
         StockMovement movement = new StockMovement();
         movement.setStock(stock);
-        movement.setProperty(propertyRepository.getReferenceById(event.propertyId()));
-        movement.setUser(userRepository.getReferenceById(event.receivedBy()));
+        movement.setProperty(propertyRepository
+                .getReferenceById(event.propertyId()));
+        movement.setUser(userRepository
+                .getReferenceById(event.receivedBy()));
         movement.setQuantity(event.quantity());
         movement.setUnitValue(event.unitPrice());
         movement.setTotalValue(event.totalValue());
@@ -88,6 +104,48 @@ public class BatchEventListener {
 
         log.info("Stock updated after batch received id={} property={}",
                 event.batchId(), event.propertyId());
+    }
+
+    private void validateAndUpdateWarehouse(BatchReceivedEvent event) {
+        Warehouse warehouse = warehouseRepository
+                .findById(event.warehouseId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Warehouse not found"));
+
+        if (!warehouse.getProperty().getId().equals(event.propertyId())) {
+            throw new IllegalArgumentException(
+                    "Warehouse does not belong to this property"
+            );
+        }
+
+        if (!warehouse.getIsActive()) {
+            throw new IllegalArgumentException(
+                    "Warehouse is not active"
+            );
+        }
+
+        if (warehouse.getCapacityKg() != null) {
+            BigDecimal currentOccupancy = warehouse.getCurrentOccupancyKg() != null
+                    ? warehouse.getCurrentOccupancyKg()
+                    : BigDecimal.ZERO;
+
+            BigDecimal newOccupancy = currentOccupancy.add(event.quantity());
+
+            if (newOccupancy.compareTo(warehouse.getCapacityKg()) > 0) {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "Warehouse capacity exceeded — capacity: %.2fkg, " +
+                                        "current: %.2fkg, incoming: %.2fkg",
+                                warehouse.getCapacityKg(),
+                                currentOccupancy,
+                                event.quantity())
+                );
+            }
+
+            warehouse.setCurrentOccupancyKg(newOccupancy);
+            log.info("Warehouse id={} occupancy updated to {}kg",
+                    event.warehouseId(), newOccupancy);
+        }
     }
 
     private Stock createInputStock(BatchReceivedEvent event, Input input) {

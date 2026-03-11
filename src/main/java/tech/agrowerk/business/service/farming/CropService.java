@@ -15,7 +15,9 @@ import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
+import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.farming.Crop;
+import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropRepository;
 
 import java.util.UUID;
@@ -24,22 +26,33 @@ import java.util.UUID;
 @Slf4j
 public class CropService {
     private final CropRepository cropRepository;
+    private final UserRepository userRepository;
     private final CropMapper cropMapper;
     private final AuthUtil authUtil;
 
-    public CropService(CropRepository cropRepository, CropMapper cropMapper, AuthUtil authUtil) {
+    public CropService(CropRepository cropRepository, UserRepository userRepository, CropMapper cropMapper, AuthUtil authUtil) {
         this.cropRepository = cropRepository;
+        this.userRepository = userRepository;
         this.cropMapper = cropMapper;
         this.authUtil = authUtil;
     }
 
     @Transactional
     public CropResponse createCrop(CreateCropRequest request) {
+
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
         if (cropRepository.existsByNameIgnoreCase(request.name())) {
             throw new EntityAlreadyExistsException("Crop already exists");
         }
 
         Crop crop = cropMapper.toEntity(request);
+
+        User user = userRepository.findById(auth.id())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        crop.setCreatedBy(user);
+
         Crop saved = cropRepository.save(crop);
 
         log.info("Crop created id={}", saved.getId());

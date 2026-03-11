@@ -89,6 +89,11 @@ public class CacheConfig {
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
+        cacheConfigurations.put("states", defaultConfig
+                .entryTtl(Duration.ofHours(6))
+                .prefixCacheNameWith("agrowerk:property:state:")
+        );
+
         cacheConfigurations.put("weatherCurrent", defaultConfig
                 .entryTtl(Duration.ofMinutes(5))
                 .prefixCacheNameWith("agrowerk:weather:current:")
@@ -152,6 +157,16 @@ public class CacheConfig {
         cacheConfigurations.put("batchExpiring", defaultConfig
                 .entryTtl(Duration.ofHours(6))
                 .prefixCacheNameWith("agrowerk:inventory:batch:")
+        );
+
+        cacheConfigurations.put("stockPosition", defaultConfig
+                .entryTtl(Duration.ofMinutes(15))
+                .prefixCacheNameWith("agrowerk:inventory:stock-position:")
+        );
+
+        cacheConfigurations.put("stockMovements", defaultConfig
+                .entryTtl(Duration.ofMinutes(10))
+                .prefixCacheNameWith("agrowerk:inventory:movements:")
         );
 
         log.info("Redis cache manager initialized with {} cache configurations",

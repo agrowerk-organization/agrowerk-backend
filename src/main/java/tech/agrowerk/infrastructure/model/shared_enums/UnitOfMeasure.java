@@ -3,11 +3,13 @@ package tech.agrowerk.infrastructure.model.shared_enums;
 public enum UnitOfMeasure {
     KILOGRAM("kg", "Kilogram"),
     LITER("L", "Liter"),
-    BAG("bag", "Bag"),
+    BAG("sc", "Bag"),
     UNIT("un", "Unit"),
     TON("t", "Ton"),
     MILLILITER("ml", "Milliliter"),
-    GRAM("g", "Gram");
+    GRAM("g", "Gram"),
+    HECTARE("ha", "Hectare"),
+    METERS("m", "Meters");
 
     private final String abbreviation;
     private final String description;

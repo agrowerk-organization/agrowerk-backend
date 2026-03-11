@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface FieldProductivityViewRepository extends JpaRepository<FieldProductivityView, UUID> {
 
-    Optional<FieldProductivityView> findByField_Id(UUID fieldId);
+    Optional<FieldProductivityView> findByFieldId(UUID fieldId);
 
 }

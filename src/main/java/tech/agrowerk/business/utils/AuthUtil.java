@@ -25,10 +25,11 @@ public class AuthUtil {
             throw new IllegalStateException("Principal is not an instance of Jwt");
         }
 
-        UUID userId = jwt.getClaim("userId");
-        if (userId == null) {
+        String userIdStr = jwt.getClaimAsString("userId");
+        if (userIdStr == null) {
             throw new IllegalArgumentException("userId not found in the token");
         }
+        UUID userId = UUID.fromString(userIdStr);
 
         String email = jwt.getClaimAsString("email");
         String role = jwt.getClaimAsString("role");

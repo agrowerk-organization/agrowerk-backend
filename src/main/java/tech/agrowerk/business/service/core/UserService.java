@@ -8,14 +8,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import tech.agrowerk.application.dto.request.create.AddAddressRequest;
 import tech.agrowerk.application.dto.request.create.CreateUserRequest;
+import tech.agrowerk.application.dto.request.update.UpdateAddressRequest;
+import tech.agrowerk.application.dto.response.AddressResponse;
 import tech.agrowerk.application.dto.response.UserResponse;
 import tech.agrowerk.application.dto.request.update.UpdateUserRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
+import tech.agrowerk.business.mapper.AddressMapper;
 import tech.agrowerk.business.mapper.UserMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
+import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
+import tech.agrowerk.infrastructure.exception.local.IllegalArgumentException;
+import tech.agrowerk.infrastructure.model.core.Address;
 import tech.agrowerk.infrastructure.model.core.Role;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.core.enums.RoleType;
@@ -35,13 +42,20 @@ public class UserService {
     private final AuthUtil authUtil;
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
+    private final AddressMapper addressMapper;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, AuthUtil authUtil) {
+    public UserService(UserRepository userRepository,
+                       RoleRepository roleRepository,
+                       UserMapper userMapper,
+                       PasswordEncoder passwordEncoder,
+                       AuthUtil authUtil,
+                       AddressMapper addressMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.authUtil = authUtil;
+        this.addressMapper = addressMapper;
     }
 
     @Transactional
@@ -65,6 +79,50 @@ public class UserService {
         User savedUser = userRepository.save(newUser);
 
         return userMapper.toResponse(savedUser);
+    }
+
+    @Transactional
+    public AddressResponse addAddress(UUID userId, AddAddressRequest request) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        if (!auth.id().equals(userId)) {
+            throw new AccessDeniedException("You can only add from your own address");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Address address = addressMapper.toAddress(request);
+
+        user.setAddress(address);
+
+        userRepository.save(user);
+
+        log.info("Address added for user id={}", userId);
+
+        return addressMapper.toAddressResponse(address);
+    }
+
+    @Transactional
+    public AddressResponse updateAddress(UUID userId, UpdateAddressRequest request) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        if (!auth.id().equals(userId)) {
+            throw new AccessDeniedException("You can only update from your own address");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (user.getAddress() == null) {
+            throw new IllegalStateException("User does not have an address to update");
+        }
+
+        Address address = addressMapper.toAddress(request);
+
+        user.setAddress(address);
+
+        return addressMapper.toAddressResponse(address);
     }
 
     @Transactional(readOnly = true)

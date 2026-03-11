@@ -8,6 +8,7 @@ import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.PlantingInput;
 import tech.agrowerk.infrastructure.model.farming.enums.ToxicologicalClass;
 import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
+import tech.agrowerk.infrastructure.model.supplier.Supplier;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -79,6 +80,13 @@ public class Input {
 
     @Column(nullable = false)
     private Boolean controlled = false;
+
+    @Column(nullable = false)
+    private Boolean globalVisible = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

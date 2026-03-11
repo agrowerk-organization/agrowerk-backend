@@ -9,9 +9,13 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import tech.agrowerk.application.dto.request.create.AddAddressRequest;
 import tech.agrowerk.application.dto.request.create.CreateUserRequest;
+import tech.agrowerk.application.dto.request.update.UpdateAddressRequest;
+import tech.agrowerk.application.dto.response.AddressResponse;
 import tech.agrowerk.application.dto.response.UserResponse;
 import tech.agrowerk.application.dto.request.update.UpdateUserRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
@@ -27,6 +31,16 @@ public interface UserApi {
             @ApiResponse(responseCode = "400", description = "Invalid data provided")
     })
     ResponseEntity<UserResponse> register(@Valid @RequestBody CreateUserRequest request);
+
+    @Operation(summary = "Add address for user", description = "Creates a address for user in the system.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid data provided")
+    })
+    ResponseEntity<AddressResponse> addAddress(@PathVariable UUID userId, @Valid @RequestBody AddAddressRequest request);
+
+    @Operation(summary = "Update address for user", description = "Updates the address of the logged-in user.")
+    ResponseEntity<AddressResponse> updateAddress(@PathVariable UUID userId, @Valid @RequestBody UpdateAddressRequest request);
 
     @Operation(summary = "Get user by ID", description = "Retrieves details of a specific user. Access restricted to owners or admins.")
     ResponseEntity<UserResponse> getUserById(UUID id);

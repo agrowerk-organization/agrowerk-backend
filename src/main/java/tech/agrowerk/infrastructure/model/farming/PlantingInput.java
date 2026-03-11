@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.inventory.Input;
+import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -37,8 +38,9 @@ public class PlantingInput {
     @Column(nullable = false, precision = 12, scale = 3)
     private BigDecimal quantity;
 
-    @Column(length = 30)
-    private String unit;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unit_of_measure", length = 30, nullable = false)
+    private UnitOfMeasure unitOfMeasure;
 
     private LocalDate applicationDate;
 

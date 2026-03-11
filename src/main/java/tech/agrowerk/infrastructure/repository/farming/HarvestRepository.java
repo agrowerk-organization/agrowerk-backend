@@ -25,7 +25,20 @@ public interface HarvestRepository extends JpaRepository<Harvest, UUID> {
     Page<Harvest> findByPlanting_Property_IdAndHarvestDate(UUID propertyId, LocalDate harvestDate, Pageable pageable);
 
     @Query("""
-        SELECT COALESCE(SUM(h.quantityKg), 0) FROM Harvest h
+        SELECT COALESCE(SUM(hp.quantityKg), 0)
+        FROM Harvest h
+        JOIN h.partials hp
+        WHERE h.planting.id = :plantingId
+    """)
+    BigDecimal sumTotalQuantityByPlantingId(@Param("plantingId") UUID plantingId);
+
+    @Query("SELECT h FROM Harvest h LEFT JOIN FETCH h.partials WHERE h.planting.id = :plantingId")
+    Optional<Harvest> findByPlanting_IdWithPartials(@Param("plantingId") UUID plantingId);
+
+    @Query("""
+        SELECT COALESCE(SUM(hp.quantityKg), 0)
+        FROM Harvest h
+        JOIN h.partials hp
         WHERE h.planting.property.id = :propertyId
         AND h.harvestDate BETWEEN :start AND :end
     """)

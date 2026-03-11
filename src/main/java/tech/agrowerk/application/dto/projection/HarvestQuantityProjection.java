@@ -1,4 +1,4 @@
-package tech.agrowerk.application.dto.response;
+package tech.agrowerk.application.dto.projection;
 
 import java.math.BigDecimal;
 import java.util.UUID;

@@ -12,7 +12,6 @@ services:
       - "${POSTGRESQL_PORT}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./src/main/resources/db/migrations:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRESQL_USER}"]
       interval: 10s

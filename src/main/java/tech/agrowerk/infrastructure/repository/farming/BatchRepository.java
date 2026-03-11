@@ -24,8 +24,6 @@ public interface BatchRepository extends JpaRepository<Batch, UUID> {
 
     boolean existsByBatchNumber(String batchNumber);
 
-    boolean existsByBatchNumberAndIdNot(String batchNumber, UUID id);
-
     @Query("""
         SELECT b FROM Batch b
         WHERE b.input.id = :inputId
@@ -67,6 +65,4 @@ public interface BatchRepository extends JpaRepository<Batch, UUID> {
             @Param("status") BatchStatus status,
             Pageable pageable
     );
-
-
 }

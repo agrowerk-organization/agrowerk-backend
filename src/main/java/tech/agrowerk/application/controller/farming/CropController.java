@@ -40,7 +40,7 @@ public class CropController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CropResponse>> search(
             @RequestParam String name,
-            @PageableDefault Pageable pageable) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(cropService.searchByName(name, pageable));
     }
 

@@ -33,11 +33,11 @@ public class CropVarietyController {
                 .body(cropVarietyService.createVariety(request));
     }
 
-    @GetMapping("/find-by-crop/{cropVarietyId}")
+    @GetMapping("/find-by-crop/{cropId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CropVarietyResponse>> findByCrop(
-            @PathVariable UUID cropVarietyId, Pageable pageable) {
-        return ResponseEntity.ok(cropVarietyService.findByCrop(cropVarietyId, pageable));
+            @PathVariable UUID cropId, Pageable pageable) {
+        return ResponseEntity.ok(cropVarietyService.findByCrop(cropId, pageable));
     }
 
     @GetMapping("/search-crop-variety/{cropVarietyId}/search")

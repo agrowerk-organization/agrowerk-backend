@@ -13,10 +13,7 @@ import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
-import tech.agrowerk.infrastructure.model.farming.CropVariety;
-import tech.agrowerk.infrastructure.model.farming.Field;
-import tech.agrowerk.infrastructure.model.farming.Planting;
-import tech.agrowerk.infrastructure.model.farming.Season;
+import tech.agrowerk.infrastructure.model.farming.*;
 import tech.agrowerk.infrastructure.model.farming.enums.FieldStatus;
 import tech.agrowerk.infrastructure.model.farming.enums.PlantingStatus;
 import tech.agrowerk.infrastructure.model.farming.enums.SeasonStatus;
@@ -102,6 +99,8 @@ public class PlantingService {
         CropVariety cropVariety = cropVarietyRepository.findById(request.cropVarietyId())
                 .orElseThrow(() -> new EntityNotFoundException("Crop variety not found"));
 
+        Crop crop = cropVariety.getCrop();
+
         fieldService.validateFieldAvailability(request.fieldId());
 
         BigDecimal usedArea = plantingRepository
@@ -120,7 +119,7 @@ public class PlantingService {
         }
 
         Planting planting = plantingMapper.toEntity(
-                request, property, field, season, cropVariety);
+                request, property, field, season, crop, cropVariety);
 
         Planting saved = plantingRepository.save(planting);
 

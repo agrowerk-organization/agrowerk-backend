@@ -25,25 +25,25 @@ public class SeasonController {
         this.seasonService = seasonService;
     }
 
-    @PostMapping("/create")
+    @PostMapping("/create-season")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<SeasonResponse> create(@Valid @RequestBody CreateSeasonRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(seasonService.createSeason(request));
     }
 
-    @PatchMapping("/{seasonId}/activate")
+    @PatchMapping("activate-season/{seasonId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<SeasonResponse> activate(@PathVariable UUID seasonId) {
         return ResponseEntity.ok(seasonService.activateSeason(seasonId));
     }
 
-    @PatchMapping("/{seasonId}/finish")
+    @PatchMapping("finish-season/{seasonId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<SeasonResponse> finish(@PathVariable UUID seasonId) {
         return ResponseEntity.ok(seasonService.finishSeason(seasonId));
     }
 
-    @GetMapping("/property/{propertyId}")
+    @GetMapping("/my-season/{propertyId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Page<SeasonResponse>> mySeasons(
             @PathVariable UUID propertyId,

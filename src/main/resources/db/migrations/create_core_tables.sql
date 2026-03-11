@@ -61,11 +61,14 @@ CREATE TABLE users
     email_verification_token   VARCHAR(255),
     email_verification_sent_at TIMESTAMP WITHOUT TIME ZONE,
     phone_verified             BOOLEAN                     NOT NULL,
-    municipality               VARCHAR(255),
+    rural                      BOOLEAN,
     code                       VARCHAR(9),
-    address_number             INTEGER,
+    municipality               VARCHAR(255),
+    location_name              VARCHAR(255),
     street                     VARCHAR(255),
+    address_number             INTEGER,
     neighborhood               VARCHAR(255),
+    landmark                   VARCHAR(500),
     CONSTRAINT pk_users PRIMARY KEY (id)
 );
 

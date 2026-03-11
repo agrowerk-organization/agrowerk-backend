@@ -13,11 +13,14 @@ CREATE TABLE properties
     state_id           UUID,
     created_at         TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_at         TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    municipality       VARCHAR(255),
+    rural              BOOLEAN                     NOT NULL,
     code               VARCHAR(9),
-    address_number     INTEGER,
+    municipality       VARCHAR(255),
+    location_name      VARCHAR(255),
     street             VARCHAR(255),
+    address_number     INTEGER,
     neighborhood       VARCHAR(255),
+    landmark           VARCHAR(500),
     CONSTRAINT pk_properties PRIMARY KEY (id)
 );
 
@@ -26,6 +29,26 @@ ALTER TABLE properties
 
 ALTER TABLE properties
     ADD CONSTRAINT FK_PROPERTIES_ON_STATE FOREIGN KEY (state_id) REFERENCES states (id);
+
+CREATE TABLE farm_units
+(
+    id             UUID         NOT NULL,
+    name           VARCHAR(255) NOT NULL,
+    area           DECIMAL(10, 2),
+    property_id    UUID,
+    rural          BOOLEAN      NOT NULL,
+    code           VARCHAR(9),
+    municipality   VARCHAR(255),
+    location_name  VARCHAR(255),
+    street         VARCHAR(255),
+    address_number INTEGER,
+    neighborhood   VARCHAR(255),
+    landmark       VARCHAR(500),
+    CONSTRAINT pk_farm_units PRIMARY KEY (id)
+);
+
+ALTER TABLE farm_units
+    ADD CONSTRAINT FK_FARM_UNITS_ON_PROPERTY FOREIGN KEY (property_id) REFERENCES properties (id);
 
 CREATE TABLE states
 (

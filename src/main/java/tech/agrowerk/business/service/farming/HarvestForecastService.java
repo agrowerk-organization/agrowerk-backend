@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.request.create.CreateHarvestForecastRequest;
 import tech.agrowerk.application.dto.request.update.UpdateHarvestForecastRequest;
 import tech.agrowerk.application.dto.response.HarvestForecastResponse;
-import tech.agrowerk.application.dto.response.HarvestQuantityProjection;
+import tech.agrowerk.application.dto.projection.HarvestQuantityProjection;
 import tech.agrowerk.business.mapper.HarvestForecastMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
@@ -27,7 +27,6 @@ import tech.agrowerk.infrastructure.repository.farming.PlantingRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -136,10 +135,7 @@ public class HarvestForecastService {
 
         log.info("HarvestForecast updated id={}", forecastId);
 
-        BigDecimal actualQuantity = harvestRepository
-                .findByPlanting_Id(forecast.getPlanting().getId())
-                .map(Harvest::getQuantityKg)
-                .orElse(null);
+        BigDecimal actualQuantity = harvestRepository.sumTotalQuantityByPlantingId(forecast.getPlanting().getId());
 
         return harvestForecastMapper.toResponse(forecast, actualQuantity);
     }
@@ -154,10 +150,7 @@ public class HarvestForecastService {
         ownershipValidator.validateOwnership(
                 planting.getProperty().getId(), auth.id());
 
-        BigDecimal actualQuantity = harvestRepository
-                .findByPlanting_Id(plantingId)
-                .map(Harvest::getQuantityKg)
-                .orElse(null);
+        BigDecimal actualQuantity = harvestRepository.sumTotalQuantityByPlantingId(plantingId);
 
         return harvestForecastRepository.findByPlanting_Id(plantingId, pageable)
                 .map(f -> harvestForecastMapper.toResponse(f, actualQuantity));
@@ -173,10 +166,7 @@ public class HarvestForecastService {
         ownershipValidator.validateOwnership(
                 planting.getProperty().getId(), auth.id());
 
-        BigDecimal actualQuantity = harvestRepository
-                .findByPlanting_Id(plantingId)
-                .map(Harvest::getQuantityKg)
-                .orElse(null);
+        BigDecimal actualQuantity = harvestRepository.sumTotalQuantityByPlantingId(plantingId);
 
         HarvestForecast response = harvestForecastRepository.findByPlanting_IdAndForecastDate(plantingId, forecastdate)
                 .orElseThrow(() -> new EntityNotFoundException("Forecast harvest not found"));

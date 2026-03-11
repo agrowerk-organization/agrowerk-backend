@@ -162,6 +162,7 @@ public class BatchService {
                 batch.getInput().getId(),
                 request.propertyId(),
                 auth.id(),
+                request.warehouseId(),
                 batch.getCurrentQuantity(),
                 batch.getUnitPrice(),
                 batch.getTotalValue()

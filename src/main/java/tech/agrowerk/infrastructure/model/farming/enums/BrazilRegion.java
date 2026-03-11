@@ -5,7 +5,10 @@ public enum BrazilRegion {
     NORTH("Norte"),
     SOUTHEAST("Sudeste"),
     MIDWEST("Centro-Oeste"),
-    SOUTH("Sul");
+    SOUTH("Sul"),
+    SEMIARID("Semiárido"),
+    MATOPIBA("MATOPIBA"),
+    NATIONAL("Nacional");
 
     private final String description;
 

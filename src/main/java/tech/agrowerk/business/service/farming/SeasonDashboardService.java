@@ -29,7 +29,7 @@ public class SeasonDashboardService {
             unless = "#result.isEmpty()")
     public List<SeasonDashboardResponse> getDashboard(UUID propertyId) {
         List<SeasonDashboardView> results = seasonDashboardViewRepository
-                .findByProperty_Id(propertyId);
+                .findByPropertyId(propertyId);
 
         if (results.isEmpty()) {
             log.warn("No data found for property id={} — view may need refresh", propertyId);
@@ -46,7 +46,7 @@ public class SeasonDashboardService {
         log.debug("Fetching dashboard details for season id={}", seasonId);
 
         List<SeasonDashboardView> results = seasonDashboardViewRepository
-                .findBySeason_Id(seasonId);
+                .findBySeasonId(seasonId);
 
         if (results.isEmpty()) {
             return Collections.emptyList();

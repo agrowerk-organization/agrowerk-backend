@@ -14,7 +14,6 @@ public record HarvestResponse(
         String propertyName,
         String seasonName,
         LocalDate harvestDate,
-        BigDecimal quantityKg,
         String qualityGrade,
         BigDecimal totalPlantingCost,
         BigDecimal totalQuantitykg,

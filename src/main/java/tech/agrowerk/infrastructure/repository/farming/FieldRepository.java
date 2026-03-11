@@ -29,6 +29,11 @@ public interface FieldRepository extends JpaRepository<Field, UUID> {
     """)
     BigDecimal sumAreaByProperty(@Param("propertyId") UUID propertyId);
 
+    @Query("SELECT COALESCE(SUM(p.areaHectares), 0) FROM Planting p " +
+            "WHERE p.field.id = :fieldId AND p.season.id = :seasonId " +
+            "AND p.plantingStatus != 'HARVESTED'")
+    BigDecimal sumUsedAreaInSeason(@Param("fieldId") UUID fieldId, @Param("seasonId") UUID seasonId);
+
     @Query("""
         SELECT COUNT(DISTINCT p.cropVariety.crop.id) FROM Planting p
         WHERE p.field.id = :fieldId

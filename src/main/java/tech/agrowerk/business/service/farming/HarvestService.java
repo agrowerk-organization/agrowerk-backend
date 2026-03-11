@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.application.dto.projection.HarvestQuantityProjection;
 import tech.agrowerk.application.dto.request.create.CreateHarvestRequest;
 import tech.agrowerk.application.dto.response.HarvestResponse;
 import tech.agrowerk.business.listener.events.HarvestFinalizedEvent;
@@ -34,7 +35,9 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -173,6 +176,10 @@ public class HarvestService {
     public Page<HarvestResponse> findByProperty(UUID propertyId, Pageable pageable) {
         ownershipValidator.validateOwnership(
                 propertyId, authUtil.getAuthenticatedUser().id());
+
+        Map<UUID, BigDecimal> quantitiesMap = harvestPartialRepository.findAllQuantitiesByProperty(propertyId)
+                .stream()
+                .collect(Collectors.toMap(HarvestQuantityProjection::harvestId, HarvestQuantityProjection::totalQuantityKg));
 
         return harvestRepository.findByPlanting_Property_Id(propertyId, pageable)
                 .map(h -> {

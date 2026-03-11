@@ -6,7 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tech.agrowerk.application.dto.request.create.AddAddressRequest;
 import tech.agrowerk.application.dto.request.create.CreateUserRequest;
+import tech.agrowerk.application.dto.request.update.UpdateAddressRequest;
+import tech.agrowerk.application.dto.response.AddressResponse;
 import tech.agrowerk.application.dto.response.UserResponse;
 import tech.agrowerk.application.dto.request.update.UpdateUserRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
@@ -28,6 +31,19 @@ public class UserController implements UserApi {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.ok(userService.createUser(request));
+    }
+
+    @PostMapping("add-address/me/address/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AddressResponse> addAddress(@PathVariable UUID userId, @Valid @RequestBody AddAddressRequest request) {
+
+        return ResponseEntity.ok(userService.addAddress(userId, request));
+    }
+
+    @PatchMapping("update-address/me/address/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AddressResponse> updateAddress(@PathVariable UUID userId, @Valid @RequestBody UpdateAddressRequest request) {
+        return ResponseEntity.ok(userService.updateAddress(userId, request));
     }
 
     @Override

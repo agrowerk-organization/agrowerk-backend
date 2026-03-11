@@ -2,6 +2,8 @@ package tech.agrowerk.infrastructure.model.farming;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.farming.enums.FieldStatus;
 import tech.agrowerk.infrastructure.model.farming.enums.SoilType;
 import tech.agrowerk.infrastructure.model.property.Property;
@@ -64,9 +66,11 @@ public class Field {
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
 

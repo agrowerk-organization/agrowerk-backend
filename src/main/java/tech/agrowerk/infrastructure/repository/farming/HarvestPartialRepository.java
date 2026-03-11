@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import tech.agrowerk.application.dto.response.HarvestQuantityProjection;
+import tech.agrowerk.application.dto.projection.HarvestQuantityProjection;
 import tech.agrowerk.infrastructure.model.farming.HarvestPartial;
 
 import java.math.BigDecimal;
@@ -25,7 +25,19 @@ public interface HarvestPartialRepository extends JpaRepository<HarvestPartial, 
     BigDecimal sumQuantityByHarvest(@Param("harvestId") UUID harvestId);
 
     @Query("""
-        SELECT new tech.agrowerk.application.dto.response.HarvestQuantityProjection(
+        SELECT new tech.agrowerk.application.dto.projection.HarvestQuantityProjection(
+            h.id,
+            COALESCE(SUM(hp.quantityKg), 0)
+        )
+        FROM Harvest h
+        LEFT JOIN h.partials hp
+        WHERE h.planting.property.id = :propertyId
+        GROUP BY h.id
+    """)
+    List<HarvestQuantityProjection> findAllQuantitiesByProperty(@Param("propertyId") UUID propertyId);
+
+    @Query("""
+        SELECT new tech.agrowerk.application.dto.projection.HarvestQuantityProjection(
         hp.harvest.id,
             SUM(hp.quantityKg)
         )

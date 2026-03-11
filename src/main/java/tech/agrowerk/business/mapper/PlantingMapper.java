@@ -3,10 +3,7 @@ package tech.agrowerk.business.mapper;
 import org.springframework.stereotype.Component;
 import tech.agrowerk.application.dto.request.create.CreatePlantingRequest;
 import tech.agrowerk.application.dto.response.PlantingResponse;
-import tech.agrowerk.infrastructure.model.farming.CropVariety;
-import tech.agrowerk.infrastructure.model.farming.Field;
-import tech.agrowerk.infrastructure.model.farming.Planting;
-import tech.agrowerk.infrastructure.model.farming.Season;
+import tech.agrowerk.infrastructure.model.farming.*;
 import tech.agrowerk.infrastructure.model.farming.enums.PlantingStatus;
 import tech.agrowerk.infrastructure.model.property.Property;
 
@@ -17,11 +14,13 @@ public class PlantingMapper {
                              Property property,
                              Field field,
                              Season season,
+                             Crop crop,
                              CropVariety cropVariety) {
         Planting planting = new Planting();
         planting.setProperty(property);
         planting.setField(field);
         planting.setSeason(season);
+        planting.setCrop(crop);
         planting.setCropVariety(cropVariety);
         planting.setAreaHectares(request.areaHectares());
         planting.setPlantingDate(request.plantingDate());
