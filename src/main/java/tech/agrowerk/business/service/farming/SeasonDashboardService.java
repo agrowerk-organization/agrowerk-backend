@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import tech.agrowerk.application.dto.views.SeasonDashboardResponse;
-import tech.agrowerk.business.mapper.FarmingViewMapper;
+import tech.agrowerk.business.mapper.farming.FarmingViewMapper;
 import tech.agrowerk.infrastructure.model.farming.views.SeasonDashboardView;
 import tech.agrowerk.infrastructure.repository.farming.SeasonDashboardViewRepository;
 

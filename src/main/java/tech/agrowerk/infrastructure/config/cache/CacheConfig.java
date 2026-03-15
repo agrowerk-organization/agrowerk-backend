@@ -159,6 +159,11 @@ public class CacheConfig {
                 .prefixCacheNameWith("agrowerk:inventory:batch:")
         );
 
+        cacheConfigurations.put("batchExpiring", defaultConfig
+                .entryTtl(Duration.ofMinutes(15))
+                .prefixCacheNameWith("agrowerk:inventory:batch-expiring")
+        );
+
         cacheConfigurations.put("stockPosition", defaultConfig
                 .entryTtl(Duration.ofMinutes(15))
                 .prefixCacheNameWith("agrowerk:inventory:stock-position:")
@@ -167,6 +172,11 @@ public class CacheConfig {
         cacheConfigurations.put("stockMovements", defaultConfig
                 .entryTtl(Duration.ofMinutes(10))
                 .prefixCacheNameWith("agrowerk:inventory:movements:")
+        );
+
+        cacheConfigurations.put("inputCategories", defaultConfig
+                .entryTtl(Duration.ofHours(24))
+                .prefixCacheNameWith("agrowerk:inventory:categories:")
         );
 
         log.info("Redis cache manager initialized with {} cache configurations",

@@ -4,8 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import tech.agrowerk.application.dto.views.FieldProductivityResponse;
-import tech.agrowerk.business.mapper.FarmingViewMapper;
-import tech.agrowerk.infrastructure.model.farming.views.FieldProductivityView;
+import tech.agrowerk.business.mapper.farming.FarmingViewMapper;
 import tech.agrowerk.infrastructure.repository.farming.FieldProductivityViewRepository;
 
 import java.util.Optional;

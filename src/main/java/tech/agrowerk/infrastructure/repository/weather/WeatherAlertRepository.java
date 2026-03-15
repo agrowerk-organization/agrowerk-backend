@@ -10,6 +10,7 @@ import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertSeverity;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -19,7 +20,7 @@ public interface WeatherAlertRepository extends JpaRepository<WeatherAlert, UUID
 
     List<WeatherAlert> findByIsActiveTrueAndNotifiedFalse();
 
-    long countByLocation(WeatherLocation location);
+    long countByLocationId(UUID locationId);
 
     long countByLocationAndSeverity(WeatherLocation location, WeatherAlertSeverity severity);
 
@@ -28,4 +29,6 @@ public interface WeatherAlertRepository extends JpaRepository<WeatherAlert, UUID
     void deleteByIsActiveFalseAndEndTimeBefore(Instant timestamp);
 
     List<WeatherAlert> findByIsActiveTrueAndEndTimeBefore(Instant now);
+
+    Optional<WeatherAlert> findFirstByLocationId(UUID locationId);
 }

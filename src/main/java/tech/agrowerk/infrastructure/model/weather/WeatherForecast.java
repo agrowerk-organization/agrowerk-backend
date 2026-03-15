@@ -20,8 +20,8 @@ import java.util.UUID;
                 )
         },
         indexes = {
-                @Index(name = "idx_forecast_location_date",
-                        columnList = "location_id, forecast_date")
+                @Index(name = "idx_forecast_location_date", columnList = "location_id, forecast_date"),
+                @Index(name = "idx_forecast_location_id", columnList = "location_id")
         }
 )
 @NoArgsConstructor

@@ -8,9 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.create.CreateCropVarietyRequest;
-import tech.agrowerk.application.dto.request.update.UpdateCropVarietyRequest;
-import tech.agrowerk.application.dto.response.CropVarietyResponse;
+import tech.agrowerk.application.dto.request.farming.CreateCropVarietyRequest;
+import tech.agrowerk.application.dto.request.farming.UpdateCropVarietyRequest;
+import tech.agrowerk.application.dto.response.farming.CropVarietyResponse;
 import tech.agrowerk.business.service.farming.CropVarietyService;
 
 import java.util.UUID;

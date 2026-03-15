@@ -8,11 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.create.CreateSeasonRequest;
-import tech.agrowerk.application.dto.response.SeasonResponse;
+import tech.agrowerk.application.dto.request.farming.CreateSeasonRequest;
+import tech.agrowerk.application.dto.response.farming.SeasonResponse;
 import tech.agrowerk.business.service.farming.SeasonService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController

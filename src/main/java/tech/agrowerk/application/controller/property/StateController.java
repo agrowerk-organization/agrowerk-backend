@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tech.agrowerk.business.service.property.StateService;
-import tech.agrowerk.application.dto.request.create.CreateStateRequest;
-import tech.agrowerk.application.dto.request.update.UpdateStateRequest;
-import tech.agrowerk.application.dto.response.StateResponse;
+import tech.agrowerk.application.dto.request.property.CreateStateRequest;
+import tech.agrowerk.application.dto.request.property.UpdateStateRequest;
+import tech.agrowerk.application.dto.response.property.StateResponse;
 
 import java.util.List;
 import java.util.UUID;

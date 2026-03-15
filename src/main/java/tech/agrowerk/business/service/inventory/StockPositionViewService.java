@@ -4,24 +4,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.application.dto.response.inventory.StockPositionResponse;
+import tech.agrowerk.business.mapper.inventory.StockPositionViewMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.repository.inventory.StockPositionViewRepository;
 
+import java.util.List;
 import java.util.UUID;
-/*
+
 @Service
 @Slf4j
 public class StockPositionViewService {
 
-    private final StockPositionViewRepository repository;
-  //  private final StockPositionViewMapper mapper;
+    private final StockPositionViewRepository stockPositionViewRepository;
+    private final StockPositionViewMapper stockPositionViewMapper;
     private final OwnershipValidator ownershipValidator;
     private final AuthUtil authUtil;
 
-   / public StockPositionViewService(StockPositionViewRepository repository, StockPositionViewMapper mapper, OwnershipValidator ownershipValidator, AuthUtil authUtil) {
-        this.repository = repository;
-        this.mapper = mapper;
+    public StockPositionViewService(StockPositionViewRepository stockPositionViewRepository,
+                                    StockPositionViewMapper stockPositionViewMapper,
+                                    OwnershipValidator ownershipValidator,
+                                    AuthUtil authUtil) {
+        this.stockPositionViewRepository = stockPositionViewRepository;
+        this.stockPositionViewMapper = stockPositionViewMapper;
         this.ownershipValidator = ownershipValidator;
         this.authUtil = authUtil;
     }
@@ -34,14 +40,14 @@ public class StockPositionViewService {
         ownershipValidator.validateOwnership(
                 propertyId, authUtil.getAuthenticatedUser().id());
 
-        return repository.findByPropertyId(propertyId)
+        return stockPositionViewRepository.findByPropertyId(propertyId)
                 .stream()
-                .map(mapper::toResponse)
+                .map(stockPositionViewMapper::toResponse)
                 .toList();
     }
 
     @Cacheable(value = "stockPosition",
-            key = "#propertyId + ':' + #alert",
+            key = "{#propertyId, #alert}",
             cacheManager = "redisCacheManager",
             unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
@@ -50,9 +56,9 @@ public class StockPositionViewService {
         ownershipValidator.validateOwnership(
                 propertyId, authUtil.getAuthenticatedUser().id());
 
-        return repository.findByPropertyIdAndStockAlert(propertyId, alert)
+        return stockPositionViewRepository.findByPropertyIdAndStockAlert(propertyId, alert)
                 .stream()
-                .map(mapper::toResponse)
+                .map(stockPositionViewMapper::toResponse)
                 .toList();
     }
-} */
+}

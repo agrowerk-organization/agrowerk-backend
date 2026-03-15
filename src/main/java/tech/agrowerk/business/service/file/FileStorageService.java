@@ -1,7 +1,7 @@
 package tech.agrowerk.business.service.file;
 
 import org.springframework.web.multipart.MultipartFile;
-import tech.agrowerk.application.dto.response.FileUploadResponse;
+import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 
 import java.util.List;

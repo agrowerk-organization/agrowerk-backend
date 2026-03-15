@@ -13,4 +13,6 @@ public interface UserPropertyRepository extends JpaRepository<UserProperty, UUID
     boolean existsByPropertyIdAndUserIdAndIsActiveTrue(UUID propertyId, UUID userId);
 
     Optional<UserProperty> findByPropertyIdAndUserIdAndIsActiveTrue(UUID propertyId, UUID userId);
+
+    boolean existsByUserIdAndPropertyId(UUID userId, UUID propertyId);
 }

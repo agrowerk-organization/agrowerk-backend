@@ -109,3 +109,18 @@ CREATE TABLE weather_alerts
 
 ALTER TABLE weather_alerts
     ADD CONSTRAINT FK_WEATHER_ALERTS_ON_LOCATION FOREIGN KEY (location_id) REFERENCES weather_locations (id);
+
+CREATE INDEX IF NOT EXISTS idx_weather_currents_location_id
+    ON weather_currents(location_id);
+
+CREATE INDEX IF NOT EXISTS idx_weather_currents_location_timestamp
+    ON weather_currents(location_id, timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_user_properties_user_property
+    ON user_properties(user_id, property_id);
+
+CREATE INDEX IF NOT EXISTS idx_weather_forecasts_location_date
+    ON weather_forecasts(location_id, forecast_date);
+
+CREATE INDEX IF NOT EXISTS idx_weather_alerts_location_active
+    ON weather_alerts(location_id, is_active, start_time);

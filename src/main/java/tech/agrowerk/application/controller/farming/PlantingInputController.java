@@ -8,11 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.create.CreatePlantingInputRequest;
-import tech.agrowerk.application.dto.response.PlantingInputResponse;
+import tech.agrowerk.application.dto.request.farming.CreatePlantingInputRequest;
+import tech.agrowerk.application.dto.response.farming.PlantingInputResponse;
 import tech.agrowerk.business.service.farming.PlantingInputService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController

@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.create.CreateHarvestRequest;
-import tech.agrowerk.application.dto.response.HarvestResponse;
+import tech.agrowerk.application.dto.request.farming.CreateHarvestRequest;
+import tech.agrowerk.application.dto.response.farming.HarvestResponse;
 import tech.agrowerk.business.service.farming.HarvestService;
 
 import java.util.UUID;

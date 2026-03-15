@@ -4,8 +4,7 @@ package tech.agrowerk.business.service.farming;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tech.agrowerk.application.dto.views.ActivePlantingResponse;
-import tech.agrowerk.business.mapper.FarmingViewMapper;
-import tech.agrowerk.infrastructure.model.farming.views.ActivePlantingView;
+import tech.agrowerk.business.mapper.farming.FarmingViewMapper;
 import tech.agrowerk.infrastructure.repository.farming.ActivePlantingViewRepository;
 
 import java.util.Optional;

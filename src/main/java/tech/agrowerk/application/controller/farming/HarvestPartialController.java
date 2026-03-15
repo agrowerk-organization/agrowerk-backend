@@ -8,11 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.create.CreateHarvestPartialRequest;
-import tech.agrowerk.application.dto.request.update.UpdateHarvestPartialRequest;
-import tech.agrowerk.application.dto.response.HarvestPartialResponse;
+import tech.agrowerk.application.dto.request.farming.CreateHarvestPartialRequest;
+import tech.agrowerk.application.dto.request.farming.UpdateHarvestPartialRequest;
+import tech.agrowerk.application.dto.response.farming.HarvestPartialResponse;
 import tech.agrowerk.business.service.farming.HarvestPartialService;
-import tech.agrowerk.infrastructure.model.farming.Harvest;
 
 import java.util.UUID;
 

@@ -8,9 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.create.CreateHarvestForecastRequest;
-import tech.agrowerk.application.dto.request.update.UpdateHarvestForecastRequest;
-import tech.agrowerk.application.dto.response.HarvestForecastResponse;
+import tech.agrowerk.application.dto.request.farming.CreateHarvestForecastRequest;
+import tech.agrowerk.application.dto.request.farming.UpdateHarvestForecastRequest;
+import tech.agrowerk.application.dto.response.farming.HarvestForecastResponse;
 import tech.agrowerk.business.service.farming.HarvestForecastService;
 
 import java.time.LocalDate;

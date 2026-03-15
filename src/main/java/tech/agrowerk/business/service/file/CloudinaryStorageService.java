@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import tech.agrowerk.application.dto.response.FileUploadResponse;
+import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import tech.agrowerk.infrastructure.model.file.enums.FileStorageErrorCode;
 import tech.agrowerk.infrastructure.exception.local.FileStorageException;

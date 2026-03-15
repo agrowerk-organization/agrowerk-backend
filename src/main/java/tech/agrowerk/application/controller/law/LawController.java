@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tech.agrowerk.application.dto.response.LawResponse;
+import tech.agrowerk.application.dto.response.laws.LawResponse;
 import tech.agrowerk.business.service.law.LawService;
 
 

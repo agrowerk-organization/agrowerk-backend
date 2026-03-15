@@ -24,6 +24,7 @@ public class StockPositionView {
 
     @Id
     private UUID stockId;
+    private UUID propertyId;
     private String propertyName;
     private String inputName;
     private String categoryName;

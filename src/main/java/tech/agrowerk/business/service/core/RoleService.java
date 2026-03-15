@@ -2,10 +2,13 @@ package tech.agrowerk.business.service.core;
 
 import lombok.val;
 import org.springframework.stereotype.Service;
+import tech.agrowerk.application.dto.response.core.RoleResponse;
 import tech.agrowerk.infrastructure.model.core.enums.RoleType;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.core.Role;
 import tech.agrowerk.infrastructure.repository.core.RoleRepository;
+
+import java.util.List;
 
 @Service
 public class RoleService {
@@ -34,11 +37,27 @@ public class RoleService {
                 .orElseThrow(() -> new EntityNotFoundException("Role not found."));
     }
 
+    public List<RoleResponse> listRoles() {
+        List<Role> roles = roleRepository.findAll();
+
+        return roles.stream()
+                .map(this::convertRoleInResponse)
+                .toList();
+    }
+
     private RoleType convertToRoleType(String name) {
         try {
             return RoleType.valueOf(name.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new EntityNotFoundException("Role type not found.");
         }
+    }
+
+    private RoleResponse convertRoleInResponse(Role role) {
+        return new RoleResponse(
+                role.getId(),
+                role.getName().toString()
+        );
+
     }
 }

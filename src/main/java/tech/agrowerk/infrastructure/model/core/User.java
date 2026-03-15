@@ -60,6 +60,9 @@ public class User {
     @JoinColumn(name = "role_id")
     private Role role;
 
+    @Column(name = "is_system_admin")
+    private Boolean isSystemAdmin;
+
     @Embedded
     private Address address;
 

@@ -29,6 +29,7 @@ public class StockMovementView {
     private BigDecimal unitValue;
     private BigDecimal totalValue;
     private LocalDateTime movementDate;
+    private UUID propertyId;
     private String propertyName;
     private String inputName;
     private String userName;

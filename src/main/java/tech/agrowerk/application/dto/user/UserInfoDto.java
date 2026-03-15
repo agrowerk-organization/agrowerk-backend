@@ -5,6 +5,7 @@ import java.util.UUID;
 public record UserInfoDto(
         UUID id,
         String name,
-        String email
+        String email,
+        String role
 ) {
 }

@@ -1,20 +1,19 @@
 package tech.agrowerk.business.service.property;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import tech.agrowerk.application.dto.request.create.AddFarmUnitRequest;
-import tech.agrowerk.application.dto.request.create.AddOwnerRequest;
-import tech.agrowerk.application.dto.request.create.CreatePropertyRequest;
-import tech.agrowerk.application.dto.request.update.UpdateFarmUnitRequest;
-import tech.agrowerk.application.dto.request.update.UpdatePropertyRequest;
-import tech.agrowerk.application.dto.response.FileUploadResponse;
-import tech.agrowerk.application.dto.response.PropertyResponse;
-import tech.agrowerk.business.mapper.PropertyMapper;
+import tech.agrowerk.application.dto.request.property.AddFarmUnitRequest;
+import tech.agrowerk.application.dto.request.property.AddOwnerRequest;
+import tech.agrowerk.application.dto.request.property.CreatePropertyRequest;
+import tech.agrowerk.application.dto.request.property.UpdateFarmUnitRequest;
+import tech.agrowerk.application.dto.request.property.UpdatePropertyRequest;
+import tech.agrowerk.application.dto.response.file.FileUploadResponse;
+import tech.agrowerk.application.dto.response.property.PropertyResponse;
+import tech.agrowerk.business.mapper.property.PropertyMapper;
 import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
@@ -24,7 +23,6 @@ import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
-import tech.agrowerk.infrastructure.model.property.FarmUnit;
 import tech.agrowerk.infrastructure.model.property.Property;
 import tech.agrowerk.infrastructure.model.property.State;
 import tech.agrowerk.infrastructure.model.property.UserProperty;

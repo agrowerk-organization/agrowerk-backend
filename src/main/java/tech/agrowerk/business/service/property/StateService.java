@@ -8,9 +8,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.request.create.CreateStateRequest;
-import tech.agrowerk.application.dto.request.update.UpdateStateRequest;
-import tech.agrowerk.application.dto.response.StateResponse;
+import tech.agrowerk.application.dto.request.property.CreateStateRequest;
+import tech.agrowerk.application.dto.request.property.UpdateStateRequest;
+import tech.agrowerk.application.dto.response.property.StateResponse;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
@@ -19,7 +19,6 @@ import tech.agrowerk.infrastructure.model.property.State;
 import tech.agrowerk.infrastructure.repository.property.StateRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

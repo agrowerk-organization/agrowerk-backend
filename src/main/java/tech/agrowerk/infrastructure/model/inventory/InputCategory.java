@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import tech.agrowerk.infrastructure.model.inventory.enums.HazardLevel;
 import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 
 import java.time.Instant;
@@ -44,6 +45,20 @@ public class InputCategory {
 
     @Column(nullable = false)
     private Boolean requiresLicense = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private InputCategory parent;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    private List<InputCategory> children;
+
+    @Column(nullable = false)
+    private Integer level = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private HazardLevel hazardLevel;
 
     @OneToMany(mappedBy = "category")
     private List<Input> inputs;

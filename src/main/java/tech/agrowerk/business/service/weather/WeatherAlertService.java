@@ -1,6 +1,5 @@
 package tech.agrowerk.business.service.weather;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,8 +10,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.weather.Alert;
-import tech.agrowerk.business.mapper.WeatherMapper;
+import tech.agrowerk.business.mapper.weather.WeatherMapper;
 import tech.agrowerk.application.dto.weather.RealTimeUpdate;
+import tech.agrowerk.business.utils.AuthUtil;
+import tech.agrowerk.business.utils.AuthenticatedUser;
+import tech.agrowerk.business.validators.OwnershipValidator;
+import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.WeatherAlertException;
 import tech.agrowerk.infrastructure.model.weather.WeatherAlert;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
@@ -36,6 +39,8 @@ public class WeatherAlertService {
     private final WeatherAlertRepository alertRepository;
     private final WeatherMapper weatherMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final OwnershipValidator ownershipValidator;
+    private final AuthUtil authUtil;
 
     private static final Map<WeatherAlertType, AlertThreshold> ALERT_THRESHOLDS = Map.of(
             WeatherAlertType.FROST, new AlertThreshold(BigDecimal.valueOf(3.0), WeatherAlertSeverity.CRITICAL),
@@ -49,10 +54,12 @@ public class WeatherAlertService {
     private static final int ALERT_VALIDITY_HOURS = 24;
     private static final int OLD_ALERTS_RETENTION_DAYS = 30;
 
-    public WeatherAlertService(WeatherAlertRepository alertRepository, WeatherMapper weatherMapper, ApplicationEventPublisher eventPublisher) {
+    public WeatherAlertService(WeatherAlertRepository alertRepository, WeatherMapper weatherMapper, ApplicationEventPublisher eventPublisher, OwnershipValidator ownershipValidator, AuthUtil authUtil) {
         this.alertRepository = alertRepository;
         this.weatherMapper = weatherMapper;
         this.eventPublisher = eventPublisher;
+        this.ownershipValidator = ownershipValidator;
+        this.authUtil = authUtil;
     }
 
     @Transactional
@@ -78,6 +85,106 @@ public class WeatherAlertService {
         }
 
         return generatedAlerts;
+    }
+
+    @Cacheable(value = "weatherAlerts", key = "#location.id", unless = "#result == null")
+    @Transactional(readOnly = true)
+    public List<Alert> getActiveAlertsByLocation(WeatherLocation location) {
+        log.debug("Fetching active alerts for location: {}", location.getName());
+        return alertRepository.findByLocationAndIsActiveTrue(location).stream()
+                .map(weatherMapper::toAlertDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<WeatherAlert> getPendingNotifications() {
+        return alertRepository.findByIsActiveTrueAndNotifiedFalse();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getAlertStatistics(UUID locationId) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        WeatherAlert sample = alertRepository.findFirstByLocationId(locationId)
+                .orElseThrow(() -> new EntityNotFoundException("No alerts founds for location: " + locationId));
+
+        ownershipValidator.validateLocationAccess(sample.getLocation(), auth.id());
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalAlerts", alertRepository.countByLocationId(locationId));
+
+        Map<WeatherAlertSeverity, Long> bySeverity = Arrays.stream(WeatherAlertSeverity.values())
+                .collect(Collectors.toMap(
+                        severity -> severity,
+                        severity -> alertRepository.countByLocationAndSeverity(sample.getLocation(), severity)
+                ));
+        stats.put("bySeverity", bySeverity);
+
+        return stats;
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "weatherAlerts", allEntries = true)
+    })
+    public void resolveAlert(UUID alertId, String resolvedBy) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        WeatherAlert alert = alertRepository.findById(alertId)
+                .orElseThrow(() -> new WeatherAlertException("Alert not found: " + alertId));
+
+        ownershipValidator.validateLocationAccess(alert.getLocation(), auth.id());
+
+        alert.setIsActive(false);
+        alert.setEndTime(Instant.now());
+        alertRepository.save(alert);
+
+        sendResolutionNotification(alert);
+
+        log.info("Alert manually resolved: id={}, by={}", alertId, resolvedBy);
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    @Transactional
+    public void deactivateExpiredAlerts() {
+        log.info("Starting expired alerts deactivation job");
+
+        Instant now = Instant.now();
+        List<WeatherAlert> expiredAlerts = alertRepository.findByIsActiveTrueAndEndTimeBefore(now);
+
+        for (WeatherAlert alert : expiredAlerts) {
+            alert.setIsActive(false);
+            alertRepository.save(alert);
+            sendResolutionNotification(alert);
+        }
+
+        log.info("Expired alerts deactivation completed: count={}", expiredAlerts.size());
+    }
+
+    @Scheduled(cron = "0 0 2 * * *")
+    @Transactional
+    public void cleanupOldAlerts() {
+        log.info("Starting old alerts cleanup job");
+
+        Instant cutoffDate = Instant.now().minus(OLD_ALERTS_RETENTION_DAYS, ChronoUnit.DAYS);
+
+        try {
+            alertRepository.deleteByIsActiveFalseAndEndTimeBefore(cutoffDate);
+            log.info("Old alerts cleanup completed successfully");
+        } catch (Exception e) {
+            log.error("Error during old alerts cleanup", e);
+        }
+    }
+
+    @Scheduled(fixedDelay = 900000)
+    @Transactional
+    public void reprocessPendingNotifications() {
+        List<WeatherAlert> pending = getPendingNotifications();
+
+        if (!pending.isEmpty()) {
+            log.info("Reprocessing pending notifications: count={}", pending.size());
+            pending.forEach(this::processAlertNotificationsAsync);
+        }
     }
 
     private void processTemperatureAlerts(WeatherCurrent current, List<WeatherAlert> alerts) {
@@ -287,95 +394,6 @@ public class WeatherAlertService {
 
         } catch (Exception e) {
             log.error("Failed to send WebSocket notification: alertId={}", alert.getId(), e);
-        }
-    }
-
-    @Cacheable(value = "weatherAlerts", key = "#location.id", unless = "#result == null")
-    @Transactional(readOnly = true)
-    public List<Alert> getActiveAlertsByLocation(WeatherLocation location) {
-        log.debug("Fetching active alerts for location: {}", location.getName());
-        return alertRepository.findByLocationAndIsActiveTrue(location).stream()
-                .map(weatherMapper::toAlertDTO)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<WeatherAlert> getPendingNotifications() {
-        return alertRepository.findByIsActiveTrueAndNotifiedFalse();
-    }
-
-    @Transactional(readOnly = true)
-    public Map<String, Object> getAlertStatistics(WeatherLocation location) {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalAlerts", alertRepository.countByLocation(location));
-
-        Map<WeatherAlertSeverity, Long> bySeverity = Arrays.stream(WeatherAlertSeverity.values())
-                .collect(Collectors.toMap(
-                        severity -> severity,
-                        severity -> alertRepository.countByLocationAndSeverity(location, severity)
-                ));
-        stats.put("bySeverity", bySeverity);
-
-        return stats;
-    }
-
-    @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "weatherAlerts", allEntries = true)
-    })
-    public void resolveAlert(UUID alertId, String resolvedBy) {
-        WeatherAlert alert = alertRepository.findById(alertId)
-                .orElseThrow(() -> new WeatherAlertException("Alert not found: " + alertId));
-
-        alert.setIsActive(false);
-        alert.setEndTime(Instant.now());
-        alertRepository.save(alert);
-
-        sendResolutionNotification(alert);
-
-        log.info("Alert manually resolved: id={}, by={}", alertId, resolvedBy);
-    }
-
-    @Scheduled(cron = "0 0 * * * *")
-    @Transactional
-    public void deactivateExpiredAlerts() {
-        log.info("Starting expired alerts deactivation job");
-
-        Instant now = Instant.now();
-        List<WeatherAlert> expiredAlerts = alertRepository.findByIsActiveTrueAndEndTimeBefore(now);
-
-        for (WeatherAlert alert : expiredAlerts) {
-            alert.setIsActive(false);
-            alertRepository.save(alert);
-            sendResolutionNotification(alert);
-        }
-
-        log.info("Expired alerts deactivation completed: count={}", expiredAlerts.size());
-    }
-
-    @Scheduled(cron = "0 0 2 * * *")
-    @Transactional
-    public void cleanupOldAlerts() {
-        log.info("Starting old alerts cleanup job");
-
-        Instant cutoffDate = Instant.now().minus(OLD_ALERTS_RETENTION_DAYS, ChronoUnit.DAYS);
-
-        try {
-            alertRepository.deleteByIsActiveFalseAndEndTimeBefore(cutoffDate);
-            log.info("Old alerts cleanup completed successfully");
-        } catch (Exception e) {
-            log.error("Error during old alerts cleanup", e);
-        }
-    }
-
-    @Scheduled(fixedDelay = 900000)
-    @Transactional
-    public void reprocessPendingNotifications() {
-        List<WeatherAlert> pending = getPendingNotifications();
-
-        if (!pending.isEmpty()) {
-            log.info("Reprocessing pending notifications: count={}", pending.size());
-            pending.forEach(this::processAlertNotificationsAsync);
         }
     }
 

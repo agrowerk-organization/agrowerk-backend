@@ -9,8 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.request.create.CreateAgriculturalPracticeRequest;
-import tech.agrowerk.application.dto.response.AgriculturalPracticeResponse;
+import tech.agrowerk.application.dto.request.farming.CreateAgriculturalPracticeRequest;
+import tech.agrowerk.application.dto.response.farming.AgriculturalPracticeResponse;
 import tech.agrowerk.business.service.farming.AgriculturalPracticeService;
 import tech.agrowerk.infrastructure.model.farming.enums.PractipeType;
 

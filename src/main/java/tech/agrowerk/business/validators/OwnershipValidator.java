@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.model.property.UserProperty;
+import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.repository.property.UserPropertyRepository;
 
 import java.util.UUID;
@@ -22,6 +23,15 @@ public class OwnershipValidator {
         if (!userPropertyRepository.existsByPropertyIdAndUserIdAndIsActiveTrue(propertyId, userId)) {
             throw new AccessDeniedException("You don't have access to this property");
         }
+    }
+
+    public void validateLocationAccess(WeatherLocation location, UUID userId) {
+        if (location.getProperty() == null) {
+            log.warn("Access denied: location {} has no property bound. User: {}",
+                    location.getId(), userId);
+            throw new AccessDeniedException("You do not have permission to access this location.");
+        }
+        validateOwnership(location.getProperty().getId(), userId);
     }
 
     public void validateEditPermission(UUID propertyId, UUID userId) {

@@ -1,6 +1,7 @@
 CREATE VIEW vw_stock_position AS
 SELECT
     s.id as stock_id,
+    p.property_id,
     p.name as property_name,
     i.name as input_name,
     ic.name as category_name,
@@ -33,6 +34,7 @@ SELECT
     b.batch_number,
     i.name as input_name,
     ic.name as category_name,
+    p.property_id,
     p.name as property_name,
     s.name as supplier_name,
     b.current_quantity,
@@ -63,6 +65,7 @@ SELECT
     sm.unit_value,
     sm.total_value,
     sm.movement_date,
+    p.property_id,
     p.name as property_name,
     i.name as input_name,
     u.name as user_name,

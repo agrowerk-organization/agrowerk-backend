@@ -317,3 +317,45 @@ ALTER TABLE yields
     ADD CONSTRAINT FK_YIELDS_ON_HARVEST FOREIGN KEY (harvest_id) REFERENCES harvests (id);
 
 CREATE INDEX idx_yield_harvest ON yields (harvest_id);
+
+CREATE TABLE agronomic_prescriptions
+(
+    id              UUID         NOT NULL,
+    field_id        UUID         NOT NULL,
+    planting_id     UUID         NOT NULL,
+    agronomist_name VARCHAR(255) NOT NULL,
+    agronomist_crea VARCHAR(20)  NOT NULL,
+    issued_at       date         NOT NULL,
+    valid_until     date         NOT NULL,
+    document_url    VARCHAR(500) NOT NULL,
+    active          BOOLEAN      NOT NULL,
+    created_at      TIMESTAMP WITHOUT TIME ZONE,
+    updated_at      TIMESTAMP WITHOUT TIME ZONE,
+    CONSTRAINT pk_agronomic_prescriptions PRIMARY KEY (id)
+);
+
+ALTER TABLE agronomic_prescriptions
+    ADD CONSTRAINT FK_AGRONOMIC_PRESCRIPTIONS_ON_FIELD FOREIGN KEY (field_id) REFERENCES fields (id);
+
+ALTER TABLE agronomic_prescriptions
+    ADD CONSTRAINT FK_AGRONOMIC_PRESCRIPTIONS_ON_PLANTING FOREIGN KEY (planting_id) REFERENCES plantings (id);
+
+CREATE TABLE prescription_items
+(
+    id                  UUID           NOT NULL,
+    prescription_id     UUID           NOT NULL,
+    input_id            UUID           NOT NULL,
+    authorized_quantity DECIMAL(10, 3) NOT NULL,
+    unit                VARCHAR(20)    NOT NULL,
+    usage_instructions  TEXT,
+    CONSTRAINT pk_prescription_items PRIMARY KEY (id)
+);
+
+ALTER TABLE prescription_items
+    ADD CONSTRAINT uc_090df3d240c0e950f34626b91 UNIQUE (prescription_id, input_id);
+
+ALTER TABLE prescription_items
+    ADD CONSTRAINT FK_PRESCRIPTION_ITEMS_ON_INPUT FOREIGN KEY (input_id) REFERENCES inputs (id);
+
+ALTER TABLE prescription_items
+    ADD CONSTRAINT FK_PRESCRIPTION_ITEMS_ON_PRESCRIPTION FOREIGN KEY (prescription_id) REFERENCES agronomic_prescriptions (id);

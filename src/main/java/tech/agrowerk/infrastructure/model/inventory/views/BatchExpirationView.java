@@ -27,6 +27,7 @@ public class BatchExpirationView {
     private String batchNumber;
     private String inputName;
     private String categoryName;
+    private UUID propertyId;
     private String propertyName;
     private String supplierName;
     private BigDecimal currentQuantity;

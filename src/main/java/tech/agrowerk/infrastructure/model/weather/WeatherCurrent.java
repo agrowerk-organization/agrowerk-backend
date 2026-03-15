@@ -10,7 +10,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "weather_currents")
+@Table(
+        name = "weather_currents",
+        indexes = {
+                @Index(name = "idx_weather_currents_location_id", columnList = "location_id"),
+                @Index(name = "idx_weather_currents_location_timestamp", columnList = "location_id, timestamp DESC")
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

@@ -12,7 +12,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "weather_alerts")
+@Table(
+        name = "weather_alerts",
+        indexes = {
+                @Index(name = "idx_weather_alerts_location_active", columnList = "location_id, is_active, start_time")
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

@@ -2,14 +2,14 @@ package tech.agrowerk.business.service.weather;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.*;
-import tech.agrowerk.business.mapper.WeatherMapper;
+import tech.agrowerk.business.mapper.weather.WeatherMapper;
+import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.WeatherApiException;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherForecast;
@@ -137,7 +137,7 @@ public class WeatherService {
         BigDecimal totalRain7d = calculateTotalRainfall(last7Days);
         BigDecimal totalRain30d = calculateTotalRainfall(last30Days);
 
-        long totalAlerts = alertRepository.countByLocation(location);
+        long totalAlerts = alertRepository.countByLocationId(location.getId());
         long criticalAlerts =
                 alertRepository.countByLocationAndSeverity(location, WeatherAlertSeverity.CRITICAL);
 
@@ -211,7 +211,7 @@ public class WeatherService {
 
     private WeatherLocation findLocationOrThrow(UUID id) {
         return locationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Location not found: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Location not found: " + id));
     }
 
     private void validateForecastDays(int days) {

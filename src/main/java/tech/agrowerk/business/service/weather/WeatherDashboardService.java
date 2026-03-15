@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.weather.*;
+import tech.agrowerk.business.utils.AuthUtil;
+import tech.agrowerk.business.utils.AuthenticatedUser;
+import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
+import tech.agrowerk.infrastructure.repository.property.UserPropertyRepository;
 import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
 
 import java.time.LocalDateTime;
@@ -17,18 +21,25 @@ public class WeatherDashboardService {
 
     private final WeatherCacheService cacheService;
     private final WeatherLocationRepository locationRepository;
+    private final OwnershipValidator ownershipValidator;
+    private final AuthUtil authUtil;
 
     private static final int DEFAULT_FORECAST_DAYS = 7;
 
-    public WeatherDashboardService(WeatherCacheService cacheService, WeatherLocationRepository locationRepository) {
+    public WeatherDashboardService(WeatherCacheService cacheService, WeatherLocationRepository locationRepository, OwnershipValidator ownershipValidator, AuthUtil authUtil) {
         this.cacheService = cacheService;
         this.locationRepository = locationRepository;
+        this.ownershipValidator = ownershipValidator;
+        this.authUtil = authUtil;
     }
 
     public Dashboard getDashboard(UUID locationId) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
         WeatherLocation location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new IllegalArgumentException("Location not found"));
+
+        ownershipValidator.validateLocationAccess(location, auth.id());
 
         Current current = cacheService.getCurrentWeather(locationId);
 

@@ -65,6 +65,19 @@ public class InventoryAsset {
     @Column(precision = 10, scale = 3)
     private BigDecimal commodityQuantityEquivalent;
 
+    @Column(nullable = false)
+    private Boolean approvedForBarter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    @Column
+    private Instant approvedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String approvalNotes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;

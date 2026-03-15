@@ -12,12 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import tech.agrowerk.application.dto.request.create.AddAddressRequest;
-import tech.agrowerk.application.dto.request.create.CreateUserRequest;
-import tech.agrowerk.application.dto.request.update.UpdateAddressRequest;
-import tech.agrowerk.application.dto.response.AddressResponse;
-import tech.agrowerk.application.dto.response.UserResponse;
-import tech.agrowerk.application.dto.request.update.UpdateUserRequest;
+import tech.agrowerk.application.dto.request.core.AddAddressRequest;
+import tech.agrowerk.application.dto.request.core.CreateUserRequest;
+import tech.agrowerk.application.dto.request.core.UpdateAddressRequest;
+import tech.agrowerk.application.dto.response.core.AddressResponse;
+import tech.agrowerk.application.dto.response.core.UserResponse;
+import tech.agrowerk.application.dto.request.core.UpdateUserRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 
 import java.util.UUID;

@@ -28,6 +28,7 @@ public record WeatherLocationCreateRequest(
 
         String timezone,
 
+        @NotNull
         UUID propertyId,
 
         Boolean active
