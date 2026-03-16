@@ -1,6 +1,7 @@
 package tech.agrowerk.business.service.weather;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.UnknownNullability;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -23,6 +24,7 @@ import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertSeverity;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertType;
 import tech.agrowerk.infrastructure.repository.weather.WeatherAlertRepository;
+import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 public class WeatherAlertService {
 
     private final WeatherAlertRepository alertRepository;
+    private final WeatherLocationRepository locationRepository;
     private final WeatherMapper weatherMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final OwnershipValidator ownershipValidator;
@@ -54,8 +57,14 @@ public class WeatherAlertService {
     private static final int ALERT_VALIDITY_HOURS = 24;
     private static final int OLD_ALERTS_RETENTION_DAYS = 30;
 
-    public WeatherAlertService(WeatherAlertRepository alertRepository, WeatherMapper weatherMapper, ApplicationEventPublisher eventPublisher, OwnershipValidator ownershipValidator, AuthUtil authUtil) {
+    public WeatherAlertService(WeatherAlertRepository alertRepository,
+                               WeatherLocationRepository locationRepository,
+                               WeatherMapper weatherMapper,
+                               ApplicationEventPublisher eventPublisher,
+                               OwnershipValidator ownershipValidator,
+                               AuthUtil authUtil) {
         this.alertRepository = alertRepository;
+        this.locationRepository = locationRepository;
         this.weatherMapper = weatherMapper;
         this.eventPublisher = eventPublisher;
         this.ownershipValidator = ownershipValidator;
@@ -89,7 +98,10 @@ public class WeatherAlertService {
 
     @Cacheable(value = "weatherAlerts", key = "#location.id", unless = "#result == null")
     @Transactional(readOnly = true)
-    public List<Alert> getActiveAlertsByLocation(WeatherLocation location) {
+    public List<Alert> getActiveAlertsByLocation(UUID locationId) {
+        WeatherLocation location = locationRepository.findById(locationId)
+                        .orElseThrow(() -> new EntityNotFoundException("Location not found"));
+
         log.debug("Fetching active alerts for location: {}", location.getName());
         return alertRepository.findByLocationAndIsActiveTrue(location).stream()
                 .map(weatherMapper::toAlertDTO)

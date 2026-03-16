@@ -1,12 +1,10 @@
 package tech.agrowerk.application.controller.weather;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.weather.location.WeatherLocationCreateRequest;
 import tech.agrowerk.application.dto.weather.location.WeatherLocationUpdateRequest;
@@ -33,8 +31,6 @@ public class WeatherLocationController implements WeatherLocationApi {
     public ResponseEntity<List<WeatherLocationDto>> getAllLocations(
             @RequestParam(required = false, defaultValue = "true") Boolean activeOnly) {
 
-        log.info("GET /weather/locations (activeOnly={})", activeOnly);
-
         List<WeatherLocationDto> locations = activeOnly
                 ? locationService.findActiveLocations()
                 : locationService.findAllLocations();
@@ -47,8 +43,6 @@ public class WeatherLocationController implements WeatherLocationApi {
     public ResponseEntity<WeatherLocationDto> getLocationById(
             @PathVariable UUID id) {
 
-        log.info("GET /weather/locations/{}", id);
-
         WeatherLocationDto location = locationService.findById(id);
         return ResponseEntity.ok(location);
     }
@@ -57,8 +51,6 @@ public class WeatherLocationController implements WeatherLocationApi {
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<WeatherLocationDto> getLocationByProperty(
             @PathVariable UUID propertyId) {
-
-        log.info("GET /weather/locations/property/{}", propertyId);
 
         WeatherLocationDto location = locationService.findByPropertyId(propertyId);
         return ResponseEntity.ok(location);
@@ -82,8 +74,6 @@ public class WeatherLocationController implements WeatherLocationApi {
             @PathVariable UUID id,
             @Valid @RequestBody WeatherLocationUpdateRequest request) {
 
-        log.info("PUT /weather/locations/{}", id);
-
         WeatherLocationDto updated = locationService.updateLocation(id, request);
         return ResponseEntity.ok(updated);
     }
@@ -102,8 +92,6 @@ public class WeatherLocationController implements WeatherLocationApi {
     public ResponseEntity<Void> deactivateLocation(
             @PathVariable UUID id) {
 
-        log.info("PATCH /weather/locations/{}/deactivate", id);
-
         locationService.setActive(id, false);
         return ResponseEntity.ok().build();
     }
@@ -112,8 +100,6 @@ public class WeatherLocationController implements WeatherLocationApi {
     @PreAuthorize("hasAnyAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<Void> deleteLocation(
             @PathVariable UUID id) {
-
-        log.warn("DELETE /weather/locations/{} - Admin deletion requested", id);
 
         locationService.deleteLocation(id);
         return ResponseEntity.noContent().build();

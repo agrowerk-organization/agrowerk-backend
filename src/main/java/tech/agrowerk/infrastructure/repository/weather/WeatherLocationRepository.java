@@ -24,6 +24,8 @@ public interface WeatherLocationRepository extends JpaRepository<WeatherLocation
 
     List<WeatherLocation> findByState(State state);
 
+    List<WeatherLocation> findAllByActiveTrue();
+
     Optional<WeatherLocation> findByLatitudeAndLongitude(BigDecimal latitude, BigDecimal longitude);
 
     @Query("SELECT wl FROM WeatherLocation wl " +

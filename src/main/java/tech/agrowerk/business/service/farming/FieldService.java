@@ -36,7 +36,6 @@ public class FieldService {
 
     private final FieldRepository fieldRepository;
     private final PropertyRepository propertyRepository;
-    private final UserPropertyRepository userPropertyRepository;
     private final PlantingRepository plantingRepository;
     private final FieldMapper fieldMapper;
     private final AuthUtil authUtil;
@@ -53,7 +52,6 @@ public class FieldService {
                         OwnershipValidator ownershipValidator) {
         this.fieldRepository = fieldRepository;
         this.propertyRepository = propertyRepository;
-        this.userPropertyRepository = userPropertyRepository;
         this.plantingRepository = plantingRepository;
         this.fieldMapper = fieldMapper;
         this.authUtil = authUtil;

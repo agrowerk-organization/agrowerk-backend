@@ -47,11 +47,8 @@ public class WeatherController implements WeatherApi {
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Current> getCurrentWeather(@PathVariable UUID locationId) {
 
-        log.info("Request: Current weather for location {}", locationId);
-
         return ResponseEntity.ok(cacheService.getCurrentWeather(locationId));
     }
-
 
     @Override
     @GetMapping("/forecast/{locationId}")
@@ -60,8 +57,6 @@ public class WeatherController implements WeatherApi {
             @PathVariable UUID locationId,
             @RequestParam(defaultValue = "7") int days
     ) {
-
-        log.info("Request: Forecast for location {} (days: {})", locationId, days);
 
         return ResponseEntity.ok(cacheService.getForecast(locationId, days));
     }
@@ -74,7 +69,6 @@ public class WeatherController implements WeatherApi {
 
         return ResponseEntity.ok(cacheService.getActiveAlerts(locationId));
     }
-
 
     @Override
     @GetMapping("/dashboard/{locationId}")

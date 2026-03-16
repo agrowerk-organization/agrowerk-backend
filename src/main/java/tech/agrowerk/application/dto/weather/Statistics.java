@@ -15,3 +15,4 @@ public record Statistics(
         String waterStressLevel,
         BigDecimal evapotranspirationTotal7d
 ) {}
+

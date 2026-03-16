@@ -9,6 +9,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.weather.Alert;
 import tech.agrowerk.business.service.weather.WeatherAlertService;
+import tech.agrowerk.business.service.weather.WeatherLocationService;
+import tech.agrowerk.business.service.weather.WeatherService;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
 
@@ -24,11 +26,11 @@ import java.util.UUID;
 public class WeatherAlertController {
 
     private final WeatherAlertService alertService;
-    private final WeatherLocationRepository locationRepository;
+    private final WeatherLocationService locationService;
 
-    public WeatherAlertController(WeatherAlertService alertService, WeatherLocationRepository locationRepository) {
+    public WeatherAlertController(WeatherAlertService alertService, WeatherLocationService locationService) {
         this.alertService = alertService;
-        this.locationRepository = locationRepository;
+        this.locationService = locationService;
     }
 
     @GetMapping("/location/{locationId}")
@@ -38,17 +40,13 @@ public class WeatherAlertController {
 
         log.info("GET /weather/alerts/location/{}", locationId);
 
-        WeatherLocation location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new IllegalArgumentException("Location not found: " + locationId));
-
-        List<Alert> alerts = alertService.getActiveAlertsByLocation(location);
+        List<Alert> alerts = alertService.getActiveAlertsByLocation(locationId);
         return ResponseEntity.ok(alerts);
     }
 
     @GetMapping("/pending")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<Integer> getPendingNotifications() {
-        log.info("GET /weather/alerts/pending");
 
         int count = alertService.getPendingNotifications().size();
         return ResponseEntity.ok(count);
@@ -59,12 +57,7 @@ public class WeatherAlertController {
     public ResponseEntity<Map<String, Object>> getAlertStatistics(
             @PathVariable UUID locationId) {
 
-        log.info("GET /weather/alerts/statistics/{}", locationId);
-
-        WeatherLocation location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new IllegalArgumentException("Location not found: " + locationId));
-
-        Map<String, Object> stats = alertService.getAlertStatistics(location);
+        Map<String, Object> stats = alertService.getAlertStatistics(locationId);
         return ResponseEntity.ok(stats);
     }
 
@@ -76,7 +69,6 @@ public class WeatherAlertController {
             Authentication authentication) {
 
         String username = authentication.getName();
-        log.info("POST /weather/alerts/{}/resolve - by user: {}", alertId, username);
 
         alertService.resolveAlert(alertId, username);
 

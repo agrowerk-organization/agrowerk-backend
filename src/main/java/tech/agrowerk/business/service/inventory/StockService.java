@@ -15,7 +15,6 @@ import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.IllegalArgumentException;
-import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.inventory.Input;
 import tech.agrowerk.infrastructure.model.inventory.Stock;
 import tech.agrowerk.infrastructure.model.inventory.enums.MovementType;

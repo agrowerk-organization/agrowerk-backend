@@ -22,6 +22,7 @@ import tech.agrowerk.infrastructure.repository.property.PropertyRepository;
 import tech.agrowerk.infrastructure.repository.property.UserPropertyRepository;
 import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -174,6 +175,26 @@ public class WeatherLocationService {
 
         locationRepository.delete(location);
         log.warn("Deleted weather location: {}. User: {}", id, auth.id());
+    }
+
+    @Cacheable(value = "weatherLocations", key = "'all_locations'")
+    @Transactional(readOnly = true)
+    public List<WeatherLocationDto> findAllLocations() {
+        log.debug("Finding all weather locations - Cache MISS");
+        return locationRepository.findAll()
+                .stream()
+                .map(weatherMapper::toLocationDTO)
+                .toList();
+    }
+
+    @Cacheable(value = "weatherLocations", key = "'active_locations'")
+    @Transactional(readOnly = true)
+    public List<WeatherLocationDto> findActiveLocations() {
+        log.debug("Finding all active weather locations - Cache MISS");
+        return locationRepository.findAllByActiveTrue()
+                .stream()
+                .map(weatherMapper::toLocationDTO)
+                .toList();
     }
 
     private void verifyPropertyAccess(AuthenticatedUser auth, WeatherLocation location) {
