@@ -249,6 +249,7 @@ public class AuthService {
         log.info("Password changed successfully for user: {}", user.getEmail());
     }
 
+    @Transactional(readOnly = true)
     public UserInfoDto getCurrentUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

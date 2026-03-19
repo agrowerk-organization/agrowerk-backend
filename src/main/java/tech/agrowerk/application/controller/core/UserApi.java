@@ -48,8 +48,8 @@ public interface UserApi {
     @Operation(summary = "Get user by email", description = "Retrieves user details via email address. Admin only.")
     ResponseEntity<UserResponse> getUserByEmail(String email);
 
-    @Operation(summary = "Get current user profile", description = "Returns the profile data of the currently authenticated user.")
-    ResponseEntity<UserResponse> getCurrentUser();
+    /*@Operation(summary = "Get current user profile", description = "Returns the profile data of the currently authenticated user.")
+    ResponseEntity<UserResponse> getCurrentUser(); */
 
     @Operation(summary = "List all users", description = "Returns a paginated list of all registered users. Admin only.")
     ResponseEntity<Page<UserResponse>> listUsers(@Parameter(hidden = true) Pageable pageable);

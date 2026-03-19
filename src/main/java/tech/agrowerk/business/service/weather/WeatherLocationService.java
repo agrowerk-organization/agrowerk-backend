@@ -33,6 +33,7 @@ public class WeatherLocationService {
     private final PropertyRepository propertyRepository;
     private final UserPropertyRepository userPropertyRepository;
     private final WeatherMapper weatherMapper;
+    private final WeatherFetchService weatherFetchService;
     private final AuthUtil authUtil;
 
     public WeatherLocationService(
@@ -40,12 +41,14 @@ public class WeatherLocationService {
             PropertyRepository propertyRepository,
             UserPropertyRepository userPropertyRepository,
             WeatherMapper weatherMapper,
+            WeatherFetchService weatherFetchService,
             AuthUtil authUtil
     ) {
         this.locationRepository = locationRepository;
         this.propertyRepository = propertyRepository;
         this.userPropertyRepository = userPropertyRepository;
         this.weatherMapper = weatherMapper;
+        this.weatherFetchService = weatherFetchService;
         this.authUtil = authUtil;
     }
 
@@ -120,7 +123,18 @@ public class WeatherLocationService {
                 .build();
 
         log.info("Creating weather location for property: {}. User: {}", property.getId(), auth.id());
-        return weatherMapper.toLocationDTO(locationRepository.save(location));
+        WeatherLocation saved = locationRepository.save(location);
+
+        try {
+            weatherFetchService.fetchAndSaveCurrentWeather(saved);
+            weatherFetchService.fetchAndSaveForecast(saved, 7);
+            log.info("Initial weather fetch completed for location: {}", saved.getId());
+        } catch (Exception e) {
+            log.warn("Initial weather fetch failed for location: {}. Will retry on next scheduler run.",
+                    saved.getId(), e);
+        }
+
+        return weatherMapper.toLocationDTO(saved);
     }
 
     @CacheEvict(value = "weatherLocations", allEntries = true)

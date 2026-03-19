@@ -12,6 +12,7 @@ import tech.agrowerk.business.mapper.property.SeasonMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.business.validators.OwnershipValidator;
+import tech.agrowerk.infrastructure.config.cache.RestPage;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.farming.Planting;
@@ -126,16 +127,24 @@ public class SeasonService {
         return seasonMapper.toResponse(season);
     }
 
-    @Cacheable(value = "seasons", key = "#propertyId",
+   /* @Cacheable(value = "seasons", key = "#propertyId",
             cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
+            unless = "#result.isEmpty()") */
     @Transactional(readOnly = true)
-    public Page<SeasonResponse> findMySeasons(UUID propertyId, Pageable pageable) {
+    public RestPage<SeasonResponse> findMySeasons(UUID propertyId, Pageable pageable) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
         ownershipValidator.validateOwnership(propertyId, auth.id());
 
-        return seasonRepository.findByProperty_Id(propertyId, pageable)
+        Page<SeasonResponse> page = seasonRepository
+                .findByProperty_Id(propertyId, pageable)
                 .map(seasonMapper::toResponse);
+
+        return new RestPage<>(
+                page.getContent(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                page.getTotalElements()
+        );
     }
 
     private Season findAndValidateOwnership(UUID seasonId, UUID userId) {

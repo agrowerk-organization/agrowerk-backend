@@ -26,7 +26,10 @@ public class WeatherDashboardService {
 
     private static final int DEFAULT_FORECAST_DAYS = 7;
 
-    public WeatherDashboardService(WeatherCacheService cacheService, WeatherLocationRepository locationRepository, OwnershipValidator ownershipValidator, AuthUtil authUtil) {
+    public WeatherDashboardService(WeatherCacheService cacheService,
+                                   WeatherLocationRepository locationRepository,
+                                   OwnershipValidator ownershipValidator,
+                                   AuthUtil authUtil) {
         this.cacheService = cacheService;
         this.locationRepository = locationRepository;
         this.ownershipValidator = ownershipValidator;

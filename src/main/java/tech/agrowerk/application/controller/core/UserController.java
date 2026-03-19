@@ -60,12 +60,12 @@ public class UserController implements UserApi {
         return ResponseEntity.ok(userService.findUserByEmail(email));
     }
 
-    @Override
+   /* @Override
     @GetMapping("/get/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserResponse> getCurrentUser() {
         return ResponseEntity.ok(userService.getCurrentUser());
-    }
+    } */
 
     @Override
     @GetMapping("/list-users")

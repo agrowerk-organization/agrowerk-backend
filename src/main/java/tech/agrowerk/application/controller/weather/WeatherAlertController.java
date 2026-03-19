@@ -21,7 +21,7 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("/weather/alerts")
+@RequestMapping("/weather-alerts")
 @Slf4j
 public class WeatherAlertController {
 
@@ -33,7 +33,7 @@ public class WeatherAlertController {
         this.locationService = locationService;
     }
 
-    @GetMapping("/location/{locationId}")
+    @GetMapping("/get-active/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<List<Alert>> getActiveAlertsByLocation(
             @PathVariable UUID locationId) {
@@ -44,7 +44,7 @@ public class WeatherAlertController {
         return ResponseEntity.ok(alerts);
     }
 
-    @GetMapping("/pending")
+    @GetMapping("/get-pending")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<Integer> getPendingNotifications() {
 
@@ -52,7 +52,7 @@ public class WeatherAlertController {
         return ResponseEntity.ok(count);
     }
 
-    @GetMapping("/statistics/{locationId}")
+    @GetMapping("/get-statistics/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Map<String, Object>> getAlertStatistics(
             @PathVariable UUID locationId) {
@@ -61,7 +61,7 @@ public class WeatherAlertController {
         return ResponseEntity.ok(stats);
     }
 
-    @PostMapping("/{alertId}/resolve")
+    @PostMapping("resolve/{alertId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SYSTEM_ADMIN')")
     public ResponseEntity<Map<String, String>> resolveAlert(
             @PathVariable UUID alertId,

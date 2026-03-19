@@ -38,12 +38,20 @@ public class WeatherService {
     private final WeatherAlertRepository alertRepository;
     private final WeatherMapper weatherMapper;
     private final WeatherAlertService alertService;
+    private final WeatherFetchService weatherFetchService;
 
     private static final int DEFAULT_FORECAST_DAYS = 7;
     private static final int STATISTICS_PERIOD_DAYS = 7;
     private static final int STATISTICS_PERIOD_MONTHS = 30;
 
-    public WeatherService(OpenMeteoClient openMeteoClient, WeatherLocationRepository locationRepository, WeatherCurrentRepository currentRepository, WeatherForecastRepository forecastRepository, WeatherAlertRepository alertRepository, WeatherMapper weatherMapper, WeatherAlertService alertService) {
+    public WeatherService(OpenMeteoClient openMeteoClient,
+                          WeatherLocationRepository locationRepository,
+                          WeatherCurrentRepository currentRepository,
+                          WeatherForecastRepository forecastRepository,
+                          WeatherAlertRepository alertRepository,
+                          WeatherMapper weatherMapper,
+                          WeatherAlertService alertService,
+                          WeatherFetchService weatherFetchService) {
         this.openMeteoClient = openMeteoClient;
         this.locationRepository = locationRepository;
         this.currentRepository = currentRepository;
@@ -51,6 +59,7 @@ public class WeatherService {
         this.alertRepository = alertRepository;
         this.weatherMapper = weatherMapper;
         this.alertService = alertService;
+        this.weatherFetchService = weatherFetchService;
     }
 
     @CircuitBreaker(name = "weatherApiCircuitBreaker", fallbackMethod = "getCurrentWeatherFallback")
@@ -65,7 +74,7 @@ public class WeatherService {
             return weatherMapper.toCurrentDTO(cachedData.get(), false);
         }
 
-        return fetchAndSaveCurrentWeather(location);
+        return weatherFetchService.fetchAndSaveCurrentWeather(location);
     }
 
     public Current getCurrentWeatherFallback(UUID locationId, Throwable t) {
@@ -99,9 +108,8 @@ public class WeatherService {
                     .toList();
         }
 
-        return fetchAndSaveForecast(location, days);
+        return weatherFetchService.fetchAndSaveForecast(location, days);
     }
-
 
     @Transactional(readOnly = true)
     public List<Alert> getActiveAlertsInternal(UUID locationId) {
@@ -154,43 +162,6 @@ public class WeatherService {
                 .build();
     }
 
-
-    @Transactional
-    public Current fetchAndSaveCurrentWeather(WeatherLocation location) {
-
-        OpenMeteoResponse apiResponse =
-                openMeteoClient.fetchWeatherData(location.getLatitude(), location.getLongitude());
-
-        WeatherCurrent entity = weatherMapper.toCurrentEntity(apiResponse, location);
-        entity = currentRepository.save(entity);
-
-        alertService.processWeatherDataForAlerts(entity);
-
-        return weatherMapper.toCurrentDTO(entity, false);
-    }
-
-    @Transactional
-    public List<Forecast> fetchAndSaveForecast(WeatherLocation location, int days) {
-
-        LocalDate start = LocalDate.now();
-        LocalDate end = start.plusDays(days);
-
-        forecastRepository.deleteByLocationAndForecastDateBetween(location, start, end);
-
-        OpenMeteoResponse apiResponse =
-                openMeteoClient.fetchWeatherData(location.getLatitude(), location.getLongitude());
-
-        List<WeatherForecast> forecasts =
-                forecastRepository.saveAll(weatherMapper.toForecastEntities(apiResponse, location));
-
-        return forecasts.stream()
-                .filter(f -> f.getForecastHour() == null)
-                .limit(days)
-                .map(weatherMapper::toForecastDTO)
-                .toList();
-    }
-
-
     @Scheduled(cron = "${weather.scheduler.cron:0 */10 * * * *}")
     @Transactional
     public void scheduledWeatherUpdate() {
@@ -200,14 +171,13 @@ public class WeatherService {
         for (WeatherLocation location : activeLocations) {
 
             try {
-                fetchAndSaveCurrentWeather(location);
-                fetchAndSaveForecast(location, DEFAULT_FORECAST_DAYS);
+                weatherFetchService.fetchAndSaveCurrentWeather(location);
+                weatherFetchService.fetchAndSaveForecast(location, DEFAULT_FORECAST_DAYS);
             } catch (Exception e) {
                 log.error("Failed to update weather {}", location.getName(), e);
             }
         }
     }
-
 
     private WeatherLocation findLocationOrThrow(UUID id) {
         return locationRepository.findById(id)

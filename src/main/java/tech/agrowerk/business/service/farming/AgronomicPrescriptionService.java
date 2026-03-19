@@ -43,7 +43,14 @@ public class AgronomicPrescriptionService {
     private final OwnershipValidator ownershipValidator;
     private final AuthUtil authUtil;
 
-    public AgronomicPrescriptionService(AgronomicPrescriptionRepository prescriptionRepository, PrescriptionItemRepository itemRepository, PlantingRepository plantingRepository, InputRepository inputRepository, FileStorageService fileStorageService, PrescriptionMapper prescriptionMapper, OwnershipValidator ownershipValidator, AuthUtil authUtil) {
+    public AgronomicPrescriptionService(AgronomicPrescriptionRepository prescriptionRepository,
+                                        PrescriptionItemRepository itemRepository,
+                                        PlantingRepository plantingRepository,
+                                        InputRepository inputRepository,
+                                        FileStorageService fileStorageService,
+                                        PrescriptionMapper prescriptionMapper,
+                                        OwnershipValidator ownershipValidator,
+                                        AuthUtil authUtil) {
         this.prescriptionRepository = prescriptionRepository;
         this.itemRepository = itemRepository;
         this.plantingRepository = plantingRepository;
@@ -111,7 +118,6 @@ public class AgronomicPrescriptionService {
                     if (!duplicateCheck.add(input.getId())) {
                         throw new EntityAlreadyExistsException("Input " + input.getName() + " is duplicated in request");
                     }
-
                     return prescriptionMapper.toItemEntity(itemRequest, saved, input);
                 })
                 .toList();

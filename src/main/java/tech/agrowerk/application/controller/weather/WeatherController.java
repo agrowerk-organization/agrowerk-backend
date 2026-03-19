@@ -43,7 +43,7 @@ public class WeatherController implements WeatherApi {
 
 
     @Override
-    @GetMapping("/current/{locationId}")
+    @GetMapping("/get-current/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Current> getCurrentWeather(@PathVariable UUID locationId) {
 
@@ -51,7 +51,7 @@ public class WeatherController implements WeatherApi {
     }
 
     @Override
-    @GetMapping("/forecast/{locationId}")
+    @GetMapping("/get-forecast/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<List<Forecast>> getForecast(
             @PathVariable UUID locationId,
@@ -63,7 +63,7 @@ public class WeatherController implements WeatherApi {
 
 
     @Override
-    @GetMapping("/alerts/{locationId}")
+    @GetMapping("/get-alerts/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<List<Alert>> getActiveAlerts(@PathVariable UUID locationId) {
 
@@ -71,7 +71,7 @@ public class WeatherController implements WeatherApi {
     }
 
     @Override
-    @GetMapping("/dashboard/{locationId}")
+    @GetMapping("/get-dashboard/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Dashboard> getDashboard(@PathVariable UUID locationId) {
 
@@ -80,16 +80,15 @@ public class WeatherController implements WeatherApi {
 
 
     @Override
-    @GetMapping("/statistics/{locationId}")
+    @GetMapping("/get-statistics/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Statistics> getStatistics(@PathVariable UUID locationId) {
 
         return ResponseEntity.ok(cacheService.calculateStatistics(locationId));
     }
 
-
     @Override
-    @GetMapping("/health")
+    @GetMapping("/get-health")
     public ResponseEntity<Map<String, Object>> healthCheck() {
 
         String state = openMeteoClient.getCircuitBreakerState();

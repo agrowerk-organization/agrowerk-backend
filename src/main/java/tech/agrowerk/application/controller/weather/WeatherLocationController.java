@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/weather/locations")
+@RequestMapping("/weather-locations")
 @Slf4j
 public class WeatherLocationController implements WeatherLocationApi {
 
@@ -26,7 +26,7 @@ public class WeatherLocationController implements WeatherLocationApi {
         this.locationService = locationService;
     }
 
-    @GetMapping
+    @GetMapping("/get-all-locations")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<List<WeatherLocationDto>> getAllLocations(
             @RequestParam(required = false, defaultValue = "true") Boolean activeOnly) {
@@ -38,7 +38,7 @@ public class WeatherLocationController implements WeatherLocationApi {
         return ResponseEntity.ok(locations);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/find-by-id/{id}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<WeatherLocationDto> getLocationById(
             @PathVariable UUID id) {
@@ -47,7 +47,7 @@ public class WeatherLocationController implements WeatherLocationApi {
         return ResponseEntity.ok(location);
     }
 
-    @GetMapping("/property/{propertyId}")
+    @GetMapping("/get-by-property/{propertyId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<WeatherLocationDto> getLocationByProperty(
             @PathVariable UUID propertyId) {
@@ -56,7 +56,7 @@ public class WeatherLocationController implements WeatherLocationApi {
         return ResponseEntity.ok(location);
     }
 
-    @PostMapping
+    @PostMapping("/create-location")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SYSTEM_ADMIN')")
     public ResponseEntity<WeatherLocationDto> createLocation(
              WeatherLocationCreateRequest request) {
@@ -68,7 +68,7 @@ public class WeatherLocationController implements WeatherLocationApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update-location/{id}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SYSTEM_ADMIN')")
     public ResponseEntity<WeatherLocationDto> updateLocation(
             @PathVariable UUID id,
@@ -89,19 +89,19 @@ public class WeatherLocationController implements WeatherLocationApi {
         return ResponseEntity.ok().build();
     }
 
-    public ResponseEntity<Void> deactivateLocation(
-            @PathVariable UUID id) {
+    @PutMapping("/deactivate-location/{locationId}")
+    @PreAuthorize("hasAuthority('PRODUCER')")
+    public ResponseEntity<Void> deactivateLocation(@PathVariable UUID locationId) {
 
-        locationService.setActive(id, false);
+        locationService.setActive(locationId, false);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete-location/{locationId}")
     @PreAuthorize("hasAnyAuthority('SYSTEM_ADMIN')")
-    public ResponseEntity<Void> deleteLocation(
-            @PathVariable UUID id) {
+    public ResponseEntity<Void> deleteLocation(@PathVariable UUID locationId) {
 
-        locationService.deleteLocation(id);
+        locationService.deleteLocation(locationId);
         return ResponseEntity.noContent().build();
     }
 }
