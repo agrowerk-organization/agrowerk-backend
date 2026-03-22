@@ -8,6 +8,7 @@ import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.Current;
 import tech.agrowerk.application.dto.weather.Forecast;
 import tech.agrowerk.business.mapper.weather.WeatherMapper;
+import tech.agrowerk.infrastructure.client.OpenMeteoClient;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherForecast;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;

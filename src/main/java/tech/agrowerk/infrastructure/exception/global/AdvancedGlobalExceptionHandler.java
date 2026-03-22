@@ -32,7 +32,8 @@ public class AdvancedGlobalExceptionHandler {
             entry(AuthenticationException.class, internalError("Authentication system error")),
             entry(WeatherApiException.class, serviceUnavailable("Weather service temporarily unavailable")),
             entry(WeatherAlertException.class, notFound("Alert not found")),
-            entry(InsufficientStockException.class, badRequest("Insufficient stock"))
+            entry(InsufficientStockException.class, badRequest("Insufficient stock")),
+            entry(MarketDataException.class, serviceUnavailable("Service unavailable of CEPEA"))
     );
 
     @ExceptionHandler({
@@ -49,7 +50,8 @@ public class AdvancedGlobalExceptionHandler {
             AuthenticationException.class,
             WeatherApiException.class,
             WeatherAlertException.class,
-            InsufficientStockException.class
+            InsufficientStockException.class,
+            MarketDataException.class
     })
     public ResponseEntity<ErrorResponse> handleMappedException(Exception ex) {
         ErrorConfig config = ERROR_REGISTRY.get(ex.getClass());

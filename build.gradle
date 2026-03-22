@@ -65,6 +65,7 @@ dependencies {
     implementation 'io.github.resilience4j:resilience4j-micrometer:2.2.0'
     implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
     implementation 'io.lettuce:lettuce-core'
+    implementation 'org.apache.poi:poi:5.3.0'
     implementation 'org.apache.commons:commons-pool2'
     implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
     implementation 'com.bucket4j:bucket4j-core:8.9.0'

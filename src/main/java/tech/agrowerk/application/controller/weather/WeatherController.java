@@ -1,11 +1,9 @@
 package tech.agrowerk.application.controller.weather;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.Current;
@@ -13,7 +11,7 @@ import tech.agrowerk.application.dto.weather.Forecast;
 import tech.agrowerk.application.dto.weather.Alert;
 import tech.agrowerk.application.dto.weather.Dashboard;
 import tech.agrowerk.application.dto.weather.Statistics;
-import tech.agrowerk.business.service.weather.OpenMeteoClient;
+import tech.agrowerk.infrastructure.client.OpenMeteoClient;
 import tech.agrowerk.business.service.weather.WeatherCacheService;
 import tech.agrowerk.business.service.weather.WeatherDashboardService;
 import tech.agrowerk.business.service.weather.WeatherService;
