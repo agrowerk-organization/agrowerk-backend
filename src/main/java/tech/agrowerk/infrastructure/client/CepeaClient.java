@@ -13,7 +13,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import tech.agrowerk.application.dto.cepea.CepeaPrice;
+import tech.agrowerk.application.dto.market.CepeaPrice;
 import tech.agrowerk.infrastructure.exception.local.MarketDataException;
 
 import java.io.ByteArrayInputStream;
@@ -32,6 +32,7 @@ public class CepeaClient {
 
     private static final String SOJA_URL     = "/br/indicador/soja.aspx";
     private static final String MILHO_URL    = "/br/indicador/milho.aspx";
+    private static final String FEIJAO_URL   = "/br/indicador/feijao.aspx";
     private static final String BOI_GORDO_URL= "/br/indicador/boi-gordo.aspx";
     private static final String CAFE_URL     = "/br/indicador/cafe.aspx";
     private static final String ALGODAO_URL  = "/br/indicador/algodao.aspx";
@@ -66,6 +67,7 @@ public class CepeaClient {
 
     public List<CepeaPrice> fetchSoja()     { return fetch(SOJA_URL,      "SOJA");      }
     public List<CepeaPrice> fetchMilho()    { return fetch(MILHO_URL,     "MILHO");     }
+    public List<CepeaPrice> fetchFeijao()   { return fetch(FEIJAO_URL,   "FEIJAO");     }
     public List<CepeaPrice> fetchBoiGordo() { return fetch(BOI_GORDO_URL, "BOI_GORDO"); }
     public List<CepeaPrice> fetchCafe()     { return fetch(CAFE_URL,      "CAFE");      }
     public List<CepeaPrice> fetchAlgodao()  { return fetch(ALGODAO_URL,   "ALGODAO");   }

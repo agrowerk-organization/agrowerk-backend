@@ -1,4 +1,4 @@
-package tech.agrowerk.application.dto.cepea;
+package tech.agrowerk.application.dto.market;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -1,14 +1,12 @@
 package tech.agrowerk.infrastructure.model.market;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import tech.agrowerk.infrastructure.model.market.enums.Commodity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -29,6 +27,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class CommodityPrice {
 
     @Id
@@ -52,5 +51,5 @@ public class CommodityPrice {
     private LocalDate referenceDate;
 
     @Column(name = "fetched_at")
-    private LocalDate fetchedAt;
+    private LocalDateTime fetchedAt;
 }

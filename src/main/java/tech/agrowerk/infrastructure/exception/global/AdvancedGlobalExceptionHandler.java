@@ -33,7 +33,8 @@ public class AdvancedGlobalExceptionHandler {
             entry(WeatherApiException.class, serviceUnavailable("Weather service temporarily unavailable")),
             entry(WeatherAlertException.class, notFound("Alert not found")),
             entry(InsufficientStockException.class, badRequest("Insufficient stock")),
-            entry(MarketDataException.class, serviceUnavailable("Service unavailable of CEPEA"))
+            entry(MarketDataException.class, serviceUnavailable("Service unavailable of CEPEA")),
+            entry(EmailNotVerifiedException.class, forbidden("Verify your email"))
     );
 
     @ExceptionHandler({
@@ -51,7 +52,8 @@ public class AdvancedGlobalExceptionHandler {
             WeatherApiException.class,
             WeatherAlertException.class,
             InsufficientStockException.class,
-            MarketDataException.class
+            MarketDataException.class,
+            EmailNotVerifiedException.class
     })
     public ResponseEntity<ErrorResponse> handleMappedException(Exception ex) {
         ErrorConfig config = ERROR_REGISTRY.get(ex.getClass());
@@ -111,7 +113,7 @@ public class AdvancedGlobalExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message, Exception ex) {
-        ErrorResponse response = new ErrorResponse(message);
+        ErrorResponse response = new ErrorResponse(message, Map.of("detail", ex.getMessage() != null ? ex.getMessage() : "No detail"));
         return new ResponseEntity<>(response, status);
     }
 

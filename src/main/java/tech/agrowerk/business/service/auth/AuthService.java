@@ -1,5 +1,6 @@
 package tech.agrowerk.business.service.auth;
 
+import jakarta.validation.constraints.Email;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -10,14 +11,11 @@ import tech.agrowerk.application.dto.auth.LoginRequest;
 import tech.agrowerk.application.dto.auth.LoginResult;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.mapper.core.UserMapper;
-import tech.agrowerk.infrastructure.exception.local.AuthenticationException;
-import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
+import tech.agrowerk.infrastructure.exception.local.*;
 import tech.agrowerk.infrastructure.model.audit.enums.SecurityEvent;
 import tech.agrowerk.infrastructure.security.services.AuditService;
 import tech.agrowerk.infrastructure.security.services.CookieService;
 import tech.agrowerk.infrastructure.security.services.JwtService;
-import tech.agrowerk.infrastructure.exception.local.BadCredentialsException;
-import tech.agrowerk.infrastructure.exception.local.InvalidTokenException;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -59,7 +57,6 @@ public class AuthService {
         this.authHelperService = authHelperService;
     }
 
-
     @Transactional
     public LoginResult login(LoginRequest loginRequest, HttpServletRequest request) {
         String email = loginRequest.email();
@@ -67,26 +64,25 @@ public class AuthService {
 
         User user = userRepository.findByEmail(email).orElse(null);
 
-        boolean validPassword = false;
-        if (user != null) {
-            validPassword = passwordEncoder.matches(password, user.getPassword());
-        } else {
-            passwordEncoder.matches(password, FAKE_HASH);
+        assert user != null;
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException("Please verify your email before logging in");
         }
 
-        if (user == null || !validPassword) {
-            if (user != null) {
-                authHelperService.saveFailedAttempt(user);
-                if (user.isLocked()) {
-                    auditService.logAccountLocked(user, getClientIp(request));
-                }
+        boolean validPassword = false;
+        validPassword = passwordEncoder.matches(password, user.getPassword());
+
+        if (!validPassword) {
+            authHelperService.saveFailedAttempt(user);
+            if (user.isLocked()) {
+                auditService.logAccountLocked(user, getClientIp(request));
             }
 
             auditService.logSecurityEvent(
                     SecurityEvent.LOGIN_FAILED,
                     getClientIp(request),
                     request.getHeader("User-Agent"),
-                    user != null ? user.getId() : null,
+                    user.getId(),
                     "Invalid credentials for email: " + email
             );
 

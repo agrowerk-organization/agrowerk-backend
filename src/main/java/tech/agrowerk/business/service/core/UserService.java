@@ -37,6 +37,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final EmailVerificationService emailVerificationService;
     private final PasswordEncoder passwordEncoder;
     private final AuthUtil authUtil;
 
@@ -45,13 +46,14 @@ public class UserService {
 
     public UserService(UserRepository userRepository,
                        RoleRepository roleRepository,
-                       UserMapper userMapper,
+                       UserMapper userMapper, EmailVerificationService emailVerificationService,
                        PasswordEncoder passwordEncoder,
                        AuthUtil authUtil,
                        AddressMapper addressMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
+        this.emailVerificationService = emailVerificationService;
         this.passwordEncoder = passwordEncoder;
         this.authUtil = authUtil;
         this.addressMapper = addressMapper;
@@ -80,6 +82,8 @@ public class UserService {
         newUser.setLastLogin(Instant.now());
 
         User savedUser = userRepository.save(newUser);
+
+        emailVerificationService.sendVerificationEmail(savedUser);
 
         return userMapper.toResponse(savedUser);
     }
