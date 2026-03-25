@@ -153,7 +153,7 @@ public class PlantingInputService {
                                   User user) {
 
         List<Batch> batches = batchRepository
-                .findActiveByInputAndPropertyOrderByExpirationDateAsc(
+                .findActiveForConsumptionWithLock(
                         input.getId(), planting.getProperty().getId(), BatchStatus.AVAILABLE);
 
         BigDecimal remaining = quantityNeeded;

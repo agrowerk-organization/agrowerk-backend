@@ -18,4 +18,5 @@ public interface SupplierRatingRepository extends JpaRepository<SupplierRating, 
     """)
     Optional<BigDecimal> calculateAverageRating(@Param("supplierId") UUID supplierId);
 
+    boolean existsBySupplier_IdAndRatedBy_Id(UUID supplierId, UUID ratedById);
 }

@@ -20,7 +20,7 @@ resilience4j:
           - org.springframework.web.client.HttpServerErrorException
           - java.util.concurrent.TimeoutException
           - java.io.IOException
-      cepeaCircuitBreaker:
+      marketDataCircuitBreaker:
         baseConfig: default
         waitDurationInOpenState: 120s
         failureRateThreshold: 60
@@ -43,7 +43,7 @@ resilience4j:
         retryExceptions:
           - org.springframework.web.client.HttpServerErrorException
           - java.util.concurrent.TimeoutException
-      cepeaRetry:
+      marketDataRetry:
         baseConfig: default
         maxAttempts: 3
         waitDuration: 3s
@@ -62,15 +62,15 @@ resilience4j:
     instances:
       weatherApiCircuitBreaker:
         timeoutDuration: 12s
-      cepeaTimeLimiter:
-        timeoutDuration: 20s
+      marketDataCircuitBreaker:
+        timeoutDuration: 10s
 
   bulkhead:
     instances:
       weatherApi:
         maxConcurrentCalls: 10
         maxWaitDuration: 100ms
-      cepeaBulkhead:
+      marketDataBulkhead:
         maxConcurrentCalls: 3
         maxWaitDuration: 500ms
 

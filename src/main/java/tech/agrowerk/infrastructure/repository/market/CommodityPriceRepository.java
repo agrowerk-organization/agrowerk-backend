@@ -17,15 +17,11 @@ public interface CommodityPriceRepository extends JpaRepository<CommodityPrice, 
 
     Optional<CommodityPrice> findTopByCommodityOrderByReferenceDateDesc(Commodity commodity);
 
-    Optional<CommodityPrice> findTopByCommodityAndRegionOrderByReferenceDateDesc(
-            Commodity commodity, String region
-    );
-
     List<CommodityPrice> findByCommodityAndReferenceDateBetweenOrderByReferenceDateDesc(
             Commodity commodity, LocalDate start, LocalDate end);
 
-    boolean existsByCommodityAndRegionAndReferenceDate(
-            Commodity commodity, String region, LocalDate referenceDate);
+    boolean existsByCommodityAndSourceAndReferenceDate(Commodity commodity, String source, LocalDate referenceDate);
+
 
     @Query("""
         SELECT cp FROM CommodityPrice cp

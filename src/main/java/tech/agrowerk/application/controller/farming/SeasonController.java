@@ -48,6 +48,6 @@ public class SeasonController {
             @PathVariable UUID propertyId,
             @PageableDefault(size = 10)Pageable pageable
             ) {
-        return ResponseEntity.ok(seasonService.findMySeasons(propertyId, pageable));
+        return ResponseEntity.ok(seasonService.findMySeasons(propertyId, pageable).toPage());
     }
 }

@@ -32,8 +32,8 @@ public class CropController {
 
     @GetMapping("/list-crops")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<CropResponse>> listCrops(Pageable pageable) {
-        return ResponseEntity.ok(cropService.listCrops(pageable));
+    public ResponseEntity<Page<CropResponse>> listCrops(@PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(cropService.listCrops(pageable).toPage());
     }
 
     @GetMapping("/search-crop")

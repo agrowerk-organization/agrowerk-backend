@@ -41,11 +41,17 @@ public class CommodityPrice {
     @Column(nullable = false, precision = 12, scale = 4)
     private BigDecimal price;
 
+    @Column(nullable = false, precision = 12, scale = 4)
+    private BigDecimal priceUsd;
+
+    @Column(precision = 8, scale = 4)
+    private BigDecimal exchangeRate;
+
     @Column(length = 30)
     private String unit;
 
-    @Column(length = 60)
-    private String region;
+    @Column(length = 20)
+    private String source;
 
     @Column(name = "reference_date", nullable = false)
     private LocalDate referenceDate;

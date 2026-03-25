@@ -3,9 +3,9 @@ package tech.agrowerk.infrastructure.model.market.enums;
 public enum Commodity {
     SOJA("Soja"),
     MILHO("Milho"),
-    FEIJAO("Feijão"),
     BOI_GORDO("Boi gordo"),
     CAFE("Café"),
+    TRIGO("Trigo"),
     ALGODAO("Algodão");
 
     private String description;

@@ -2,6 +2,8 @@ package tech.agrowerk.infrastructure.model.barter;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.barter.enums.ContractStatus;
 import tech.agrowerk.infrastructure.model.file.FileMetadata;
 
@@ -51,16 +53,12 @@ public class BarterContract {
     )
     private List<FileMetadata> attachedDocuments;
 
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        if (contractStatus == null) {
-            contractStatus = ContractStatus.DRAFT;
-        }
-    }
 }

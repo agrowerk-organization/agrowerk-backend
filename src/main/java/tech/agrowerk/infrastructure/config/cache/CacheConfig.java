@@ -179,6 +179,10 @@ public class CacheConfig {
                 .prefixCacheNameWith("agrowerk:inventory:categories:")
         );
 
+        cacheConfigurations.put("supplierRatings", defaultConfig
+                .entryTtl(Duration.ofMinutes(30))
+                        .prefixCacheNameWith("agrowerk:supplier:supplier-ratings"));
+
         log.info("Redis cache manager initialized with {} cache configurations",
                 cacheConfigurations.size());
 

@@ -53,8 +53,4 @@ public class AuditLog {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private Instant updatedAt;
-
 }

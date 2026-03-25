@@ -3,6 +3,7 @@ package tech.agrowerk.business.service.core;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import tech.agrowerk.application.dto.request.core.UpdateUserRequest;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.mapper.core.AddressMapper;
 import tech.agrowerk.business.mapper.core.UserMapper;
+import tech.agrowerk.business.service.core.event.UserRegisteredEvent;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
@@ -37,7 +39,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
-    private final EmailVerificationService emailVerificationService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PasswordEncoder passwordEncoder;
     private final AuthUtil authUtil;
 
@@ -46,14 +48,15 @@ public class UserService {
 
     public UserService(UserRepository userRepository,
                        RoleRepository roleRepository,
-                       UserMapper userMapper, EmailVerificationService emailVerificationService,
+                       UserMapper userMapper,
+                       ApplicationEventPublisher applicationEventPublisher,
                        PasswordEncoder passwordEncoder,
                        AuthUtil authUtil,
                        AddressMapper addressMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
-        this.emailVerificationService = emailVerificationService;
+        this.applicationEventPublisher = applicationEventPublisher;
         this.passwordEncoder = passwordEncoder;
         this.authUtil = authUtil;
         this.addressMapper = addressMapper;
@@ -82,8 +85,7 @@ public class UserService {
         newUser.setLastLogin(Instant.now());
 
         User savedUser = userRepository.save(newUser);
-
-        emailVerificationService.sendVerificationEmail(savedUser);
+        applicationEventPublisher.publishEvent(new UserRegisteredEvent(savedUser.getId()));
 
         return userMapper.toResponse(savedUser);
     }

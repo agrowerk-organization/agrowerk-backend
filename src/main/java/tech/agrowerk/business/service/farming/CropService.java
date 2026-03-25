@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.application.dto.cache.CachedPage;
 import tech.agrowerk.application.dto.request.farming.CreateCropRequest;
 import tech.agrowerk.application.dto.request.farming.UpdateCropRequest;
 import tech.agrowerk.application.dto.response.farming.CropResponse;
@@ -64,11 +65,11 @@ public class CropService {
 
     @Cacheable(value = "crops", key = "'all'",
             cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
+            unless = "#result.content().isEmpty()")
     @Transactional(readOnly = true)
-    public Page<CropResponse> listCrops(Pageable pageable) {
-        return cropRepository.findAll(pageable)
-                .map(cropMapper::toResponse);
+    public CachedPage<CropResponse> listCrops(Pageable pageable) {
+        return CachedPage.from(cropRepository.findAll(pageable)
+                .map(cropMapper::toResponse));
     }
 
     @Cacheable(value = "crops", key = "#name",
