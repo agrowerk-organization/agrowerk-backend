@@ -35,13 +35,18 @@ public class PropertyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(propertyService.createProperty(request));
     }
 
+    @GetMapping("/find-by-id/{propertyId}")
+    public ResponseEntity<PropertyResponse> findPropertyById(@PathVariable UUID propertyId) {
+        return ResponseEntity.ok(propertyService.findPropertyById(propertyId));
+    }
+
     @GetMapping("/my-properties")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Page<PropertyResponse>> myProperties(Pageable pageable) {
         return ResponseEntity.ok(propertyService.findMyProperties(pageable));
     }
 
-    @PutMapping("/{propertyId}/update")
+    @PutMapping("/update-property/{propertyId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<PropertyResponse> update(
             @PathVariable UUID propertyId,
@@ -49,7 +54,7 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.updateProperty(propertyId, request));
     }
 
-    @PostMapping("/{propertyId}/owners")
+    @PostMapping("/add-owner/{propertyId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Void> addOwner(
             @PathVariable UUID propertyId,
@@ -58,7 +63,7 @@ public class PropertyController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{propertyId}/owners/{targetUserId}")
+    @DeleteMapping("/remove-owner/{propertyId}/{targetUserId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Void> removeOwner(
             @PathVariable UUID propertyId,
@@ -68,7 +73,7 @@ public class PropertyController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{propertyId}/owners/{targetUserId}/permissions")
+    @PatchMapping("/update-permissions/{propertyId}/{targetUserId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Void> updateEditPermission(
             @PathVariable UUID propertyId,
@@ -78,7 +83,7 @@ public class PropertyController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping(value = "/{propertyId}/photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upload-photo/{propertyId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<FileUploadResponse> uploadPhoto(
             @PathVariable UUID propertyId,

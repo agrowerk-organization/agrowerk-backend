@@ -45,6 +45,18 @@ public class BarterContract {
     @Column(columnDefinition = "TEXT")
     private String termsAndConditions;
 
+    @Column(name = "offeror_signed_at")
+    private Instant offerorSignedAt;
+
+    @Column(name = "offeror_sign_ip", length = 45)
+    private String offerorSignIp;
+
+    @Column(name = "acceptor_signed_at")
+    private Instant acceptorSignedAt;
+
+    @Column(name = "acceptor_sign_ip", length = 45)
+    private String acceptorSignIp;
+
     @ManyToMany
     @JoinTable(
             name = "contract_documents",

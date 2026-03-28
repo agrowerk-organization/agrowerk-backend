@@ -49,7 +49,14 @@ public class PropertyService {
     private final PropertyMapper propertyMapper;
     private final OwnershipValidator ownershipValidator;
 
-    public PropertyService(PropertyRepository propertyRepository, UserRepository userRepository, UserPropertyRepository userPropertyRepository, StateRepository stateRepository, FileStorageService fileStorageService, AuthUtil authUtil, PropertyMapper propertyMapper, OwnershipValidator ownershipValidator) {
+    public PropertyService(PropertyRepository propertyRepository,
+                           UserRepository userRepository,
+                           UserPropertyRepository userPropertyRepository,
+                           StateRepository stateRepository,
+                           FileStorageService fileStorageService,
+                           AuthUtil authUtil,
+                           PropertyMapper propertyMapper,
+                           OwnershipValidator ownershipValidator) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
         this.userPropertyRepository = userPropertyRepository;
@@ -87,6 +94,15 @@ public class PropertyService {
         userPropertyRepository.save(link);
 
         return propertyMapper.toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public PropertyResponse findPropertyById(UUID propertyId) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+        ownershipValidator.validateMasterOwnership(propertyId, auth.id());
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new EntityNotFoundException("Property not found"));
+        return propertyMapper.toResponse(property);
     }
 
     @Transactional(readOnly = true)

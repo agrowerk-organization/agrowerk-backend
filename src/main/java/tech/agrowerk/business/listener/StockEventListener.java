@@ -29,7 +29,10 @@ public class StockEventListener {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
 
-    public StockEventListener(StockMovementRepository movementRepository, StockRepository stockRepository, PropertyRepository propertyRepository, UserRepository userRepository) {
+    public StockEventListener(StockMovementRepository movementRepository,
+                              StockRepository stockRepository,
+                              PropertyRepository propertyRepository,
+                              UserRepository userRepository) {
         this.movementRepository = movementRepository;
         this.stockRepository = stockRepository;
         this.propertyRepository = propertyRepository;
