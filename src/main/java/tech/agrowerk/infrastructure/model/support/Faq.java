@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "faqs")
+@Table(name = "faqs", indexes = {
+        @Index(name = "idx_faq_active_category_order",
+            columnList = "is_active, faq_category, display_order")
+})
 @Getter
 @Setter
 @NoArgsConstructor

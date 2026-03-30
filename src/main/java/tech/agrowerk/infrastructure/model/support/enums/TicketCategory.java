@@ -7,7 +7,7 @@ public enum TicketCategory {
     STOCK("Estoque", "Problemas com controle de estoque e movimentações."),
     PROPERTY("Propriedades", "Questões sobre cadastro e gestão de propriedades."),
     TECHNICAL("Problemas técnicos", "Bugs, erros no sistema e problemas de acesso."),
-    FEATURE_REQUEST("", ""),
+    FEATURE_REQUEST("Funcionalidades", "Funcionalidades próprias do sistema"),
     OTHER("Outros", "Outras questões.");
 
     private final String displayName;

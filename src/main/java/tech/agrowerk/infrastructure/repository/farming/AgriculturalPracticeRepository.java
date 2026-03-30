@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.farming.AgriculturalPractice;
-import tech.agrowerk.infrastructure.model.farming.enums.PractipeType;
+import tech.agrowerk.infrastructure.model.farming.enums.PracticeType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,7 +19,7 @@ public interface AgriculturalPracticeRepository extends JpaRepository<Agricultur
 
     Page<AgriculturalPractice> findByPlanting_Id(UUID plantingId, Pageable pageable);
 
-    List<AgriculturalPractice> findByPlanting_IdAndPractipeType(UUID plantingId, PractipeType practipeType);
+    List<AgriculturalPractice> findByPlanting_IdAndPractipeType(UUID plantingId, PracticeType practipeType);
 
     @Query("""
             SELECT COALESCE(SUM(ap.costAmount), 0) FROM AgriculturalPractice ap

@@ -3,7 +3,7 @@ package tech.agrowerk.application.dto.request.farming;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import tech.agrowerk.infrastructure.model.farming.enums.PractipeType;
+import tech.agrowerk.infrastructure.model.farming.enums.PracticeType;
 import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ public record CreateAgriculturalPracticeRequest(
         UUID plantingId,
 
         @NotNull
-        PractipeType practipeType,
+        PracticeType practipeType,
 
         @NotNull
         LocalDate applicationDate,

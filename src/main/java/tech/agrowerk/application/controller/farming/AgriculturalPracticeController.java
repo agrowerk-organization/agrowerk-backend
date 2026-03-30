@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.request.farming.CreateAgriculturalPracticeRequest;
 import tech.agrowerk.application.dto.response.farming.AgriculturalPracticeResponse;
 import tech.agrowerk.business.service.farming.AgriculturalPracticeService;
-import tech.agrowerk.infrastructure.model.farming.enums.PractipeType;
+import tech.agrowerk.infrastructure.model.farming.enums.PracticeType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -45,7 +45,7 @@ public class AgriculturalPracticeController {
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Page<AgriculturalPracticeResponse>> findByType(
             @PathVariable UUID plantingId,
-            @PathVariable PractipeType type,
+            @PathVariable PracticeType type,
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(
                 practiceService.findByPlantingAndType(plantingId, type, pageable));
@@ -57,7 +57,7 @@ public class AgriculturalPracticeController {
         return ResponseEntity.ok(practiceService.getTotalCostByPlanting(plantingId));
     }
 
-    @GetMapping("/property/{propertyId}/cost")
+    @GetMapping("/get-cost-by-period/{propertyId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<BigDecimal> getCostByPeriod(
             @PathVariable UUID propertyId,

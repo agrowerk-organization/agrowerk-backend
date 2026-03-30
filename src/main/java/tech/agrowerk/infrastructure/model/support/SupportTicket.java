@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.support.enums.SupportTicketPriority;
+import tech.agrowerk.infrastructure.model.support.enums.SupportTicketStatus;
 import tech.agrowerk.infrastructure.model.support.enums.TicketCategory;
 import tech.agrowerk.infrastructure.model.core.User;
 
@@ -17,7 +18,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "support_tickets")
+@Table(name = "support_tickets", indexes = {
+        @Index(name = "idx_ticket_user_status", columnList = "user_id, status"),
+        @Index(name = "idx_ticket_status", columnList = "status")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -45,6 +49,10 @@ public class SupportTicket {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SupportTicketPriority ticketPriority;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SupportTicketStatus supportTicketStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to_user_id")

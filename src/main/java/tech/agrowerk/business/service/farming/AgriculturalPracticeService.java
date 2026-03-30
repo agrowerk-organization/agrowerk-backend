@@ -18,7 +18,7 @@ import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.farming.AgriculturalPractice;
 import tech.agrowerk.infrastructure.model.farming.Planting;
 import tech.agrowerk.infrastructure.model.farming.enums.PlantingStatus;
-import tech.agrowerk.infrastructure.model.farming.enums.PractipeType;
+import tech.agrowerk.infrastructure.model.farming.enums.PracticeType;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.repository.farming.AgriculturalPracticeRepository;
 import tech.agrowerk.infrastructure.repository.farming.PlantingRepository;
@@ -104,7 +104,7 @@ public class AgriculturalPracticeService {
 
     @Transactional(readOnly = true)
     public Page<AgriculturalPracticeResponse> findByPlantingAndType(
-            UUID plantingId, PractipeType type, Pageable pageable) {
+            UUID plantingId, PracticeType type, Pageable pageable) {
 
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 

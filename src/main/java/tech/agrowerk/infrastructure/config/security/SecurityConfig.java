@@ -80,6 +80,8 @@ public class SecurityConfig {
             "/auth/oauth2/**",
             "/monitoring/**",
             "/laws/**",
+            "faqs/list-active",
+            "faqs/get-one/{faqId}",
             "weather/health",
             "weather/test-circuit",
             "/actuator/health",

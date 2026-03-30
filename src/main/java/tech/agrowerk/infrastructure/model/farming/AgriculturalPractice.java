@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.core.User;
-import tech.agrowerk.infrastructure.model.farming.enums.PractipeType;
+import tech.agrowerk.infrastructure.model.farming.enums.PracticeType;
 import tech.agrowerk.infrastructure.model.shared_enums.UnitOfMeasure;
 
 import java.math.BigDecimal;
@@ -32,7 +32,7 @@ public class AgriculturalPractice {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PractipeType practipeType;
+    private PracticeType practipeType;
 
     @Column(nullable = false)
     private LocalDate applicationDate;

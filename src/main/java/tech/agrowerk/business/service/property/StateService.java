@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.application.dto.cache.CachedPage;
 import tech.agrowerk.application.dto.request.property.CreateStateRequest;
 import tech.agrowerk.application.dto.request.property.UpdateStateRequest;
 import tech.agrowerk.application.dto.response.property.StateResponse;
@@ -62,18 +63,10 @@ public class StateService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "states", key = "{ #searchTerm, #pageable.pageNumber, #pageable.pageSize }")
-    public Page<StateResponse> searchStates(String searchTerm, Pageable pageable) {
-        return stateRepository.searchStates(searchTerm, pageable)
+    public CachedPage<StateResponse> searchStates(String searchTerm, Pageable pageable) {
+        Page<StateResponse> page = stateRepository.searchStates(searchTerm, pageable)
                 .map(state -> new StateResponse(state.getId(), state.getCode(), state.getName()));
-    }
-
-    @Transactional(readOnly = true)
-    @Cacheable(value = "states", key = "'all'")
-    public List<StateResponse> listAllStates() {
-        return stateRepository.findAll()
-                .stream()
-                .map(StateResponse::new)
-                .toList();
+        return CachedPage.from(page);
     }
 
     @Transactional

@@ -1,6 +1,6 @@
 package tech.agrowerk.infrastructure.model.farming.enums;
 
-public enum PractipeType {
+public enum PracticeType {
     IRRIGATION,
     FERTILIZATION,
     PEST_CONTROL,
