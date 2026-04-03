@@ -14,12 +14,12 @@ import java.util.UUID;
         indexes = {
             @Index(name = "idx_commodity_date", columnList = "commodity, reference_date DESC"),
             @Index(name = "idx_reference_date", columnList = "reference_date DESC"),
-            @Index(name = "idx_commodity_region_date", columnList = "commodity, region, reference_date DESC")
+            @Index(name = "idx_commodity_date", columnList = "commodity, reference_date DESC")
         },
         uniqueConstraints = {
             @UniqueConstraint(
                     name = "uq_commodity_region_date",
-                    columnNames = {"commodity", "region", "reference_date"}
+                    columnNames = {"commodity", "reference_date"}
             )
         }
 )

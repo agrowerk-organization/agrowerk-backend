@@ -16,7 +16,7 @@ import java.util.UUID;
 @Repository
 public interface BarterTransactionRepository extends JpaRepository<BarterTransaction, UUID> {
 
-    Page<BarterTransaction> findByOfferor_IdOrderByCreatedAtDes(UUID offerorId, Pageable pageable);
+    Page<BarterTransaction> findByOfferor_IdOrderByCreatedAtDesc(UUID offerorId, Pageable pageable);
 
     Page<BarterTransaction> findByAcceptor_IdOrderByCreatedAtDesc(UUID acceptorId, Pageable pageable);
 

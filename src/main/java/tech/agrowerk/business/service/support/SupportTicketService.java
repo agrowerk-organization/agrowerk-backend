@@ -73,7 +73,7 @@ public class SupportTicketService {
     @Transactional(readOnly = true)
     public CachedPage<TicketResponse> findAll(SupportTicketStatus status, Pageable pageable) {
         Page<TicketResponse> page = status != null
-                ? supportTicketRepository.findByStatusOrderByCreatedAtDesc(status, pageable)
+                ? supportTicketRepository.findBySupportTicketStatusOrderByCreatedAtDesc(status, pageable)
                 .map(supportTicketMapper::toResponse)
                 : supportTicketRepository.findAll(pageable)
                 .map(supportTicketMapper::toResponse);

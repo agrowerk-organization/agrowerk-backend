@@ -18,7 +18,6 @@ public class CommodityPriceMapper {
                 price.getCommodity(),
                 price.getPrice(),
                 price.getUnit(),
-                price.getRegion(),
                 price.getReferenceDate(),
                 variation
         );

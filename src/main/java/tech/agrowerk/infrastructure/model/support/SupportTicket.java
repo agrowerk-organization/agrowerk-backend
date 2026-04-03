@@ -19,8 +19,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "support_tickets", indexes = {
-        @Index(name = "idx_ticket_user_status", columnList = "user_id, status"),
-        @Index(name = "idx_ticket_status", columnList = "status")
+        @Index(name = "idx_ticket_user_status", columnList = "user_id, support_ticket_status"),
+        @Index(name = "idx_ticket_status", columnList = "support_ticket_status")
 })
 @Getter
 @Setter

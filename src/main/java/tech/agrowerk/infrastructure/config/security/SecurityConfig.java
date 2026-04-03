@@ -30,6 +30,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.nimbusds.jose.jwk.JWKSet;
@@ -76,14 +77,14 @@ public class SecurityConfig {
             "/auth/reset-password",
             "/email-verification/resend-verification",
             "/email-verification/verify-email",
-            "auth/refresh",
+            "/auth/refresh",
             "/auth/oauth2/**",
             "/monitoring/**",
             "/laws/**",
-            "faqs/list-active",
-            "faqs/get-one/{faqId}",
-            "weather/health",
-            "weather/test-circuit",
+            "/faqs/list-active",
+            "/faqs/get-one/{faqId}",
+            "/weather/health",
+            "/weather/test-circuit",
             "/actuator/health",
             "/actuator/info",
             "actuator/prometheus",
@@ -206,7 +207,7 @@ public class SecurityConfig {
         return new BearerTokenResolver() {
 
             private final DefaultBearerTokenResolver defaultResolver = new DefaultBearerTokenResolver();
-
+            private final AntPathMatcher pathMatcher = new AntPathMatcher();
             {
                 defaultResolver.setAllowUriQueryParameter(false);
                 defaultResolver.setAllowFormEncodedBodyParameter(false);
@@ -239,12 +240,7 @@ public class SecurityConfig {
 
             private boolean isPublicEndpoint(String path) {
                 return Arrays.stream(PUBLIC_ENDPOINTS)
-                        .anyMatch(pattern -> {
-                            String regex = pattern
-                                    .replace("/**", ".*")
-                                    .replace("/*", "/[^/]*");
-                            return path.matches(regex);
-                        });
+                        .anyMatch(pattern -> pathMatcher.match(pattern, path));
             }
         };
     }

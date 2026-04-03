@@ -49,7 +49,7 @@ public class FaqController {
         return ResponseEntity.ok(faqService.updateFaq(faqId, request));
     }
 
-    @DeleteMapping("/deactivate/{faqId}")
+    @DeleteMapping("/deactivate-faq/{faqId}")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<Void> deactivate(@PathVariable UUID faqId) {
         faqService.deactivate(faqId);

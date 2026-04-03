@@ -14,6 +14,6 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, UU
 
     Page<SupportTicket> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
-    Page<SupportTicket> findByStatusOrderByCreatedAtDesc(SupportTicketStatus supportTicketStatus, Pageable pageable);
+    Page<SupportTicket> findBySupportTicketStatusOrderByCreatedAtDesc(SupportTicketStatus supportTicketStatus, Pageable pageable);
 
 }

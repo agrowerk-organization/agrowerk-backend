@@ -9,7 +9,6 @@ public record CommodityPriceResponse(
         Commodity commodity,
         BigDecimal price,
         String unit,
-        String region,
         LocalDate referenceDate,
         BigDecimal variationPercent
 ) {

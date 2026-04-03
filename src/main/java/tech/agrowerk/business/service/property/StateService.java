@@ -62,6 +62,14 @@ public class StateService {
     }
 
     @Transactional(readOnly = true)
+    public List<StateResponse> listAllStates() {
+        return stateRepository.findAll()
+                .stream()
+                .map(s -> new StateResponse(s.getId(), s.getCode(), s.getName()))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     @Cacheable(value = "states", key = "{ #searchTerm, #pageable.pageNumber, #pageable.pageSize }")
     public CachedPage<StateResponse> searchStates(String searchTerm, Pageable pageable) {
         Page<StateResponse> page = stateRepository.searchStates(searchTerm, pageable)

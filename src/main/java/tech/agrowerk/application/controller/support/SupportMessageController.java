@@ -34,3 +34,4 @@ public class SupportMessageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(supportMessageService.addMessage(ticketId, request));
     }
 }
+

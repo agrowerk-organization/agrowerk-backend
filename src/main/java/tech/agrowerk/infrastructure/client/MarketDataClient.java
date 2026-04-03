@@ -1,16 +1,17 @@
 package tech.agrowerk.infrastructure.client;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.RetryRegistry;
-import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import tech.agrowerk.application.dto.market.FinanceResponse;
 import tech.agrowerk.application.dto.market.MarketPrice;
 import tech.agrowerk.infrastructure.exception.local.MarketDataException;
 import tech.agrowerk.infrastructure.model.market.enums.Commodity;
@@ -57,7 +58,7 @@ public class MarketDataClient {
     private final CircuitBreaker circuitBreaker;
     private final Retry retry;
     private final TimeLimiter timeLimiter;
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     public MarketDataClient(RestClient.Builder builder,
                             CircuitBreakerRegistry circuitBreakerRegistry,
@@ -95,11 +96,11 @@ public class MarketDataClient {
     }
 
     private BigDecimal fetchExchangeRate() {
-        YahooFinanceResponse response = fetchWithResilience(FX_SYMBOL);
-        YahooFinanceResponse.Meta meta = response.getMeta();
+        FinanceResponse response = fetchWithResilience(FX_SYMBOL);
+        FinanceResponse.Meta meta = response.getMeta();
 
         if (meta == null || meta.regularMarketPrice() == null) {
-            throw new MarketApiException("Could not fetch USD/BRL exchange rate");
+            throw new MarketDataException("Could not fetch USD/BRL exchange rate");
         }
 
         return meta.regularMarketPrice().setScale(4, RoundingMode.HALF_UP);
@@ -109,8 +110,8 @@ public class MarketDataClient {
     private MarketPrice fetchCommodity(Commodity commodity, String symbol, BigDecimal exchangeRate) {
         log.debug("Fetching {} ({})", commodity, symbol);
 
-        YahooFinanceResponse response = fetchWithResilience(symbol);
-        YahooFinanceResponse.Meta meta = response.getMeta();
+        FinanceResponse response = fetchWithResilience(symbol);
+        FinanceResponse.Meta meta = response.getMeta();
 
         if (meta == null || meta.regularMarketPrice() == null) {
             throw new MarketDataException("No data returned for symbol: " + symbol);
@@ -138,32 +139,32 @@ public class MarketDataClient {
         MathContext mc = new MathContext(10, RoundingMode.HALF_UP);
 
         return switch (commodity) {
-            case SOJA, TRIGO ->
-                    rawPrice.divide(BigDecimal.valueOf(100), mc)
-                            .multiply(BigDecimal.valueOf(60), mc)
-                            .divide(BigDecimal.valueOf(27.2155), mc)
-                            .setScale(4, RoundingMode.HALF_UP);
+            case SOJA, TRIGO -> rawPrice
+                    .divide(BigDecimal.valueOf(100), mc)
+                    .multiply(BigDecimal.valueOf(60), mc)
+                    .divide(BigDecimal.valueOf(27.2155), mc)
+                    .setScale(4, RoundingMode.HALF_UP);
 
-            case MILHO ->
-                    rawPrice.divide(BigDecimal.valueOf(100), mc)
-                            .multiply(BigDecimal.valueOf(60), mc)
-                            .divide(BigDecimal.valueOf(25.4012), mc)
-                            .setScale(4, RoundingMode.HALF_UP);
+            case MILHO -> rawPrice
+                    .divide(BigDecimal.valueOf(100), mc)
+                    .multiply(BigDecimal.valueOf(60), mc)
+                    .divide(BigDecimal.valueOf(25.4012), mc)
+                    .setScale(4, RoundingMode.HALF_UP);
 
-            case CAFE ->
-                    rawPrice.divide(BigDecimal.valueOf(100), mc)
-                            .multiply(BigDecimal.valueOf(132.277), mc)
-                            .setScale(4, RoundingMode.HALF_UP);
+            case CAFE -> rawPrice
+                    .divide(BigDecimal.valueOf(100), mc)
+                    .multiply(BigDecimal.valueOf(132.277), mc)
+                    .setScale(4, RoundingMode.HALF_UP);
 
-            case ALGODAO ->
-                    rawPrice.divide(BigDecimal.valueOf(100), mc)
-                            .multiply(BigDecimal.valueOf(33.069), mc)
-                            .setScale(4, RoundingMode.HALF_UP);
+            case ALGODAO -> rawPrice
+                    .divide(BigDecimal.valueOf(100), mc)
+                    .multiply(BigDecimal.valueOf(33.069), mc)
+                    .setScale(4, RoundingMode.HALF_UP);
 
-            case BOI_GORDO ->
-                    rawPrice.divide(BigDecimal.valueOf(45.3592), mc)
-                            .multiply(BigDecimal.valueOf(15), mc)
-                            .setScale(4, RoundingMode.HALF_UP);
+            case BOI_GORDO -> rawPrice
+                    .divide(BigDecimal.valueOf(45.3592), mc)
+                    .multiply(BigDecimal.valueOf(15), mc)
+                    .setScale(4, RoundingMode.HALF_UP);
         };
     }
 
@@ -172,7 +173,7 @@ public class MarketDataClient {
     }
 
 
-    private YahooFinanceResponse fetchWithResilience(String symbol) {
+    private FinanceResponse fetchWithResilience(String symbol) {
         try {
             return Decorators
                     .ofCompletionStage(() -> CompletableFuture.supplyAsync(() -> makeRequest(symbol)))
@@ -188,7 +189,7 @@ public class MarketDataClient {
         }
     }
 
-    private YahooFinanceResponse makeRequest(String symbol) {
+    private FinanceResponse makeRequest(String symbol) {
         return restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(CHART_PATH)
@@ -196,7 +197,7 @@ public class MarketDataClient {
                         .queryParam("range", "1d")
                         .build(symbol))
                 .retrieve()
-                .body(YahooFinanceResponse.class);
+                .body(FinanceResponse.class);
     }
 
     public String getCircuitBreakerState() {
