@@ -3,15 +3,19 @@ package tech.agrowerk.application.controller.core;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tech.agrowerk.application.dto.request.core.AddAddressRequest;
 import tech.agrowerk.application.dto.request.core.CreateUserRequest;
 import tech.agrowerk.application.dto.request.core.UpdateAddressRequest;
 import tech.agrowerk.application.dto.response.core.AddressResponse;
+import tech.agrowerk.application.dto.response.core.UserProfileResponse;
 import tech.agrowerk.application.dto.response.core.UserResponse;
 import tech.agrowerk.application.dto.request.core.UpdateUserRequest;
+import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.service.core.UserService;
 
@@ -60,12 +64,11 @@ public class UserController implements UserApi {
         return ResponseEntity.ok(userService.findUserByEmail(email));
     }
 
-   /* @Override
-    @GetMapping("/get/me")
+    @GetMapping("/profile/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserResponse> getCurrentUser() {
-        return ResponseEntity.ok(userService.getCurrentUser());
-    } */
+    public ResponseEntity<UserProfileResponse> getMyProfile() {
+        return ResponseEntity.ok(userService.getMyProfile());
+    }
 
     @Override
     @GetMapping("/list-users")
@@ -95,5 +98,11 @@ public class UserController implements UserApi {
     public ResponseEntity<Void> deleteUser() {
         userService.deleteUserById();
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/upload-avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<FileUploadResponse> uploadAvatar(@RequestParam("file")MultipartFile file) {
+        return ResponseEntity.ok(userService.uploadAvatar(file));
     }
 }

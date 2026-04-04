@@ -9,16 +9,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import tech.agrowerk.application.dto.request.core.AddAddressRequest;
 import tech.agrowerk.application.dto.request.core.CreateUserRequest;
 import tech.agrowerk.application.dto.request.core.UpdateAddressRequest;
 import tech.agrowerk.application.dto.response.core.AddressResponse;
+import tech.agrowerk.application.dto.response.core.UserProfileResponse;
 import tech.agrowerk.application.dto.response.core.UserResponse;
 import tech.agrowerk.application.dto.request.core.UpdateUserRequest;
+import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.application.dto.user.UserInfoDto;
 import tech.agrowerk.business.mapper.core.AddressMapper;
 import tech.agrowerk.business.mapper.core.UserMapper;
 import tech.agrowerk.business.service.core.event.UserRegisteredEvent;
+import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
@@ -27,8 +31,11 @@ import tech.agrowerk.infrastructure.model.core.Address;
 import tech.agrowerk.infrastructure.model.core.Role;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.core.enums.RoleType;
+import tech.agrowerk.infrastructure.model.file.FileMetadata;
+import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import tech.agrowerk.infrastructure.repository.core.RoleRepository;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
+import tech.agrowerk.infrastructure.repository.file.FileMetadataRepository;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -38,6 +45,8 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final FileMetadataRepository fileMetadataRepository;
+    private final FileStorageService fileStorageService;
     private final UserMapper userMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PasswordEncoder passwordEncoder;
@@ -48,6 +57,8 @@ public class UserService {
 
     public UserService(UserRepository userRepository,
                        RoleRepository roleRepository,
+                       FileMetadataRepository fileMetadataRepository,
+                       FileStorageService fileStorageService,
                        UserMapper userMapper,
                        ApplicationEventPublisher applicationEventPublisher,
                        PasswordEncoder passwordEncoder,
@@ -55,6 +66,8 @@ public class UserService {
                        AddressMapper addressMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.fileMetadataRepository = fileMetadataRepository;
+        this.fileStorageService = fileStorageService;
         this.userMapper = userMapper;
         this.applicationEventPublisher = applicationEventPublisher;
         this.passwordEncoder = passwordEncoder;
@@ -161,6 +174,21 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public UserProfileResponse getMyProfile() {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        User user = userRepository.findById(auth.id())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        String avatarUrl = fileMetadataRepository
+                .findByEntityIdAndFileCategoryAndDeletedFalse(auth.id(), FileCategory.USER_AVATAR)
+                .map(FileMetadata::getThumbnailUrl)
+                .orElse(null);
+
+        return userMapper.toUserProfileResponse(user, avatarUrl);
+    }
+
+    @Transactional(readOnly = true)
     public Page<UserResponse> listUsers(Pageable pageable) {
         Page<User> page = userRepository.findAll(pageable);
 
@@ -173,6 +201,17 @@ public class UserService {
                 .findByRole_NameAndNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
                         RoleType.PRODUCER, query, query, pageable)
                 .map(userMapper::toUserInfoDto);
+    }
+
+    @Transactional
+    public FileUploadResponse uploadAvatar(MultipartFile file) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        fileMetadataRepository.findByEntityIdAndFileCategoryAndDeletedFalse(
+                auth.id(), FileCategory.USER_AVATAR
+        ).ifPresent(existing -> fileStorageService.delete(existing.getId()));
+
+        return fileStorageService.upload(file, FileCategory.USER_AVATAR, auth.id());
     }
 
     @Transactional

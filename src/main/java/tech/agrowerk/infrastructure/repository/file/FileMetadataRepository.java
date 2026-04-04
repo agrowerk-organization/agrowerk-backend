@@ -17,6 +17,8 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
 
     Optional<FileMetadata> findByCloudinaryPublicIdAndDeletedFalse(String cloudinaryPublicId);
 
+    Optional<FileMetadata> findByEntityIdAndFileCategoryAndDeletedFalse(UUID entityId, FileCategory fileCategory);
+
     List<FileMetadata> findByFileCategoryAndEntityIdAndDeletedFalse(FileCategory category, UUID entityId);
 
     List<FileMetadata> findByFileCategoryAndDeletedFalse(FileCategory category);

@@ -6,7 +6,7 @@ import java.util.UUID;
 public record FileUploadResponse(
         UUID id,
         String originalUrl,
-        String optmizedUrl,
+        String optimizedUrl,
         String thumbnailUrl,
         String mediumUrl,
         String originalFileName,
