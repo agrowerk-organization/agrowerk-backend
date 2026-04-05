@@ -110,6 +110,12 @@ public class User {
     @Column(name = "require_password_change", nullable = false)
     private boolean requirePasswordChange = false;
 
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_sent_at")
+    private Instant passwordResetSentAt;
+
     @Column(name = "mfa_enabled", nullable = false)
     private boolean mfaEnabled = false;
 

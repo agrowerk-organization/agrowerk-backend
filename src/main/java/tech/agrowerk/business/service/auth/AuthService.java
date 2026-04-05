@@ -46,7 +46,14 @@ public class AuthService {
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final String FAKE_HASH = "$2a$12$fakehashtopreventtimingattack";
 
-    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, CookieService cookieService, TokenBlacklistService tokenBlacklistService, AuditService auditService, UserMapper userMapper, AuthHelperService authHelperService) {
+    public AuthService(UserRepository userRepository,
+                       JwtService jwtService,
+                       PasswordEncoder passwordEncoder,
+                       CookieService cookieService,
+                       TokenBlacklistService tokenBlacklistService,
+                       AuditService auditService,
+                       UserMapper userMapper,
+                       AuthHelperService authHelperService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;

@@ -35,6 +35,8 @@ CREATE TABLE users
     last_password_change       TIMESTAMP WITHOUT TIME ZONE,
     password_expiry_days       INTEGER,
     require_password_change    BOOLEAN                     NOT NULL,
+    password_reset_token       VARCHAR(255),
+    password_reset_sent_at     TIMESTAMP WITHOUT TIME ZONE,
     mfa_enabled                BOOLEAN                     NOT NULL,
     mfa_secret                 VARCHAR(32),
     mfa_backup_codes           VARCHAR(255),

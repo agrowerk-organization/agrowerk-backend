@@ -79,6 +79,7 @@ public class SecurityConfig {
             "/email-verification/verify-email",
             "/auth/refresh",
             "/auth/oauth2/**",
+            "/password-reset/**",
             "/monitoring/**",
             "/laws/**",
             "/faqs/list-active",
