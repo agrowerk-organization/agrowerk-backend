@@ -69,6 +69,7 @@ public class PropertyMapper {
                 property.getMainCrop(),
                 property.getIsActive(),
                 property.getState() != null ? property.getState().getName() : null,
+                property.isHasWeatherLocation(),
                 property.getUnits() != null ?
                         property.getUnits().stream().map(this::toFarmUnitResponse).toList() :
                         Collections.emptyList(),

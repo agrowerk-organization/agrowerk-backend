@@ -15,6 +15,7 @@ import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.application.dto.response.property.PropertyResponse;
 import tech.agrowerk.business.mapper.property.PropertyMapper;
 import tech.agrowerk.business.service.file.FileStorageService;
+import tech.agrowerk.business.service.weather.WeatherLocationService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.business.validators.OwnershipValidator;
@@ -45,6 +46,7 @@ public class PropertyService {
     private final UserPropertyRepository userPropertyRepository;
     private final StateRepository stateRepository;
     private final FileStorageService fileStorageService;
+    private final WeatherLocationService weatherLocationService;
     private final AuthUtil authUtil;
     private final PropertyMapper propertyMapper;
     private final OwnershipValidator ownershipValidator;
@@ -54,6 +56,7 @@ public class PropertyService {
                            UserPropertyRepository userPropertyRepository,
                            StateRepository stateRepository,
                            FileStorageService fileStorageService,
+                           WeatherLocationService weatherLocationService,
                            AuthUtil authUtil,
                            PropertyMapper propertyMapper,
                            OwnershipValidator ownershipValidator) {
@@ -62,6 +65,7 @@ public class PropertyService {
         this.userPropertyRepository = userPropertyRepository;
         this.stateRepository = stateRepository;
         this.fileStorageService = fileStorageService;
+        this.weatherLocationService = weatherLocationService;
         this.authUtil = authUtil;
         this.propertyMapper = propertyMapper;
         this.ownershipValidator = ownershipValidator;
@@ -93,7 +97,7 @@ public class PropertyService {
         link.setMasterOwner(true);
         userPropertyRepository.save(link);
 
-        return propertyMapper.toResponse(saved);
+        return toResponseWithWeather(saved);
     }
 
     @Transactional(readOnly = true)
@@ -102,7 +106,7 @@ public class PropertyService {
         ownershipValidator.validateMasterOwnership(propertyId, auth.id());
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
-        return propertyMapper.toResponse(property);
+        return toResponseWithWeather(property);
     }
 
     @Transactional(readOnly = true)
@@ -110,7 +114,7 @@ public class PropertyService {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
         return propertyRepository
                 .findByUserLinksUserIdAndUserLinksIsActiveTrue(auth.id(), pageable)
-                .map(propertyMapper::toResponse);
+                .map(this::toResponseWithWeather);
 
     }
 
@@ -183,7 +187,7 @@ public class PropertyService {
         }
 
         log.info("Property updated id={}", propertyId);
-        return propertyMapper.toResponse(property);
+        return toResponseWithWeather(property);
     }
 
     @Transactional
@@ -273,6 +277,14 @@ public class PropertyService {
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
 
         return fileStorageService.upload(file, FileCategory.PROPERTY_PHOTO, propertyId);
+    }
+
+    private PropertyResponse toResponseWithWeather(Property property) {
+        PropertyResponse response = propertyMapper.toResponse(property);
+        response.setHasWeatherLocation(
+                weatherLocationService.hasActiveWeatherLocation(property.getId())
+        );
+        return response;
     }
 
     private void validateFarmUnitsArea(BigDecimal totalArea, List<?> units) {

@@ -62,6 +62,9 @@ public class Property {
     @JoinColumn(name = "state_id")
     private State state;
 
+    @Column(name = "has_weather_location")
+    private boolean hasWeatherLocation;
+
     @OneToMany(mappedBy = "property",
             cascade = CascadeType.ALL,
             orphanRemoval = true)

@@ -211,6 +211,10 @@ public class WeatherLocationService {
                 .toList();
     }
 
+    public boolean hasActiveWeatherLocation(UUID propertyId) {
+        return locationRepository.existsActiveByPropertyId(propertyId);
+    }
+
     private void verifyPropertyAccess(AuthenticatedUser auth, WeatherLocation location) {
         if (location.getProperty() == null) {
             log.warn("Access denied: location {} has no property bound. User: {}", location.getId(), auth.id());

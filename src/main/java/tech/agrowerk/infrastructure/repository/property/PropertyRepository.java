@@ -23,4 +23,5 @@ public interface PropertyRepository extends JpaRepository<Property, UUID> {
             "LEFT JOIN FETCH p.address " +
             "WHERE p.id = :id")
     Optional<Property> findByIdWithUnits(@Param("id") UUID id);
+
 }

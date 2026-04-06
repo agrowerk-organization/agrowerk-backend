@@ -28,6 +28,14 @@ public interface WeatherLocationRepository extends JpaRepository<WeatherLocation
 
     Optional<WeatherLocation> findByLatitudeAndLongitude(BigDecimal latitude, BigDecimal longitude);
 
+    @Query("""
+        SELECT CASE WHEN COUNT(wl) > 0 THEN true ELSE false END
+        FROM WeatherLocation wl
+        WHERE wl.property.id = :propertyId
+        AND wl.active = true
+    """)
+    boolean existsActiveByPropertyId(@Param("propertyId") UUID propertyId);
+
     @Query("SELECT wl FROM WeatherLocation wl " +
             "JOIN FETCH wl.property p " +
             "JOIN UserProperty up ON up.property.id = p.id " +
