@@ -9,6 +9,7 @@ public enum Commodity {
     CAFE("Café", "COFFEE"),
     TRIGO("Trigo", "WHEAT"),
     ALGODAO("Algodão", "COTTON"),
+    ACUCAR("Açúcar", "SUGAR"),
     BOI_GORDO("Boi gordo", null);
 
     private final String description;

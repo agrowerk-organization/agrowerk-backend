@@ -41,6 +41,7 @@ public class MarketDataClient {
     private static final BigDecimal ARROBAS_POR_TON = BigDecimal.valueOf(66.6667);
     private static final BigDecimal LBS_POR_SACA   = BigDecimal.valueOf(132.277);
     private static final BigDecimal LBS_POR_ARROBA = BigDecimal.valueOf(33.069);
+    private static final BigDecimal LBS_POR_KG = BigDecimal.valueOf(2.20462);
     private static final BigDecimal SACAS_POR_BUSHEL_SOJA_TRIGO = BigDecimal.valueOf(2.2046);
     private static final BigDecimal SACAS_POR_BUSHEL_MILHO = BigDecimal.valueOf(2.3622);
 
@@ -162,6 +163,11 @@ public class MarketDataClient {
             case ALGODAO ->
                 rawPrice.divide(BigDecimal.valueOf(100), mc)
                         .multiply(LBS_POR_ARROBA, mc)
+                        .setScale(4, RoundingMode.HALF_UP);
+            case ACUCAR ->
+                rawPrice.divide(BigDecimal.valueOf(100), mc)
+                        .multiply(LBS_POR_KG, mc)
+                        .multiply(BigDecimal.valueOf(50), mc)
                         .setScale(4, RoundingMode.HALF_UP);
             case BOI_GORDO ->
                     throw new MarketDataException("no source for BOI_GORDO");
