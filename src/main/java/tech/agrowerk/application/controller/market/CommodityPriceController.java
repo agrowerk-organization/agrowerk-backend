@@ -50,4 +50,11 @@ public class CommodityPriceController {
         marketDataScheduler.forceSyncNow();
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/backfill")
+    @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
+    public ResponseEntity<Void> initialBackfill() {
+        marketDataScheduler.initialBackfill();
+        return ResponseEntity.accepted().build();
+    }
 }

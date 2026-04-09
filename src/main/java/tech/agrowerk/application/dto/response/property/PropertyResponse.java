@@ -27,6 +27,7 @@ public class PropertyResponse {
     private BigDecimal plantedArea;
     private String mainCrop;
     private Boolean isActive;
+    private String stateAbbreviation;
     private String stateName;
     private boolean hasWeatherLocation;
     private List<FarmUnitResponse> units;

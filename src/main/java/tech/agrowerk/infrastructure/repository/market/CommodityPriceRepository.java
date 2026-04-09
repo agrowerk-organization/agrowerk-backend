@@ -20,6 +20,13 @@ public interface CommodityPriceRepository extends JpaRepository<CommodityPrice, 
     List<CommodityPrice> findByCommodityAndReferenceDateBetweenOrderByReferenceDateDesc(
             Commodity commodity, LocalDate start, LocalDate end);
 
+    List<CommodityPrice> findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+            List<Commodity> commodities, LocalDate from, LocalDate to
+    );
+
+    Optional<CommodityPrice> findFirstByCommodityAndReferenceDateBeforeOrderByReferenceDateDesc(
+            Commodity commodity, LocalDate date);
+
     boolean existsByCommodityAndSourceAndReferenceDate(Commodity commodity, String source, LocalDate referenceDate);
 
 

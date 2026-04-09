@@ -68,6 +68,7 @@ public class PropertyMapper {
                 property.getPlantedArea(),
                 property.getMainCrop(),
                 property.getIsActive(),
+                property.getState() != null ? property.getState().getCode() : null,
                 property.getState() != null ? property.getState().getName() : null,
                 property.isHasWeatherLocation(),
                 property.getUnits() != null ?

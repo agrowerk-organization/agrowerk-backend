@@ -41,6 +41,7 @@ public class WeatherAlertService {
     private final WeatherAlertRepository alertRepository;
     private final WeatherLocationRepository locationRepository;
     private final WeatherMapper weatherMapper;
+    private final WeatherAlertNotificationDelegate weatherAlertNotificationDelegate;
     private final ApplicationEventPublisher eventPublisher;
     private final OwnershipValidator ownershipValidator;
     private final AuthUtil authUtil;
@@ -60,12 +61,14 @@ public class WeatherAlertService {
     public WeatherAlertService(WeatherAlertRepository alertRepository,
                                WeatherLocationRepository locationRepository,
                                WeatherMapper weatherMapper,
+                               WeatherAlertNotificationDelegate weatherAlertNotificationDelegate,
                                ApplicationEventPublisher eventPublisher,
                                OwnershipValidator ownershipValidator,
                                AuthUtil authUtil) {
         this.alertRepository = alertRepository;
         this.locationRepository = locationRepository;
         this.weatherMapper = weatherMapper;
+        this.weatherAlertNotificationDelegate = weatherAlertNotificationDelegate;
         this.eventPublisher = eventPublisher;
         this.ownershipValidator = ownershipValidator;
         this.authUtil = authUtil;
@@ -195,9 +198,10 @@ public class WeatherAlertService {
 
         if (!pending.isEmpty()) {
             log.info("Reprocessing pending notifications: count={}", pending.size());
-            pending.forEach(this::processAlertNotificationsAsync);
+            pending.forEach(weatherAlertNotificationDelegate::processAlertNotificationsAsync);
         }
     }
+
 
     private void processTemperatureAlerts(WeatherCurrent current, List<WeatherAlert> alerts) {
         if (current.getTemperature() == null) return;
@@ -361,7 +365,7 @@ public class WeatherAlertService {
         log.info("Created weather alert: id={}, type={}, severity={}, location={}",
                 alert.getId(), type, severity, current.getLocation().getName());
 
-        processAlertNotificationsAsync(alert);
+        weatherAlertNotificationDelegate.processAlertNotificationsAsync(alert);
 
         return Optional.of(alert);
     }
@@ -374,22 +378,6 @@ public class WeatherAlertService {
                         alert.getAlertType() == type &&
                                 alert.getStartTime().isAfter(cutoffTime)
                 );
-    }
-
-    @Async
-    protected void processAlertNotificationsAsync(WeatherAlert alert) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                sendWebSocketNotification(alert);
-
-                alert.setNotified(true);
-                alert.setNotifiedAt(Instant.now());
-                alertRepository.save(alert);
-
-            } catch (Exception e) {
-                log.error("Failed to process alert notifications: alertId={}", alert.getId(), e);
-            }
-        });
     }
 
     private void sendWebSocketNotification(WeatherAlert alert) {

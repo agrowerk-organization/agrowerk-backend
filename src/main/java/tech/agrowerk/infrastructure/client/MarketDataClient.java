@@ -1,29 +1,31 @@
 package tech.agrowerk.infrastructure.client;
 
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.decorators.Decorators;
-import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tech.agrowerk.application.dto.market.FinanceResponse;
 import tech.agrowerk.application.dto.market.MarketPrice;
+import tech.agrowerk.business.service.market.ExchangeRateService;
 import tech.agrowerk.infrastructure.exception.local.MarketDataException;
 import tech.agrowerk.infrastructure.model.market.enums.Commodity;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,35 +34,36 @@ import java.util.concurrent.ScheduledExecutorService;
 @Slf4j
 public class MarketDataClient {
 
-    private static final String BASE_URL = "https://query1.finance.yahoo.com";
-    private static final String CHART_PATH = "/v8/finance/chart/{symbol}";
-    private static final String FX_SYMBOL = "BRL=X";
+    private static final String BASE_URL  = "https://www.alphavantage.co";
+    private static final String QUERY_PATH = "/query";
 
-    private static final Map<Commodity, String> SYMBOLS = Map.of(
-            Commodity.SOJA, "ZS=F",
-            Commodity.MILHO, "ZC=F",
-            Commodity.CAFE, "KC=F",
-            Commodity.BOI_GORDO, "GF=F",
-            Commodity.TRIGO, "ZW=F",
-            Commodity.ALGODAO, "CT=F"
-    );
+    private static final BigDecimal SACAS_POR_TON   = BigDecimal.valueOf(16.6667);
+    private static final BigDecimal ARROBAS_POR_TON = BigDecimal.valueOf(66.6667);
+    private static final BigDecimal LBS_POR_SACA   = BigDecimal.valueOf(132.277);
+    private static final BigDecimal LBS_POR_ARROBA = BigDecimal.valueOf(33.069);
+    private static final BigDecimal SACAS_POR_BUSHEL_SOJA_TRIGO = BigDecimal.valueOf(2.2046);
+    private static final BigDecimal SACAS_POR_BUSHEL_MILHO = BigDecimal.valueOf(2.3622);
 
     private static final Map<Commodity, String> UNITS = Map.of(
-            Commodity.SOJA,      "R$/saca",
-            Commodity.MILHO,     "R$/saca",
-            Commodity.CAFE,      "R$/saca",
-            Commodity.BOI_GORDO, "R$/arroba",
-            Commodity.TRIGO,     "R$/saca",
-            Commodity.ALGODAO,   "R$/arroba"
+            Commodity.SOJA,    "R$/saca",
+            Commodity.MILHO,   "R$/saca",
+            Commodity.CAFE,    "R$/saca",
+            Commodity.TRIGO,   "R$/saca",
+            Commodity.ALGODAO, "R$/arroba"
     );
 
+    @Value("${alphavantage.api.key}")
+    private String apiKey;
+
     private final RestClient restClient;
+    private final ExchangeRateService exchangeRateService;
     private final CircuitBreaker circuitBreaker;
     private final Retry retry;
     private final TimeLimiter timeLimiter;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     public MarketDataClient(RestClient.Builder builder,
+                            ExchangeRateService exchangeRateService,
                             CircuitBreakerRegistry circuitBreakerRegistry,
                             RetryRegistry retryRegistry,
                             TimeLimiterRegistry timeLimiterRegistry) {
@@ -68,115 +71,107 @@ public class MarketDataClient {
         this.restClient = builder
                 .baseUrl(BASE_URL)
                 .defaultStatusHandler(HttpStatusCode::is4xxClientError, (req, res) -> {
-                    throw new MarketDataException("Yahoo Finance client error: " + res.getStatusCode());
+                    throw new MarketDataException("Alpha Vantage client error: " + res.getStatusCode());
                 })
                 .defaultStatusHandler(HttpStatusCode::is5xxServerError, (req, res) -> {
-                    throw new MarketDataException("Yahoo Finance server error: " + res.getStatusCode());
+                    throw new MarketDataException("Alpha Vantage server error: " + res.getStatusCode());
                 })
                 .build();
 
-        this.circuitBreaker = (CircuitBreaker) circuitBreakerRegistry.circuitBreaker("marketDataCircuitBreaker");
-        this.retry          = (Retry) retryRegistry.retry("marketDataRetry");
+        this.exchangeRateService = exchangeRateService;
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("marketDataCircuitBreaker");
+        this.retry          = retryRegistry.retry("marketDataRetry");
         this.timeLimiter    = timeLimiterRegistry.timeLimiter("marketDataTimeLimiter");
     }
 
-
     public List<MarketPrice> fetchAll() {
-        BigDecimal exchangeRate = fetchExchangeRate();
+        BigDecimal exchangeRate = exchangeRateService.getUsdToBrl();
         log.info("Exchange rate USD/BRL: {}", exchangeRate);
 
-        return SYMBOLS.entrySet().stream()
-                .map(entry -> fetchCommodity(entry.getKey(), entry.getValue(), exchangeRate))
+        return Arrays.stream(Commodity.values())
+                .filter(Commodity::hasAlphaVantageSource)
+                .map(commodity -> {
+                    try {
+                        Thread.sleep(15000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return fetchCommodity(commodity, exchangeRate);
+                })
+                .flatMap(List::stream)
                 .toList();
     }
 
-    public MarketPrice fetchCommodity(Commodity commodity) {
-        BigDecimal exchangeRate = fetchExchangeRate();
-        return fetchCommodity(commodity, SYMBOLS.get(commodity), exchangeRate);
-    }
+    /*public MarketPrice fetchCommodity(Commodity commodity) {
+        BigDecimal exchangeRate = exchangeRateService.getUsdToBrl();
+        return fetchCommodity(commodity, exchangeRate)
+                .orElseThrow(() -> new MarketDataException("No data for " + commodity));
+    } */
 
-    private BigDecimal fetchExchangeRate() {
-        FinanceResponse response = fetchWithResilience(FX_SYMBOL);
-        FinanceResponse.Meta meta = response.getMeta();
+    private List<MarketPrice> fetchCommodity(Commodity commodity, BigDecimal exchangeRate) {
+        log.debug("Fetching {} ({})", commodity, commodity.getAlphaVantageFunction());
 
-        if (meta == null || meta.regularMarketPrice() == null) {
-            throw new MarketDataException("Could not fetch USD/BRL exchange rate");
+        try {
+            FinanceResponse response = fetchWithResilience(commodity.getAlphaVantageFunction());
+
+            if (response == null || response.data() == null || response.data().isEmpty()) {
+                log.warn("Empty response for {}", commodity);
+                return List.of();
+            }
+
+            List<FinanceResponse.Entry> validEntries = response.data().stream()
+                    .filter(e -> e.value() != null && !".".equals(e.value()))
+                    .toList();
+
+            if (validEntries.isEmpty()) {
+                log.warn("No valid data point for {}", commodity);
+                return List.of();
+            }
+
+            return validEntries.stream().map(entry -> {
+                BigDecimal pricePerTon = new BigDecimal(entry.value());
+                BigDecimal priceUsd    = toUsdPerBrazilianUnit(commodity, pricePerTon);
+                BigDecimal priceBrl    = priceUsd.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
+
+                return new MarketPrice(
+                        commodity, priceBrl, priceUsd, exchangeRate,
+                        UNITS.get(commodity), "ALPHA_VANTAGE",
+                        LocalDate.parse(entry.date())
+                );
+            }).toList();
+
+        } catch (MarketDataException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Failed to fetch {}: {}", commodity, e.getMessage());
+            return List.of();
         }
-
-        return meta.regularMarketPrice().setScale(4, RoundingMode.HALF_UP);
     }
 
-
-    private MarketPrice fetchCommodity(Commodity commodity, String symbol, BigDecimal exchangeRate) {
-        log.debug("Fetching {} ({})", commodity, symbol);
-
-        FinanceResponse response = fetchWithResilience(symbol);
-        FinanceResponse.Meta meta = response.getMeta();
-
-        if (meta == null || meta.regularMarketPrice() == null) {
-            throw new MarketDataException("No data returned for symbol: " + symbol);
-        }
-
-        BigDecimal rawPrice = meta.regularMarketPrice();
-        BigDecimal priceUsd = convertToUsd(commodity, rawPrice);
-        BigDecimal priceBrl = convertToBrl(commodity, priceUsd, exchangeRate);
-
-        LocalDate referenceDate = meta.regularMarketTime() != null
-                ? Instant.ofEpochSecond(meta.regularMarketTime()).atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate()
-                : LocalDate.now();
-
-        log.info("{}: raw={} {} | USD={} | BRL={} {} | câmbio={}",
-                commodity, rawPrice, meta.currency(), priceUsd, priceBrl,
-                UNITS.get(commodity), exchangeRate);
-
-        return new MarketPrice(
-                commodity, priceUsd, priceBrl, exchangeRate,
-                UNITS.get(commodity), "YAHOO_FINANCE", referenceDate
-        );
-    }
-
-    private BigDecimal convertToUsd(Commodity commodity, BigDecimal rawPrice) {
+    private BigDecimal toUsdPerBrazilianUnit(Commodity commodity, BigDecimal rawPrice) {
         MathContext mc = new MathContext(10, RoundingMode.HALF_UP);
-
         return switch (commodity) {
-            case SOJA, TRIGO -> rawPrice
-                    .divide(BigDecimal.valueOf(100), mc)
-                    .multiply(BigDecimal.valueOf(60), mc)
-                    .divide(BigDecimal.valueOf(27.2155), mc)
-                    .setScale(4, RoundingMode.HALF_UP);
-
-            case MILHO -> rawPrice
-                    .divide(BigDecimal.valueOf(100), mc)
-                    .multiply(BigDecimal.valueOf(60), mc)
-                    .divide(BigDecimal.valueOf(25.4012), mc)
-                    .setScale(4, RoundingMode.HALF_UP);
-
-            case CAFE -> rawPrice
-                    .divide(BigDecimal.valueOf(100), mc)
-                    .multiply(BigDecimal.valueOf(132.277), mc)
-                    .setScale(4, RoundingMode.HALF_UP);
-
-            case ALGODAO -> rawPrice
-                    .divide(BigDecimal.valueOf(100), mc)
-                    .multiply(BigDecimal.valueOf(33.069), mc)
-                    .setScale(4, RoundingMode.HALF_UP);
-
-            case BOI_GORDO -> rawPrice
-                    .divide(BigDecimal.valueOf(45.3592), mc)
-                    .multiply(BigDecimal.valueOf(15), mc)
-                    .setScale(4, RoundingMode.HALF_UP);
+            case SOJA, TRIGO ->
+                    rawPrice.divide(SACAS_POR_BUSHEL_SOJA_TRIGO, mc).setScale(4, RoundingMode.HALF_UP);
+            case MILHO ->
+                    rawPrice.divide(SACAS_POR_BUSHEL_MILHO, mc).setScale(4, RoundingMode.HALF_UP);
+            case CAFE ->
+                rawPrice.divide(BigDecimal.valueOf(100), mc)
+                        .multiply(LBS_POR_SACA, mc)
+                        .setScale(4, RoundingMode.HALF_UP);
+            case ALGODAO ->
+                rawPrice.divide(BigDecimal.valueOf(100), mc)
+                        .multiply(LBS_POR_ARROBA, mc)
+                        .setScale(4, RoundingMode.HALF_UP);
+            case BOI_GORDO ->
+                    throw new MarketDataException("no source for BOI_GORDO");
         };
     }
 
-    private BigDecimal convertToBrl(Commodity commodity, BigDecimal priceUsd, BigDecimal exchangeRate) {
-        return priceUsd.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
-    }
-
-
-    private FinanceResponse fetchWithResilience(String symbol) {
+    private FinanceResponse fetchWithResilience(String function) {
         try {
             return Decorators
-                    .ofCompletionStage(() -> CompletableFuture.supplyAsync(() -> makeRequest(symbol)))
+                    .ofCompletionStage(() -> CompletableFuture.supplyAsync(() -> makeRequest(function)))
                     .withRetry(retry, scheduler)
                     .withCircuitBreaker(circuitBreaker)
                     .withTimeLimiter(timeLimiter, scheduler)
@@ -184,18 +179,19 @@ public class MarketDataClient {
                     .toCompletableFuture()
                     .join();
         } catch (Exception e) {
-            log.error("Failed to fetch symbol {}: {}", symbol, e.getMessage());
-            throw new MarketDataException("Market data unavailable for " + symbol, e);
+            log.error("Failed to fetch function {}: {}", function, e.getMessage());
+            throw new MarketDataException("Market data unavailable for function: " + function, e);
         }
     }
 
-    private FinanceResponse makeRequest(String symbol) {
+    private FinanceResponse makeRequest(String function) {
         return restClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path(CHART_PATH)
-                        .queryParam("interval", "1d")
-                        .queryParam("range", "1d")
-                        .build(symbol))
+                        .path(QUERY_PATH)
+                        .queryParam("function", function)
+                        .queryParam("interval", "monthly")
+                        .queryParam("apikey", apiKey)
+                        .build())
                 .retrieve()
                 .body(FinanceResponse.class);
     }

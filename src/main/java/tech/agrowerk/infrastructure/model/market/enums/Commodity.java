@@ -1,16 +1,25 @@
 package tech.agrowerk.infrastructure.model.market.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum Commodity {
-    SOJA("Soja"),
-    MILHO("Milho"),
-    BOI_GORDO("Boi gordo"),
-    CAFE("Café"),
-    TRIGO("Trigo"),
-    ALGODAO("Algodão");
+    SOJA("Soja", "SOYBEANS"),
+    MILHO("Milho", "CORN"),
+    CAFE("Café", "COFFEE"),
+    TRIGO("Trigo", "WHEAT"),
+    ALGODAO("Algodão", "COTTON"),
+    BOI_GORDO("Boi gordo", null);
 
-    private String description;
+    private final String description;
+    private final String alphaVantageFunction;
 
-    Commodity(String description) {
+    Commodity(String description, String alphaVantageFunction) {
         this.description = description;
+        this.alphaVantageFunction = alphaVantageFunction;
+    }
+
+    public boolean hasAlphaVantageSource() {
+        return alphaVantageFunction != null;
     }
 }

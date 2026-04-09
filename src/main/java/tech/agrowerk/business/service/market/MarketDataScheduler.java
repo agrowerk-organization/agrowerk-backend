@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tech.agrowerk.application.dto.market.MarketPrice;
+import tech.agrowerk.business.utils.AuthUtil;
+import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.client.MarketDataClient;
 import tech.agrowerk.infrastructure.model.market.CommodityPrice;
 import tech.agrowerk.infrastructure.model.market.enums.Commodity;
@@ -17,13 +19,17 @@ public class MarketDataScheduler {
 
     private final MarketDataClient marketDataClient;
     private final CommodityPriceService commodityPriceService;
+    private final AuthUtil authUtil;
 
-    public MarketDataScheduler(MarketDataClient marketDataClient, CommodityPriceService commodityPriceService) {
+    public MarketDataScheduler(MarketDataClient marketDataClient,
+                               CommodityPriceService commodityPriceService,
+                               AuthUtil authUtil) {
         this.marketDataClient = marketDataClient;
         this.commodityPriceService = commodityPriceService;
+        this.authUtil = authUtil;
     }
 
-    @Scheduled(cron = "${market.scheduler.cron:0 30 18 * * MON-FRI}")
+    @Scheduled(cron = "${market.scheduler.cron:0 0 6 * * MON-FRI}", zone = "America/Fortaleza")
     public void syncMarketData() {
         log.info("Starting market data sync...");
 
@@ -53,4 +59,9 @@ public class MarketDataScheduler {
         syncMarketData();
     }
 
+    public void initialBackfill() {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+        log.info("Initial backfill triggered by system admin: {}", auth);
+        syncMarketData();
+    }
 }

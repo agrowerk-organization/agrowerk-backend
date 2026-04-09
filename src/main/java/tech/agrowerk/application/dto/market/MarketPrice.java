@@ -7,8 +7,8 @@ import java.time.LocalDate;
 
 public record MarketPrice(
         Commodity commodity,
-        BigDecimal priceUsd,
         BigDecimal priceBrl,
+        BigDecimal priceUsd,
         BigDecimal exchangeRate,
         String unit,
         String source,

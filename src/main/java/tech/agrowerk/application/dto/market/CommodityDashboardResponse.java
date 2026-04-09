@@ -1,11 +1,12 @@
 package tech.agrowerk.application.dto.market;
 
+import tech.agrowerk.infrastructure.model.market.enums.Commodity;
+
 import java.util.List;
+import java.util.Map;
 
 public record CommodityDashboardResponse(
         List<CommodityPriceResponse> latestPrices,
-        List<CommodityPriceResponse> sojaHistory,
-        List<CommodityPriceResponse> milhoHistory,
-        List<CommodityPriceResponse> boiGordoHistory
+        Map<Commodity, List<CommodityPriceResponse>> history
 ) {
 }

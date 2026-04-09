@@ -12,15 +12,14 @@ import java.util.UUID;
 @Entity
 @Table(name = "commodity_prices",
         indexes = {
-            @Index(name = "idx_commodity_date", columnList = "commodity, reference_date DESC"),
-            @Index(name = "idx_reference_date", columnList = "reference_date DESC"),
-            @Index(name = "idx_commodity_date", columnList = "commodity, reference_date DESC")
+                @Index(name = "idx_commodity_reference_date", columnList = "commodity, reference_date DESC"),
+                @Index(name = "idx_reference_date", columnList = "reference_date DESC")
         },
         uniqueConstraints = {
-            @UniqueConstraint(
-                    name = "uq_commodity_region_date",
-                    columnNames = {"commodity", "reference_date"}
-            )
+                @UniqueConstraint(
+                        name = "uq_commodity_date",
+                        columnNames = {"commodity", "reference_date"}
+                )
         }
 )
 @NoArgsConstructor
@@ -58,4 +57,11 @@ public class CommodityPrice {
 
     @Column(name = "fetched_at")
     private LocalDateTime fetchedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.fetchedAt == null) {
+            this.fetchedAt = LocalDateTime.now();
+        }
+    }
 }

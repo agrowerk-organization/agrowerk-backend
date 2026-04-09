@@ -8,6 +8,7 @@ import tech.agrowerk.application.dto.market.CommodityHistoryResponse;
 import tech.agrowerk.application.dto.market.CommodityPriceResponse;
 import tech.agrowerk.application.dto.market.MarketPrice;
 import tech.agrowerk.business.mapper.market.CommodityPriceMapper;
+import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.infrastructure.exception.local.MarketDataException;
 import tech.agrowerk.infrastructure.model.market.CommodityPrice;
 import tech.agrowerk.infrastructure.model.market.enums.Commodity;
@@ -15,8 +16,11 @@ import tech.agrowerk.infrastructure.repository.market.CommodityPriceRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,25 +31,34 @@ public class CommodityPriceService {
     private final CommodityPriceRepository commodityPriceRepository;
     private final CommodityPriceMapper commodityPriceMapper;
 
-    public CommodityPriceService(CommodityPriceRepository commodityPriceRepository, CommodityPriceMapper commodityPriceMapper) {
+    public CommodityPriceService(CommodityPriceRepository commodityPriceRepository,
+                                 CommodityPriceMapper commodityPriceMapper) {
         this.commodityPriceRepository = commodityPriceRepository;
         this.commodityPriceMapper = commodityPriceMapper;
     }
 
-    @Transactional(readOnly = true)
-    public CommodityDashboardResponse getDashboard() {
-        List<CommodityPriceResponse> latest = commodityPriceRepository.findLatestPricePerCommodity()
-                .stream()
+   @Transactional(readOnly = true)
+   public CommodityDashboardResponse getDashboard() {
+        List<CommodityPrice> latestEntities = commodityPriceRepository.findLatestPricePerCommodity();
+
+        List<CommodityPriceResponse> latestResponse = latestEntities.stream()
                 .map(p -> commodityPriceMapper.toResponse(p, getPrevious(p).orElse(null)))
                 .toList();
 
-        return new CommodityDashboardResponse(
-                latest,
-                getHistory(Commodity.SOJA,      DEFAULT_HISTORY_DAYS).prices(),
-                getHistory(Commodity.MILHO,     DEFAULT_HISTORY_DAYS).prices(),
-                getHistory(Commodity.BOI_GORDO, DEFAULT_HISTORY_DAYS).prices()
-        );
-    }
+        LocalDate since = LocalDate.now().minusDays(365);
+        List<Commodity> commodities = List.of(Commodity.values());
+
+        Map<Commodity, List<CommodityPriceResponse>> historyMap =
+                commodityPriceRepository.findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+                        commodities, since, LocalDate.now()
+                ).stream()
+                        .collect(Collectors.groupingBy(
+                                CommodityPrice::getCommodity,
+                                Collectors.mapping(commodityPriceMapper::toResponse, Collectors.toList())
+                        ));
+
+        return new CommodityDashboardResponse(latestResponse, historyMap);
+   }
 
     @Transactional(readOnly = true)
     public CommodityPriceResponse getLatest(Commodity commodity) {
@@ -55,7 +68,6 @@ public class CommodityPriceService {
 
         return commodityPriceMapper.toResponse(current, getPrevious(current).orElse(null));
     }
-
 
     @Transactional(readOnly = true)
     public CommodityHistoryResponse getHistory(Commodity commodity, int days) {
@@ -94,12 +106,8 @@ public class CommodityPriceService {
         log.debug("Saved {} {} {}", record.commodity(), record.priceBrl(), record.unit());
     }
 
-
     private Optional<CommodityPrice> getPrevious(CommodityPrice current) {
-        LocalDate yesterday = current.getReferenceDate().minusDays(1);
-        return commodityPriceRepository.findByCommodityAndReferenceDateBetweenOrderByReferenceDateDesc(
-                        current.getCommodity(), yesterday.minusDays(5), yesterday)
-                .stream()
-                .findFirst();
+        return commodityPriceRepository.findFirstByCommodityAndReferenceDateBeforeOrderByReferenceDateDesc(
+                        current.getCommodity(),  current.getReferenceDate());
     }
 }
