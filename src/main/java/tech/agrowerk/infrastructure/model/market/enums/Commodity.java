@@ -4,23 +4,23 @@ import lombok.Getter;
 
 @Getter
 public enum Commodity {
-    SOJA("Soja", "SOYBEANS"),
-    MILHO("Milho", "CORN"),
-    CAFE("Café", "COFFEE"),
-    TRIGO("Trigo", "WHEAT"),
-    ALGODAO("Algodão", "COTTON"),
-    ACUCAR("Açúcar", "SUGAR"),
+    SOJA    ("Soja",     "PSOYBUSDM"),
+    MILHO   ("Milho",    "PMAIZMTUSDM"),
+    CAFE    ("Café",     "PCOFFOTMUSDM"),
+    TRIGO   ("Trigo",    "PWHEAMTUSDM"),
+    ALGODAO ("Algodão",  "PCOTTINDUSDM"),
+    ACUCAR  ("Açúcar",   "PSUGAISAUSDM"),
     BOI_GORDO("Boi gordo", null);
 
     private final String description;
-    private final String alphaVantageFunction;
+    private final String fredSeriesId;
 
-    Commodity(String description, String alphaVantageFunction) {
+    Commodity(String description, String fredSeriesId) {
         this.description = description;
-        this.alphaVantageFunction = alphaVantageFunction;
+        this.fredSeriesId = fredSeriesId;
     }
 
-    public boolean hasAlphaVantageSource() {
-        return alphaVantageFunction != null;
+    public boolean hasFredSource() {
+        return fredSeriesId != null;
     }
 }

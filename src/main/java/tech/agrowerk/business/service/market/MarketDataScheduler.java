@@ -29,7 +29,7 @@ public class MarketDataScheduler {
         this.authUtil = authUtil;
     }
 
-    @Scheduled(cron = "${market.scheduler.cron:0 0 6 * * MON-FRI}", zone = "America/Fortaleza")
+    @Scheduled(cron = "${market.scheduler.cron:0 0 6 1-7 * MON}", zone = "America/Fortaleza")
     public void syncMarketData() {
         log.info("Starting market data sync...");
 

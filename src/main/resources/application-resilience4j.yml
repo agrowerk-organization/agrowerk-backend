@@ -11,6 +11,19 @@ resilience4j:
         slowCallRateThreshold: 50
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
+      marketDataDefault:
+        registerHealthIndicator: true
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 2
+        failureRateThreshold: 60
+        waitDurationInOpenState: 15s
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - tech.agrowerk.infrastructure.exception.local.MarketDataException
+          - com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 
     instances:
       weatherApi:
@@ -20,15 +33,18 @@ resilience4j:
           - org.springframework.web.client.HttpServerErrorException
           - java.util.concurrent.TimeoutException
           - java.io.IOException
-      marketDataCircuitBreaker:
-        baseConfig: default
-        waitDurationInOpenState: 120s
-        failureRateThreshold: 60
-        recordExceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-        ignoreExceptions:
-          - tech.agrowerk.infrastructure.exception.local.MarketDataException
+      marketData_SOJA:
+        baseConfig: marketDataDefault
+      marketData_MILHO:
+        baseConfig: marketDataDefault
+      marketData_CAFE:
+        baseConfig: marketDataDefault
+      marketData_TRIGO:
+        baseConfig: marketDataDefault
+      marketData_ALGODAO:
+        baseConfig: marketDataDefault
+      marketData_ACUCAR:
+        baseConfig: marketDataDefault
 
   retry:
     configs:
@@ -47,7 +63,7 @@ resilience4j:
       marketDataRetry:
         baseConfig: default
         maxAttempts: 3
-        waitDuration: 3s
+        waitDuration: 2s
         retryExceptions:
           - java.io.IOException
           - java.util.concurrent.TimeoutException

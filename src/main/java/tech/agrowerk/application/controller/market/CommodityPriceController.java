@@ -1,5 +1,6 @@
 package tech.agrowerk.application.controller.market;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,14 @@ public class CommodityPriceController {
 
     private final CommodityPriceService commodityPriceService;
     private final MarketDataScheduler marketDataScheduler;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     public CommodityPriceController(CommodityPriceService commodityPriceService,
-                                    MarketDataScheduler marketDataScheduler) {
+                                    MarketDataScheduler marketDataScheduler,
+                                    CircuitBreakerRegistry circuitBreakerRegistry) {
         this.commodityPriceService = commodityPriceService;
         this.marketDataScheduler = marketDataScheduler;
+        this.circuitBreakerRegistry = circuitBreakerRegistry;
     }
 
     @GetMapping("/dashboard")
@@ -51,10 +55,11 @@ public class CommodityPriceController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/backfill")
+    @PostMapping("/admin/backfill")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<Void> initialBackfill() {
         marketDataScheduler.initialBackfill();
         return ResponseEntity.accepted().build();
     }
+
 }

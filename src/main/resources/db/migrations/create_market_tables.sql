@@ -18,3 +18,15 @@ CREATE INDEX idx_commodity_date ON commodity_prices (commodity, reference_date D
 CREATE INDEX idx_commodity_region_date ON commodity_prices (commodity, region, reference_date DESC);
 
 CREATE INDEX idx_reference_date ON commodity_prices (reference_date DESC);
+
+CREATE TABLE exchange_rates
+(
+    id             UUID          NOT NULL,
+    currency_pair  VARCHAR(10)   NOT NULL,
+    rate           DECIMAL(8, 4) NOT NULL,
+    reference_date date          NOT NULL,
+    CONSTRAINT pk_exchange_rates PRIMARY KEY (id)
+);
+
+ALTER TABLE exchange_rates
+    ADD CONSTRAINT uc_fc9e3b2f429eb8a0dc726e2f6 UNIQUE (currency_pair, reference_date);
