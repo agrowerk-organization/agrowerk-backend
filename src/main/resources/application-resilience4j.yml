@@ -27,6 +27,7 @@ resilience4j:
         recordExceptions:
           - java.io.IOException
           - java.util.concurrent.TimeoutException
+        ignoreExceptions:
           - tech.agrowerk.infrastructure.exception.local.MarketDataException
 
   retry:
@@ -57,13 +58,17 @@ resilience4j:
         limitForPeriod: 100
         limitRefreshPeriod: 1m
         timeoutDuration: 0s
+      marketDataRateLimiter:
+        limitForPeriod: 1
+        limitRefreshPeriod: 15s
+        timeoutDuration: 120s
 
   timelimiter:
     instances:
       weatherApiCircuitBreaker:
         timeoutDuration: 12s
       marketDataCircuitBreaker:
-        timeoutDuration: 10s
+        timeoutDuration: 30s
 
   bulkhead:
     instances:

@@ -3,6 +3,8 @@ package tech.agrowerk.infrastructure.client;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.decorators.Decorators;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
@@ -25,7 +27,6 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -50,7 +51,8 @@ public class MarketDataClient {
             Commodity.MILHO,   "R$/saca",
             Commodity.CAFE,    "R$/saca",
             Commodity.TRIGO,   "R$/saca",
-            Commodity.ALGODAO, "R$/arroba"
+            Commodity.ALGODAO, "R$/arroba",
+            Commodity.ACUCAR, "R$/saca"
     );
 
     @Value("${alphavantage.api.key}")
@@ -61,13 +63,15 @@ public class MarketDataClient {
     private final CircuitBreaker circuitBreaker;
     private final Retry retry;
     private final TimeLimiter timeLimiter;
+    private final RateLimiter rateLimiter;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
     public MarketDataClient(RestClient.Builder builder,
                             ExchangeRateService exchangeRateService,
                             CircuitBreakerRegistry circuitBreakerRegistry,
                             RetryRegistry retryRegistry,
-                            TimeLimiterRegistry timeLimiterRegistry) {
+                            TimeLimiterRegistry timeLimiterRegistry,
+                            RateLimiterRegistry rateLimiterRegistry) {
 
         this.restClient = builder
                 .baseUrl(BASE_URL)
@@ -83,6 +87,7 @@ public class MarketDataClient {
         this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("marketDataCircuitBreaker");
         this.retry          = retryRegistry.retry("marketDataRetry");
         this.timeLimiter    = timeLimiterRegistry.timeLimiter("marketDataTimeLimiter");
+        this.rateLimiter = rateLimiterRegistry.rateLimiter("marketDataRateLimiter");
     }
 
     public List<MarketPrice> fetchAll() {
@@ -91,14 +96,8 @@ public class MarketDataClient {
 
         return Arrays.stream(Commodity.values())
                 .filter(Commodity::hasAlphaVantageSource)
-                .map(commodity -> {
-                    try {
-                        Thread.sleep(15000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    return fetchCommodity(commodity, exchangeRate);
-                })
+                .map(commodity ->
+                     fetchCommodity(commodity, exchangeRate))
                 .flatMap(List::stream)
                 .toList();
     }
@@ -116,6 +115,12 @@ public class MarketDataClient {
             FinanceResponse response = fetchWithResilience(commodity.getAlphaVantageFunction());
 
             if (response == null || response.data() == null || response.data().isEmpty()) {
+                if (response != null && response.information() != null) {
+                    log.warn("Alpha Vantage API message for {}: {}", commodity, response.information());
+                }
+                if (response != null && response.note() != null) {
+                    log.warn("Alpha Vantage rate limit note for {}: {}", commodity, response.note());
+                }
                 log.warn("Empty response for {}", commodity);
                 return List.of();
             }
@@ -178,6 +183,7 @@ public class MarketDataClient {
         try {
             return Decorators
                     .ofCompletionStage(() -> CompletableFuture.supplyAsync(() -> makeRequest(function)))
+                    .withRateLimiter(rateLimiter)
                     .withRetry(retry, scheduler)
                     .withCircuitBreaker(circuitBreaker)
                     .withTimeLimiter(timeLimiter, scheduler)

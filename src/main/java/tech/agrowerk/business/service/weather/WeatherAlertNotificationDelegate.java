@@ -33,6 +33,7 @@ public class WeatherAlertNotificationDelegate {
     }
 
     @Async
+    @Transactional
     public CompletableFuture<Void> processAlertNotificationsAsync(WeatherAlert alert) {
         try {
             sendWebSocketNotification(alert);

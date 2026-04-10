@@ -3,6 +3,7 @@ package tech.agrowerk.business.service.weather;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.open_meteo.OpenMeteoResponse;
 import tech.agrowerk.application.dto.weather.Current;
@@ -41,7 +42,7 @@ public class WeatherFetchService {
     }
 
     @CircuitBreaker(name = "weatherApiCircuitBreaker")
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Current fetchAndSaveCurrentWeather(WeatherLocation location) {
         log.info("Fetching current weather for location: {}", location.getId());
 
@@ -55,7 +56,7 @@ public class WeatherFetchService {
         return weatherMapper.toCurrentDTO(current, false);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<Forecast> fetchAndSaveForecast(WeatherLocation location, int days) {
         log.info("Fetching forecast for location: {} - {} days", location.getId(), days);
 

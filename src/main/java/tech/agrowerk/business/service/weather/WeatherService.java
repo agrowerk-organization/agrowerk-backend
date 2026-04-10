@@ -3,12 +3,10 @@ package tech.agrowerk.business.service.weather;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.weather.*;
 import tech.agrowerk.business.mapper.weather.WeatherMapper;
-import tech.agrowerk.infrastructure.client.OpenMeteoClient;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.WeatherApiException;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
@@ -31,34 +29,28 @@ import java.util.*;
 @Slf4j
 public class WeatherService {
 
-    private final OpenMeteoClient openMeteoClient;
     private final WeatherLocationRepository locationRepository;
     private final WeatherCurrentRepository currentRepository;
     private final WeatherForecastRepository forecastRepository;
     private final WeatherAlertRepository alertRepository;
     private final WeatherMapper weatherMapper;
-    private final WeatherAlertService alertService;
     private final WeatherFetchService weatherFetchService;
 
     private static final int DEFAULT_FORECAST_DAYS = 7;
     private static final int STATISTICS_PERIOD_DAYS = 7;
     private static final int STATISTICS_PERIOD_MONTHS = 30;
 
-    public WeatherService(OpenMeteoClient openMeteoClient,
-                          WeatherLocationRepository locationRepository,
+    public WeatherService(WeatherLocationRepository locationRepository,
                           WeatherCurrentRepository currentRepository,
                           WeatherForecastRepository forecastRepository,
                           WeatherAlertRepository alertRepository,
                           WeatherMapper weatherMapper,
-                          WeatherAlertService alertService,
                           WeatherFetchService weatherFetchService) {
-        this.openMeteoClient = openMeteoClient;
         this.locationRepository = locationRepository;
         this.currentRepository = currentRepository;
         this.forecastRepository = forecastRepository;
         this.alertRepository = alertRepository;
         this.weatherMapper = weatherMapper;
-        this.alertService = alertService;
         this.weatherFetchService = weatherFetchService;
     }
 
@@ -160,23 +152,6 @@ public class WeatherService {
                 .waterStressIndex(waterStressIndex)
                 .waterStressLevel(getWaterStressLevel(waterStressIndex))
                 .build();
-    }
-
-    @Scheduled(cron = "${weather.scheduler.cron:0 */10 * * * *}")
-    @Transactional
-    public void scheduledWeatherUpdate() {
-
-        List<WeatherLocation> activeLocations = locationRepository.findByActiveTrue();
-
-        for (WeatherLocation location : activeLocations) {
-
-            try {
-                weatherFetchService.fetchAndSaveCurrentWeather(location);
-                weatherFetchService.fetchAndSaveForecast(location, DEFAULT_FORECAST_DAYS);
-            } catch (Exception e) {
-                log.error("Failed to update weather {}", location.getName(), e);
-            }
-        }
     }
 
     private WeatherLocation findLocationOrThrow(UUID id) {
