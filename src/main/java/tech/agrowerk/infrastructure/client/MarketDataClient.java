@@ -88,18 +88,17 @@ public class MarketDataClient {
     }
 
     public List<MarketPrice> fetchAll() {
-        BigDecimal exchangeRate = exchangeRateService.getUsdToBrl();
+        BigDecimal exchangeRate = exchangeRateService.getUsdToBrlForDate(LocalDate.now());
         log.info("Exchange rate USD/BRL: {}", exchangeRate);
 
         return Arrays.stream(Commodity.values())
                 .filter(Commodity::hasFredSource)
-                .map(commodity ->
-                     fetchCommodity(commodity, exchangeRate))
+                .map(this::fetchCommodity)
                 .flatMap(List::stream)
                 .toList();
     }
 
-    private List<MarketPrice> fetchCommodity(Commodity commodity, BigDecimal exchangeRate) {
+    private List<MarketPrice> fetchCommodity(Commodity commodity) {
         log.debug("Fetching {} ({})", commodity, commodity.getFredSeriesId());
 
         try {
@@ -191,7 +190,7 @@ public class MarketDataClient {
                         .queryParam("api_key", apiKey)
                         .queryParam("file_type", "json")
                         .queryParam("sort_order", "asc")
-                        .queryParam("observation_start", "2025-01-01")
+                        .queryParam("observation_start", LocalDate.now().minusDays(45))
                         .build())
                 .retrieve()
                 .body(FinanceResponse.class);

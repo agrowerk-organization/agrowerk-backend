@@ -11,7 +11,6 @@ import tech.agrowerk.application.dto.auth.LoginRequest;
 import tech.agrowerk.infrastructure.converter.BackupCodesConverter;
 import tech.agrowerk.infrastructure.model.core.enums.DeletionReason;
 import tech.agrowerk.infrastructure.model.core.enums.RoleType;
-import tech.agrowerk.infrastructure.model.property.Property;
 import tech.agrowerk.infrastructure.model.inventory.StockMovement;
 import tech.agrowerk.infrastructure.model.property.UserProperty;
 import tech.agrowerk.infrastructure.model.supplier.Supplier;
@@ -20,7 +19,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity

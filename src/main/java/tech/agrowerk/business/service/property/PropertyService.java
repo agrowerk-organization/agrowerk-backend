@@ -1,6 +1,7 @@
 package tech.agrowerk.business.service.property;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import tech.agrowerk.application.dto.request.property.UpdateFarmUnitRequest;
 import tech.agrowerk.application.dto.request.property.UpdatePropertyRequest;
 import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.application.dto.response.property.PropertyResponse;
+import tech.agrowerk.business.listener.events.PropertyUpdatedEvent;
 import tech.agrowerk.business.mapper.property.PropertyMapper;
 import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.business.service.weather.WeatherLocationService;
@@ -23,12 +25,14 @@ import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.model.file.FileMetadata;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import tech.agrowerk.infrastructure.model.property.Property;
 import tech.agrowerk.infrastructure.model.property.State;
 import tech.agrowerk.infrastructure.model.property.UserProperty;
 import tech.agrowerk.infrastructure.model.property.enums.OwnerRemovalReason;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
+import tech.agrowerk.infrastructure.repository.file.FileMetadataRepository;
 import tech.agrowerk.infrastructure.repository.property.PropertyRepository;
 import tech.agrowerk.infrastructure.repository.property.StateRepository;
 import tech.agrowerk.infrastructure.repository.property.UserPropertyRepository;
@@ -36,6 +40,7 @@ import tech.agrowerk.infrastructure.repository.property.UserPropertyRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -45,30 +50,35 @@ public class PropertyService {
     private final UserRepository userRepository;
     private final UserPropertyRepository userPropertyRepository;
     private final StateRepository stateRepository;
+    private final FileMetadataRepository fileMetadataRepository;
     private final FileStorageService fileStorageService;
     private final WeatherLocationService weatherLocationService;
     private final AuthUtil authUtil;
     private final PropertyMapper propertyMapper;
     private final OwnershipValidator ownershipValidator;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public PropertyService(PropertyRepository propertyRepository,
                            UserRepository userRepository,
                            UserPropertyRepository userPropertyRepository,
                            StateRepository stateRepository,
+                           FileMetadataRepository fileMetadataRepository,
                            FileStorageService fileStorageService,
                            WeatherLocationService weatherLocationService,
                            AuthUtil authUtil,
                            PropertyMapper propertyMapper,
-                           OwnershipValidator ownershipValidator) {
+                           OwnershipValidator ownershipValidator, ApplicationEventPublisher applicationEventPublisher) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
         this.userPropertyRepository = userPropertyRepository;
         this.stateRepository = stateRepository;
+        this.fileMetadataRepository = fileMetadataRepository;
         this.fileStorageService = fileStorageService;
         this.weatherLocationService = weatherLocationService;
         this.authUtil = authUtil;
         this.propertyMapper = propertyMapper;
         this.ownershipValidator = ownershipValidator;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Transactional
@@ -167,7 +177,6 @@ public class PropertyService {
 
         if (request.totalArea() != null) {
             property.setTotalArea(request.totalArea());
-            hasChanges = true;
         }
 
         if (request.units() != null) {
@@ -187,6 +196,15 @@ public class PropertyService {
         }
 
         log.info("Property updated id={}", propertyId);
+
+        if (request.name() != null || request.latitude() != null || request.longitude() != null) {
+            applicationEventPublisher.publishEvent(new PropertyUpdatedEvent(
+                    propertyId,
+                    property.getName(),
+                    property.getLatitude(),
+                    property.getLongitude()
+            ));
+        }
         return toResponseWithWeather(property);
     }
 
@@ -276,14 +294,31 @@ public class PropertyService {
         propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new EntityNotFoundException("Property not found"));
 
+        fileMetadataRepository.findByEntityIdAndFileCategoryAndDeletedFalse(
+                propertyId, FileCategory.PROPERTY_PHOTO
+        ).ifPresent(existing -> fileStorageService.delete(existing.getId()));
+
         return fileStorageService.upload(file, FileCategory.PROPERTY_PHOTO, propertyId);
     }
 
     private PropertyResponse toResponseWithWeather(Property property) {
-        PropertyResponse response = propertyMapper.toResponse(property);
+        String avatarUrl = null;
+        String avatarThumbnailUrl = null;
+
+        Optional<FileMetadata> photo = fileMetadataRepository
+                .findByEntityIdAndFileCategoryAndDeletedFalse(property.getId(), FileCategory.PROPERTY_PHOTO);
+
+        if (photo.isPresent()) {
+            avatarUrl = photo.get().getOriginalUrl();
+            avatarThumbnailUrl = photo.get().getThumbnailUrl();
+        }
+
+        PropertyResponse response = propertyMapper.toResponse(property, avatarUrl, avatarThumbnailUrl);
+
         response.setHasWeatherLocation(
                 weatherLocationService.hasActiveWeatherLocation(property.getId())
         );
+
         return response;
     }
 

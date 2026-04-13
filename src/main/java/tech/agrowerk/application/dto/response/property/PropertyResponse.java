@@ -32,4 +32,6 @@ public class PropertyResponse {
     private boolean hasWeatherLocation;
     private List<FarmUnitResponse> units;
     private Instant createdAt;
+    private String avatarUrl;
+    private String avatarThumbnailUrl;
 }

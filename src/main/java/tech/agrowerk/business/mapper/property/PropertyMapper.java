@@ -55,7 +55,7 @@ public class PropertyMapper {
         return property;
     }
 
-    public PropertyResponse toResponse(Property property) {
+    public PropertyResponse toResponse(Property property, String avatarUrl, String avatarThumbnailUrl) {
         return new PropertyResponse(
                 property.getId(),
                 property.getName(),
@@ -74,7 +74,9 @@ public class PropertyMapper {
                 property.getUnits() != null ?
                         property.getUnits().stream().map(this::toFarmUnitResponse).toList() :
                         Collections.emptyList(),
-                property.getCreatedAt()
+                property.getCreatedAt(),
+                avatarUrl,
+                avatarThumbnailUrl
         );
     }
 

@@ -20,6 +20,8 @@ public interface WeatherLocationRepository extends JpaRepository<WeatherLocation
 
     List<WeatherLocation> findByActiveTrue();
 
+    Optional<WeatherLocation> findByPropertyId(UUID propertyId);
+
     Optional<WeatherLocation> findByProperty(Property property);
 
     List<WeatherLocation> findByState(State state);
@@ -41,4 +43,5 @@ public interface WeatherLocationRepository extends JpaRepository<WeatherLocation
             "JOIN UserProperty up ON up.property.id = p.id " +
             "WHERE up.user.id = :userId")
     Page<WeatherLocation> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
+
 }

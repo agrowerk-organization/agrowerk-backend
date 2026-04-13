@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.weather.location.WeatherLocationCreateRequest;
 import tech.agrowerk.application.dto.weather.location.WeatherLocationDto;
 import tech.agrowerk.application.dto.weather.location.WeatherLocationUpdateRequest;
+import tech.agrowerk.business.listener.events.PropertyUpdatedEvent;
 import tech.agrowerk.business.mapper.weather.WeatherMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
@@ -213,6 +214,18 @@ public class WeatherLocationService {
 
     public boolean hasActiveWeatherLocation(UUID propertyId) {
         return locationRepository.existsActiveByPropertyId(propertyId);
+    }
+
+    @CacheEvict(value = "weatherLocations", allEntries = true)
+    @Transactional
+    public void syncFromPropertyUpdate(PropertyUpdatedEvent event) {
+        locationRepository.findByPropertyId(event.propertyId()).ifPresent(location -> {
+            if (event.name() != null)      location.setName(event.name());
+            if (event.latitude() != null)  location.setLatitude(event.latitude());
+            if (event.longitude() != null) location.setLongitude(event.longitude());
+            locationRepository.save(location);
+            log.info("Weather location synced for property: {}", event.propertyId());
+        });
     }
 
     private void verifyPropertyAccess(AuthenticatedUser auth, WeatherLocation location) {
