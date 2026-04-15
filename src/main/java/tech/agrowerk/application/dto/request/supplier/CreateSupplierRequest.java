@@ -11,7 +11,8 @@ public record CreateSupplierRequest(
         @Size(max = 255)
         String fantasyName,
 
-        @NotBlank @CNPJ
+        @NotBlank
+        @CNPJ
         String cnpj,
 
         @Size(max = 255)

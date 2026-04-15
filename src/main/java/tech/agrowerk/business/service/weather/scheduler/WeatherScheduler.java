@@ -1,9 +1,10 @@
-package tech.agrowerk.business.service.weather;
+package tech.agrowerk.business.service.weather.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.business.service.weather.WeatherFetchService;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
 

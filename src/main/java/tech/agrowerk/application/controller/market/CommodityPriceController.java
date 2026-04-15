@@ -8,7 +8,7 @@ import tech.agrowerk.application.dto.market.CommodityDashboardResponse;
 import tech.agrowerk.application.dto.market.CommodityHistoryResponse;
 import tech.agrowerk.application.dto.market.CommodityPriceResponse;
 import tech.agrowerk.business.service.market.CommodityPriceService;
-import tech.agrowerk.business.service.market.MarketDataScheduler;
+import tech.agrowerk.business.service.market.scheduler.MarketDataScheduler;
 import tech.agrowerk.infrastructure.model.market.enums.Commodity;
 
 @RestController

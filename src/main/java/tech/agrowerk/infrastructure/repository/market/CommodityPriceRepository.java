@@ -49,4 +49,6 @@ public interface CommodityPriceRepository extends JpaRepository<CommodityPrice, 
     List<CommodityPrice> findRecentByCommodity(
             @Param("commodity") Commodity commodity,
             @Param("since") LocalDate since);
+
+    List<CommodityPrice> findByCommodityAndReferenceDateBetweenOrderByReferenceDateAsc(Commodity commodity, LocalDate localDate, LocalDate today);
 }

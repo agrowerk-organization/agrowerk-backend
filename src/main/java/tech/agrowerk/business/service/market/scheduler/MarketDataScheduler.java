@@ -1,16 +1,14 @@
-package tech.agrowerk.business.service.market;
+package tech.agrowerk.business.service.market.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import tech.agrowerk.application.dto.market.MarketPrice;
+import tech.agrowerk.business.service.market.CommodityPriceService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.client.MarketDataClient;
-import tech.agrowerk.infrastructure.model.market.CommodityPrice;
-import tech.agrowerk.infrastructure.model.market.enums.Commodity;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
