@@ -10,7 +10,7 @@ public enum Commodity {
     TRIGO   ("Trigo",    "PWHEAMTUSDM"),
     ALGODAO ("Algodão",  "PCOTTINDUSDM"),
     ACUCAR  ("Açúcar",   "PSUGAISAUSDM"),
-    BOI_GORDO("Boi gordo", "PMEATBUSDM"),
+    BOI_GORDO("Boi gordo", "PBEEFUSDM"),
     GENERAL("General", null);
 
     private final String description;

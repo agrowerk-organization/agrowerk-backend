@@ -45,6 +45,8 @@ resilience4j:
         baseConfig: marketDataDefault
       marketData_ACUCAR:
         baseConfig: marketDataDefault
+      marketData_BOI_GORDO:
+        baseConfig: marketDataDefault
 
   retry:
     configs:

@@ -14,12 +14,11 @@ import tech.agrowerk.infrastructure.model.market.CommodityPrice;
 import tech.agrowerk.infrastructure.model.market.enums.Commodity;
 import tech.agrowerk.infrastructure.repository.market.CommodityPriceRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,8 +44,27 @@ public class CommodityPriceService {
                 .map(p -> commodityPriceMapper.toResponse(p, getPrevious(p).orElse(null)))
                 .toList();
 
-        LocalDate since = LocalDate.now().minusDays(365);
-        List<Commodity> commodities = List.of(Commodity.values());
+       LocalDate since = LocalDate.now().minusDays(1825);
+       List<Commodity> commodities = List.of(Commodity.values());
+
+       List<CommodityPrice> allHistory = commodityPriceRepository
+               .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+                       commodities, since, LocalDate.now()
+               );
+
+       BigDecimal avgExchangeRate = allHistory.stream()
+               .filter(p -> p.getExchangeRate() != null)
+               .collect(Collectors.toMap(
+                       CommodityPrice::getReferenceDate,
+                       CommodityPrice::getExchangeRate,
+                       (existing, replacement) -> existing
+               ))
+               .values()
+               .stream()
+               .reduce(BigDecimal.ZERO, BigDecimal::add)
+               .divide(BigDecimal.valueOf(
+                       allHistory.stream().map(CommodityPrice::getReferenceDate).distinct().count()
+               ), 4, RoundingMode.HALF_UP);
 
         Map<Commodity, List<CommodityPriceResponse>> historyMap =
                 commodityPriceRepository.findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
@@ -57,7 +75,7 @@ public class CommodityPriceService {
                                 Collectors.mapping(commodityPriceMapper::toResponse, Collectors.toList())
                         ));
 
-        return new CommodityDashboardResponse(latestResponse, historyMap);
+        return new CommodityDashboardResponse(avgExchangeRate, latestResponse, historyMap);
    }
 
     @Transactional(readOnly = true)
@@ -73,7 +91,7 @@ public class CommodityPriceService {
     public CommodityHistoryResponse getHistory(Commodity commodity, int days) {
         LocalDate since = LocalDate.now().minusDays(days);
         List<CommodityPrice> prices = commodityPriceRepository
-                .findByCommodityAndReferenceDateBetweenOrderByReferenceDateDesc(
+                .findByCommodityAndReferenceDateBetweenOrderByReferenceDateAsc(
                         commodity, since, LocalDate.now());
 
         List<CommodityPriceResponse> responses = prices.stream()

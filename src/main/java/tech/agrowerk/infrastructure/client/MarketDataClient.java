@@ -40,8 +40,8 @@ public class MarketDataClient {
 
     private static final BigDecimal SACAS_POR_TON   = BigDecimal.valueOf(16.6667);
     private static final BigDecimal ARROBAS_POR_TON = BigDecimal.valueOf(66.6667);
-    private static final BigDecimal LBS_POR_ARROBA = BigDecimal.valueOf(33.069);
     private static final BigDecimal LBS_POR_KG = BigDecimal.valueOf(2.20462);
+    private static final BigDecimal KG_POR_ARROBA = BigDecimal.valueOf(15);
 
     private static final Map<Commodity, String> UNITS = Map.of(
             Commodity.SOJA,    "R$/saca",
@@ -49,7 +49,8 @@ public class MarketDataClient {
             Commodity.CAFE,    "R$/saca",
             Commodity.TRIGO,   "R$/saca",
             Commodity.ALGODAO, "R$/arroba",
-            Commodity.ACUCAR, "R$/saca"
+            Commodity.ACUCAR, "R$/saca",
+            Commodity.BOI_GORDO, "R$/arroba"
     );
 
     @Value("${fred.api.key}")
@@ -118,9 +119,17 @@ public class MarketDataClient {
                 return List.of();
             }
 
+            LocalDate start = LocalDate.parse(validEntries.getFirst().date());
+            LocalDate end = LocalDate.now();
+
+            Map<LocalDate, BigDecimal> ratesMap = exchangeRateService.getRatesForPeriod(start, end);
+
             return validEntries.stream().map(entry -> {
                 LocalDate referenceDate = LocalDate.parse(entry.date());
-                BigDecimal historicalRate = exchangeRateService.getUsdToBrlForDate(referenceDate);
+
+                BigDecimal historicalRate = ratesMap.getOrDefault(referenceDate,
+                        exchangeRateService.getUsdToBrlForDate(referenceDate));
+
                 BigDecimal rawPrice = new BigDecimal(entry.value());
                 BigDecimal priceUsd = toUsdPerBrazilianUnit(commodity, rawPrice);
                 BigDecimal priceBrl = priceUsd.multiply(historicalRate).setScale(2, RoundingMode.HALF_UP);
@@ -151,7 +160,8 @@ public class MarketDataClient {
                             .setScale(4, RoundingMode.HALF_UP);
             case ALGODAO ->
                     rawPrice.divide(BigDecimal.valueOf(100), mc)
-                            .multiply(LBS_POR_ARROBA, mc)
+                            .multiply(LBS_POR_KG, mc)
+                            .multiply(KG_POR_ARROBA, mc)
                             .setScale(4, RoundingMode.HALF_UP);
             case ACUCAR ->
                     rawPrice.divide(BigDecimal.valueOf(100), mc)
@@ -159,7 +169,12 @@ public class MarketDataClient {
                             .multiply(BigDecimal.valueOf(50), mc)
                             .setScale(4, RoundingMode.HALF_UP);
             case BOI_GORDO ->
-                    throw new MarketDataException("no source for BOI_GORDO");
+                    rawPrice.divide(BigDecimal.valueOf(100), mc)
+                            .multiply(LBS_POR_KG, mc)
+                            .multiply(KG_POR_ARROBA, mc)
+                            .setScale(4, RoundingMode.HALF_UP);
+            case GENERAL ->
+                    throw new MarketDataException("no source for GENERAL");
         };
     }
 
@@ -190,7 +205,7 @@ public class MarketDataClient {
                         .queryParam("api_key", apiKey)
                         .queryParam("file_type", "json")
                         .queryParam("sort_order", "asc")
-                        .queryParam("observation_start", LocalDate.now().minusDays(45))
+                        .queryParam("observation_start", "2021-01-04")
                         .build())
                 .retrieve()
                 .body(FinanceResponse.class);

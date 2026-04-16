@@ -49,10 +49,8 @@ public class WeeklySummaryGenerator implements ReportGenerator {
         LocalDate start = end.minusDays(7);
 
         Map<Commodity, List<CommodityPrice>> pricesByComm =
-                commodityPriceRepository
-                        .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
-                                List.of(Commodity.values()), start, end
-                        )
+                commodityPriceRepository.findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+                                List.of(Commodity.values()), start, end)
                         .stream()
                         .collect(Collectors.groupingBy(CommodityPrice::getCommodity));
 
@@ -67,36 +65,23 @@ public class WeeklySummaryGenerator implements ReportGenerator {
             BigDecimal first = prices.getFirst().getPrice();
             BigDecimal last = prices.getLast().getPrice();
 
-            BigDecimal change = last.subtract(first)
-                    .divide(first, 4, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+            BigDecimal change = MarketAnalysisHelper.calculateVariation(first, last);
+            BigDecimal avg = MarketAnalysisHelper.calculateAverage(prices);
 
             changePercent.put(commodity, change);
-
-            highs.put(commodity, prices.stream()
-                    .map(CommodityPrice::getPrice)
-                    .max(Comparator.naturalOrder())
-                    .orElse(last));
-
-            lows.put(commodity, prices.stream()
-                    .map(CommodityPrice::getPrice)
-                    .min(Comparator.naturalOrder())
-                    .orElse(last));
+            highs.put(commodity, prices.stream().map(CommodityPrice::getPrice).max(BigDecimal::compareTo).orElse(last));
+            lows.put(commodity, prices.stream().map(CommodityPrice::getPrice).min(BigDecimal::compareTo).orElse(last));
 
             if (change.abs().compareTo(BigDecimal.valueOf(3)) > 0) {
-                highlights.add(String.format("%s variou %.2f%% na semana", commodity.name(), change));
+                highlights.add(String.format("%s variou %.2f%% na semana (Média: R$ %.2f)", commodity.name(), change, avg));
             }
         });
 
         ReportPayload payload = new ReportPayload(
-                changePercent,
-                highs,
-                lows,
-                calcAvgExchangeRate(start, end),
-                highlights
+                changePercent, highs, lows, calcAvgExchangeRate(start, end), highlights
         );
 
-        MarketReport report = MarketReport.builder()
+        return marketReportRepository.save(MarketReport.builder()
                 .reportType(ReportType.WEEKLY_SUMMARY)
                 .periodStart(start)
                 .periodEnd(end)
@@ -104,9 +89,7 @@ public class WeeklySummaryGenerator implements ReportGenerator {
                 .reportPayload(payload)
                 .generatedAt(LocalDateTime.now())
                 .reportStatus(ReportStatus.GENERATED)
-                .build();
-
-        return marketReportRepository.save(report);
+                .build());
     }
 
     private BigDecimal calcAvgExchangeRate(LocalDate start, LocalDate end) {

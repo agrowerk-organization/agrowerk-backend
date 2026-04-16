@@ -6,6 +6,9 @@ import java.math.BigDecimal;
 
 public record PtaxEntry(
         @JsonProperty("cotacaoVenda")
-        BigDecimal cotacaoVenda
+        BigDecimal cotacaoVenda,
+
+        @JsonProperty("dataHoraCotacao")
+        String dataHoraCotacao
 ) {
 }

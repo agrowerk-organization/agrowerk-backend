@@ -3,14 +3,9 @@ package tech.agrowerk.business.service.market.strategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.infrastructure.model.market.CommodityPrice;
-import tech.agrowerk.infrastructure.model.market.MarketReport;
-import tech.agrowerk.infrastructure.model.market.ReportPayload;
-import tech.agrowerk.infrastructure.model.market.enums.Commodity;
-import tech.agrowerk.infrastructure.model.market.enums.ReportStatus;
-import tech.agrowerk.infrastructure.model.market.enums.ReportType;
-import tech.agrowerk.infrastructure.repository.market.CommodityPriceRepository;
-import tech.agrowerk.infrastructure.repository.market.MarketReportRepository;
+import tech.agrowerk.infrastructure.model.market.*;
+import tech.agrowerk.infrastructure.model.market.enums.*;
+import tech.agrowerk.infrastructure.repository.market.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -43,66 +38,63 @@ public class VolatilityAlertGenerator implements ReportGenerator {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusDays(15);
 
+        log.info("Scanning for volatility alerts from {} to {}", start, end);
+
         Map<Commodity, List<CommodityPrice>> pricesByComm =
-                commodityPriceRepository
-                        .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
-                                List.of(Commodity.values()), start, end
-                        )
+                commodityPriceRepository.findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+                                List.of(Commodity.values()), start, end)
                         .stream()
                         .collect(Collectors.groupingBy(CommodityPrice::getCommodity));
 
+        Map<Commodity, BigDecimal> currentVariations = new EnumMap<>(Commodity.class);
+        Map<Commodity, BigDecimal> highs = new EnumMap<>(Commodity.class);
+        Map<Commodity, BigDecimal> lows = new EnumMap<>(Commodity.class);
         List<String> alerts = new ArrayList<>();
 
         pricesByComm.forEach((commodity, prices) -> {
             if (prices.size() < 2) return;
 
-            List<BigDecimal> values = prices.stream()
-                    .map(CommodityPrice::getPrice)
-                    .toList();
+            List<BigDecimal> values = prices.stream().map(CommodityPrice::getPrice).toList();
+            BigDecimal last = values.getLast();
+            BigDecimal first = values.getFirst();
 
-            BigDecimal mean = values.stream()
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    .divide(BigDecimal.valueOf(values.size()), 4, RoundingMode.HALF_UP);
+            currentVariations.put(commodity, MarketAnalysisHelper.calculateVariation(first, last));
+            highs.put(commodity, values.stream().max(BigDecimal::compareTo).orElse(last));
+            lows.put(commodity, values.stream().min(BigDecimal::compareTo).orElse(last));
 
+            BigDecimal mean = MarketAnalysisHelper.calculateAverage(prices);
             BigDecimal variance = values.stream()
                     .map(v -> v.subtract(mean).pow(2))
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                     .divide(BigDecimal.valueOf(values.size()), 4, RoundingMode.HALF_UP);
 
             double stdDev = Math.sqrt(variance.doubleValue());
-
-            BigDecimal last = values.getLast();
-
             BigDecimal diff = last.subtract(mean).abs();
 
             if (diff.compareTo(BigDecimal.valueOf(stdDev * 2)) > 0) {
                 alerts.add(String.format(
-                        "%s com alta volatilidade (desvio %.2f, preço atual %.2f)",
+                        "ALERTA: %s apresenta volatilidade anormal. Desvio: %.2f | Atual: R$ %.2f",
                         commodity.name(), stdDev, last
                 ));
             }
         });
 
         ReportPayload payload = new ReportPayload(
-                null,
-                null,
-                null,
-                null,
+                currentVariations,
+                highs,
+                lows,
+                BigDecimal.ZERO,
                 alerts
         );
 
-        MarketReport report = MarketReport.builder()
+        return marketReportRepository.save(MarketReport.builder()
                 .reportType(ReportType.VOLATILITY_ALERT)
                 .periodStart(start)
                 .periodEnd(end)
-                .summary(alerts.isEmpty()
-                        ? "Sem sinais relevantes de volatilidade."
-                        : "Alertas de volatilidade detectados.")
+                .summary(alerts.isEmpty() ? "Mercado operando em estabilidade." : "Sinais de volatilidade detectados.")
                 .reportPayload(payload)
                 .generatedAt(LocalDateTime.now())
                 .reportStatus(ReportStatus.GENERATED)
-                .build();
-
-        return marketReportRepository.save(report);
+                .build());
     }
 }

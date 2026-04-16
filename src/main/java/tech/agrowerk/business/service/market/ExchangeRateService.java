@@ -3,16 +3,18 @@ package tech.agrowerk.business.service.market;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import tech.agrowerk.application.dto.market.PtaxEntry;
 import tech.agrowerk.application.dto.market.PtaxResponse;
 import tech.agrowerk.infrastructure.exception.local.MarketDataException;
 import tech.agrowerk.infrastructure.model.market.ExchangeRate;
 import tech.agrowerk.infrastructure.repository.market.ExchangeRateRepository;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -21,10 +23,10 @@ public class ExchangeRateService {
     private final RestTemplate restTemplate;
     private final ExchangeRateRepository exchangeRateRepository;
 
-    private static final String PTAX_URL =
+    private static final String PTAX_PERIOD_URL =
             "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/" +
-                    "CotacaoDolarDia(dataCotacao=@dataCotacao)" +
-                    "?@dataCotacao='{date}'&$top=1&$format=json&$select=cotacaoVenda";
+                    "CotacaoMoedaPeriodo(moeda='USD',dataInicial=@start,dataFinalCotacao=@end)" +
+                    "?@start='{start}'&@end='{end}'&$top=5000&$format=json&$select=cotacaoVenda,dataHoraCotacao";
 
     public ExchangeRateService(RestTemplate restTemplate,
                                ExchangeRateRepository exchangeRateRepository) {
@@ -33,28 +35,47 @@ public class ExchangeRateService {
     }
 
     public void backfillHistoricalRates(LocalDate from, LocalDate to) {
-        LocalDate date = from;
-        int saved = 0;
+        log.info("Starting PTAX historical backfill from {} to {}", from, to);
 
-        while (!date.isAfter(to)) {
-            if (date.getDayOfWeek() != DayOfWeek.SATURDAY && date.getDayOfWeek() != DayOfWeek.SUNDAY) {
-                if (!exchangeRateRepository.existsByCurrencyPairAndReferenceDate("USD_BRL", date)) {
-                    try {
-                        BigDecimal rate = fetchFromBcb(date);
+        try {
+            String startStr = from.format(DateTimeFormatter.ofPattern("MM-dd-yyyy"));
+            String endStr = to.format(DateTimeFormatter.ofPattern("MM-dd-yyyy"));
+
+            log.debug("Fetching PTAX period data from BCB API...");
+
+            PtaxResponse response = restTemplate.getForObject(
+                    PTAX_PERIOD_URL,
+                    PtaxResponse.class,
+                    Map.of("start", startStr, "end", endStr)
+            );
+
+            if (response != null && response.value() != null) {
+                int savedCount = 0;
+                int skippedCount = 0;
+
+                for (PtaxEntry entry : response.value()) {
+                    LocalDate refDate = LocalDate.parse(entry.dataHoraCotacao().substring(0, 10));
+
+                    if (!exchangeRateRepository.existsByCurrencyPairAndReferenceDate("USD_BRL", refDate)) {
                         exchangeRateRepository.save(ExchangeRate.builder()
                                 .currencyPair("USD_BRL")
-                                .referenceDate(date)
-                                .rate(rate)
+                                .referenceDate(refDate)
+                                .rate(entry.cotacaoVenda())
                                 .build());
-                        saved++;
-                    } catch (Exception e) {
-                        log.warn("No PTAX rate for {}: {}", date, e.getMessage());
+                        savedCount++;
+                    } else {
+                        skippedCount++;
                     }
                 }
+                log.info("Backfill completed: {} new rates saved, {} already existed.", savedCount, skippedCount);
+            } else {
+                log.warn("BCB API returned an empty response for the requested period.");
             }
-            date = date.plusDays(1);
+
+        } catch (Exception e) {
+            log.error("Critical error during PTAX backfill: {}", e.getMessage());
+            throw new MarketDataException("Failed to synchronize historical exchange rates", e);
         }
-        log.info("Exchange rate backfill complete: {} rates saved", saved);
     }
 
     public BigDecimal getUsdToBrlForDate(LocalDate targetDate) {
@@ -75,13 +96,31 @@ public class ExchangeRateService {
         return fetchFromBcb(LocalDate.now());
     }
 
+    public Map<LocalDate, BigDecimal> getRatesForPeriod(LocalDate start, LocalDate end) {
+        log.info("Fetching exchange rates from database from period: {} to {}", start, end);
+
+        List<ExchangeRate> rates = exchangeRateRepository
+                .findAllByCurrencyPairAndReferenceDateBetween("USD_BRL", start, end);
+
+        Map<LocalDate, BigDecimal> ratesMap = rates.stream()
+                .collect(Collectors.toMap(
+                        ExchangeRate::getReferenceDate,
+                        ExchangeRate::getRate,
+                        (existing, replacement) -> existing
+                ));
+
+        log.debug("Found {} rates in databse for the requested period", ratesMap.size());
+
+        return ratesMap;
+    }
+
     private BigDecimal fetchFromBcb(LocalDate targetDate) {
         for (int i = 0; i < 5; i++) {
             LocalDate date = targetDate.minusDays(i);
             try {
                 String formatted = date.format(DateTimeFormatter.ofPattern("MM-dd-yyyy"));
                 PtaxResponse response = restTemplate.getForObject(
-                        PTAX_URL, PtaxResponse.class, Map.of("date", formatted)
+                        PTAX_PERIOD_URL, PtaxResponse.class, Map.of("start", formatted, "end", formatted)
                 );
                 if (response != null && !response.value().isEmpty()) {
                     return response.value().getFirst().cotacaoVenda();

@@ -34,7 +34,8 @@ public class AdvancedGlobalExceptionHandler {
             entry(WeatherAlertException.class, notFound("Alert not found")),
             entry(InsufficientStockException.class, badRequest("Insufficient stock")),
             entry(MarketDataException.class, serviceUnavailable("Service unavailable of CEPEA")),
-            entry(EmailNotVerifiedException.class, forbidden("Verify your email"))
+            entry(EmailNotVerifiedException.class, forbidden("Verify your email")),
+            entry(DataIntegrityViolationException.class, conflict("Data integrity violation"))
     );
 
     @ExceptionHandler({
@@ -53,7 +54,8 @@ public class AdvancedGlobalExceptionHandler {
             WeatherAlertException.class,
             InsufficientStockException.class,
             MarketDataException.class,
-            EmailNotVerifiedException.class
+            EmailNotVerifiedException.class,
+            DataIntegrityViolationException.class
     })
     public ResponseEntity<ErrorResponse> handleMappedException(Exception ex) {
         ErrorConfig config = ERROR_REGISTRY.get(ex.getClass());

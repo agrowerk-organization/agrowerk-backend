@@ -39,7 +39,6 @@ public class WeatherController implements WeatherApi {
         this.openMeteoClient = openMeteoClient;
     }
 
-
     @Override
     @GetMapping("/get-current/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")

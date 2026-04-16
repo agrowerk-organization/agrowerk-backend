@@ -29,7 +29,7 @@ public class PropertyController {
         this.propertyService = propertyService;
     }
 
-    @PostMapping("/create")
+    @PostMapping("/create-property")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<PropertyResponse> create(@Valid @RequestBody CreatePropertyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(propertyService.createProperty(request));

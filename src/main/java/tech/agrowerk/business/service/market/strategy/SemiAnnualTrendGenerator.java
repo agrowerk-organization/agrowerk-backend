@@ -3,17 +3,11 @@ package tech.agrowerk.business.service.market.strategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.infrastructure.model.market.CommodityPrice;
-import tech.agrowerk.infrastructure.model.market.MarketReport;
-import tech.agrowerk.infrastructure.model.market.ReportPayload;
-import tech.agrowerk.infrastructure.model.market.enums.Commodity;
-import tech.agrowerk.infrastructure.model.market.enums.ReportStatus;
-import tech.agrowerk.infrastructure.model.market.enums.ReportType;
-import tech.agrowerk.infrastructure.repository.market.CommodityPriceRepository;
-import tech.agrowerk.infrastructure.repository.market.MarketReportRepository;
+import tech.agrowerk.infrastructure.model.market.*;
+import tech.agrowerk.infrastructure.model.market.enums.*;
+import tech.agrowerk.infrastructure.repository.market.*;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,27 +15,27 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class MonthlyTrendGenerator implements ReportGenerator {
+public class SemiAnnualTrendGenerator implements ReportGenerator {
 
     private final CommodityPriceRepository commodityPriceRepository;
     private final MarketReportRepository marketReportRepository;
 
-    public MonthlyTrendGenerator(CommodityPriceRepository commodityPriceRepository,
-                                 MarketReportRepository marketReportRepository) {
+    public SemiAnnualTrendGenerator(CommodityPriceRepository commodityPriceRepository,
+                                    MarketReportRepository marketReportRepository) {
         this.commodityPriceRepository = commodityPriceRepository;
         this.marketReportRepository = marketReportRepository;
     }
 
     @Override
     public ReportType getType() {
-        return ReportType.MONTHLY_TREND;
+        return ReportType.SEMI_ANNUAL_TREND;
     }
 
     @Override
     @Transactional
     public MarketReport generate() {
         LocalDate end = LocalDate.now();
-        LocalDate start = end.minusDays(30);
+        LocalDate start = end.minusDays(180);
 
         Map<Commodity, List<CommodityPrice>> pricesByComm =
                 commodityPriceRepository.findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
@@ -57,27 +51,21 @@ public class MonthlyTrendGenerator implements ReportGenerator {
         pricesByComm.forEach((commodity, prices) -> {
             if (prices.size() < 2) return;
 
-            BigDecimal first = prices.getFirst().getPrice();
-            BigDecimal last = prices.getLast().getPrice();
-
-            BigDecimal variation = MarketAnalysisHelper.calculateVariation(first, last);
-            BigDecimal avg = MarketAnalysisHelper.calculateAverage(prices);
-
-            String trend = (variation.abs().compareTo(BigDecimal.valueOf(2)) < 0) ? "SIDEWAYS" :
-                    (variation.signum() > 0) ? "UPTREND" : "DOWNTREND";
+            BigDecimal variation = MarketAnalysisHelper.calculateVariation(prices.getFirst().getPrice(), prices.getLast().getPrice());
 
             variations.put(commodity, variation);
             highs.put(commodity, prices.stream().map(CommodityPrice::getPrice).max(BigDecimal::compareTo).get());
             lows.put(commodity, prices.stream().map(CommodityPrice::getPrice).min(BigDecimal::compareTo).get());
 
-            insights.add(String.format("%s: %s (%.2f%% no mês)", commodity.name(), trend, variation));
+            insights.add(String.format("%s: %s (Variação semestral de %.2f%%)",
+                    commodity.name(), MarketAnalysisHelper.determineTrend(variation), variation));
         });
 
         return marketReportRepository.save(MarketReport.builder()
-                .reportType(ReportType.MONTHLY_TREND)
+                .reportType(ReportType.SEMI_ANNUAL_TREND)
                 .periodStart(start)
                 .periodEnd(end)
-                .summary("Análise mensal de desempenho das commodities.")
+                .summary("Relatório semestral de tendências e volatilidade.")
                 .reportPayload(new ReportPayload(variations, highs, lows, BigDecimal.ZERO, insights))
                 .generatedAt(LocalDateTime.now())
                 .reportStatus(ReportStatus.GENERATED)
