@@ -36,47 +36,43 @@ public class CommodityPriceService {
         this.commodityPriceMapper = commodityPriceMapper;
     }
 
-   @Transactional(readOnly = true)
-   public CommodityDashboardResponse getDashboard() {
+    @Transactional(readOnly = true)
+    public CommodityDashboardResponse getDashboard() {
         List<CommodityPrice> latestEntities = commodityPriceRepository.findLatestPricePerCommodity();
 
         List<CommodityPriceResponse> latestResponse = latestEntities.stream()
                 .map(p -> commodityPriceMapper.toResponse(p, getPrevious(p).orElse(null)))
                 .toList();
 
-       LocalDate since = LocalDate.now().minusDays(1825);
-       List<Commodity> commodities = List.of(Commodity.values());
+        LocalDate since = LocalDate.now().minusDays(1825);
+        List<Commodity> commodities = List.of(Commodity.values());
 
-       List<CommodityPrice> allHistory = commodityPriceRepository
-               .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
-                       commodities, since, LocalDate.now()
-               );
-
-       BigDecimal avgExchangeRate = allHistory.stream()
-               .filter(p -> p.getExchangeRate() != null)
-               .collect(Collectors.toMap(
-                       CommodityPrice::getReferenceDate,
-                       CommodityPrice::getExchangeRate,
-                       (existing, replacement) -> existing
-               ))
-               .values()
-               .stream()
-               .reduce(BigDecimal.ZERO, BigDecimal::add)
-               .divide(BigDecimal.valueOf(
-                       allHistory.stream().map(CommodityPrice::getReferenceDate).distinct().count()
-               ), 4, RoundingMode.HALF_UP);
-
-        Map<Commodity, List<CommodityPriceResponse>> historyMap =
-                commodityPriceRepository.findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+        List<CommodityPrice> allHistory = commodityPriceRepository
+                .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
                         commodities, since, LocalDate.now()
-                ).stream()
-                        .collect(Collectors.groupingBy(
-                                CommodityPrice::getCommodity,
-                                Collectors.mapping(commodityPriceMapper::toResponse, Collectors.toList())
-                        ));
+                );
+
+        Map<LocalDate, BigDecimal> rateByDate = allHistory.stream()
+                .filter(p -> p.getExchangeRate() != null)
+                .collect(Collectors.toMap(
+                        CommodityPrice::getReferenceDate,
+                        CommodityPrice::getExchangeRate,
+                        (existing, replacement) -> existing
+                ));
+
+        BigDecimal avgExchangeRate = rateByDate.isEmpty() ? BigDecimal.ZERO :
+                rateByDate.values().stream()
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(rateByDate.size()), 4, RoundingMode.HALF_UP);
+
+        Map<Commodity, List<CommodityPriceResponse>> historyMap = allHistory.stream()
+                .collect(Collectors.groupingBy(
+                        CommodityPrice::getCommodity,
+                        Collectors.mapping(commodityPriceMapper::toResponse, Collectors.toList())
+                ));
 
         return new CommodityDashboardResponse(avgExchangeRate, latestResponse, historyMap);
-   }
+    }
 
     @Transactional(readOnly = true)
     public CommodityPriceResponse getLatest(Commodity commodity) {
