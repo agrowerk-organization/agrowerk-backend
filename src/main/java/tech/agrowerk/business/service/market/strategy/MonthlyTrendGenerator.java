@@ -43,15 +43,34 @@ public class MonthlyTrendGenerator implements ReportGenerator {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusDays(30);
 
-        Map<Commodity, List<CommodityPrice>> pricesByComm =
-                commodityPriceRepository.findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
-                                List.of(Commodity.values()), start, end)
-                        .stream()
-                        .collect(Collectors.groupingBy(CommodityPrice::getCommodity));
+        log.info("Generating Monthly Trend Report: {} to {}", start, end);
+
+        List<CommodityPrice> allPrices = commodityPriceRepository
+                .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+                        List.of(Commodity.values()), start, end
+                );
+
+        if (allPrices.isEmpty()) {
+            return createEmptyReport(start, end);
+        }
+
+        BigDecimal avgExchangeRate = MarketAnalysisHelper.calculateAverageExchange(allPrices);
+        BigDecimal exchangeVariation = BigDecimal.ZERO;
+        if (allPrices.size() >= 2) {
+            exchangeVariation = MarketAnalysisHelper.calculateVariation(
+                    allPrices.getFirst().getExchangeRate(),
+                    allPrices.getLast().getExchangeRate()
+            );
+        }
+
+        Map<Commodity, List<CommodityPrice>> pricesByComm = allPrices.stream()
+                .collect(Collectors.groupingBy(CommodityPrice::getCommodity));
 
         Map<Commodity, BigDecimal> variations = new EnumMap<>(Commodity.class);
         Map<Commodity, BigDecimal> highs = new EnumMap<>(Commodity.class);
         Map<Commodity, BigDecimal> lows = new EnumMap<>(Commodity.class);
+        Map<Commodity, BigDecimal> averages = new EnumMap<>(Commodity.class);
+        Map<Commodity, BigDecimal> medians = new EnumMap<>(Commodity.class);
         List<String> insights = new ArrayList<>();
 
         pricesByComm.forEach((commodity, prices) -> {
@@ -62,25 +81,50 @@ public class MonthlyTrendGenerator implements ReportGenerator {
 
             BigDecimal variation = MarketAnalysisHelper.calculateVariation(first, last);
             BigDecimal avg = MarketAnalysisHelper.calculateAverage(prices);
+            BigDecimal median = MarketAnalysisHelper.calculateMedian(prices);
 
             String trend = (variation.abs().compareTo(BigDecimal.valueOf(2)) < 0) ? "SIDEWAYS" :
                     (variation.signum() > 0) ? "UPTREND" : "DOWNTREND";
 
             variations.put(commodity, variation);
-            highs.put(commodity, prices.stream().map(CommodityPrice::getPrice).max(BigDecimal::compareTo).get());
-            lows.put(commodity, prices.stream().map(CommodityPrice::getPrice).min(BigDecimal::compareTo).get());
+            averages.put(commodity, avg);
+            medians.put(commodity, median);
+            highs.put(commodity, prices.stream().map(CommodityPrice::getPrice).max(BigDecimal::compareTo).orElse(last));
+            lows.put(commodity, prices.stream().map(CommodityPrice::getPrice).min(BigDecimal::compareTo).orElse(last));
 
-            insights.add(String.format("%s: %s (%.2f%% no mês)", commodity.name(), trend, variation));
+            insights.add(String.format("%s: %s (%.2f%% no mês | Mediana R$ %.2f)",
+                    commodity.name(), trend, variation, median));
         });
+
+        ReportPayload payload = new ReportPayload(
+                variations,
+                highs,
+                lows,
+                medians,
+                averages,
+                avgExchangeRate,
+                exchangeVariation,
+                insights
+        );
 
         return marketReportRepository.save(MarketReport.builder()
                 .reportType(ReportType.MONTHLY_TREND)
                 .periodStart(start)
                 .periodEnd(end)
-                .summary("Análise mensal de desempenho das commodities.")
-                .reportPayload(new ReportPayload(variations, highs, lows, BigDecimal.ZERO, insights))
+                .summary("Desempenho mensal das commodities com foco em liquidez operacional.")
+                .reportPayload(payload)
                 .generatedAt(LocalDateTime.now())
                 .reportStatus(ReportStatus.GENERATED)
                 .build());
+    }
+
+    private MarketReport createEmptyReport(LocalDate start, LocalDate end) {
+        return MarketReport.builder()
+                .reportType(ReportType.MONTHLY_TREND)
+                .periodStart(start)
+                .periodEnd(end)
+                .reportStatus(ReportStatus.FAILED)
+                .summary("Dados insuficientes para o fechamento mensal.")
+                .build();
     }
 }

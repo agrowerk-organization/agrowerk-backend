@@ -39,17 +39,33 @@ public class AnnualTrendGenerator implements ReportGenerator {
 
         log.info("Generating Annual Trend Report for period: {} to {}", start, end);
 
-        Map<Commodity, List<CommodityPrice>> pricesByComm =
-                commodityPriceRepository
-                        .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
-                                List.of(Commodity.values()), start, end
-                        )
-                        .stream()
-                        .collect(Collectors.groupingBy(CommodityPrice::getCommodity));
+        List<CommodityPrice> allPrices = commodityPriceRepository
+                .findByCommodityInAndReferenceDateBetweenOrderByReferenceDateAsc(
+                        List.of(Commodity.values()), start, end
+                );
+
+        if (allPrices.isEmpty()) {
+            log.warn("No price data found for the period {} to {}", start, end);
+            return createEmptyReport(start, end);
+        }
+
+        BigDecimal avgExchangeRate = MarketAnalysisHelper.calculateAverageExchange(allPrices);
+
+        BigDecimal exchangeVariation = BigDecimal.ZERO;
+        if (allPrices.size() >= 2) {
+            BigDecimal firstExchange = allPrices.getFirst().getExchangeRate();
+            BigDecimal lastExchange = allPrices.getLast().getExchangeRate();
+            exchangeVariation = MarketAnalysisHelper.calculateVariation(firstExchange, lastExchange);
+        }
+
+        Map<Commodity, List<CommodityPrice>> pricesByComm = allPrices.stream()
+                .collect(Collectors.groupingBy(CommodityPrice::getCommodity));
 
         Map<Commodity, BigDecimal> priceChanges = new EnumMap<>(Commodity.class);
         Map<Commodity, BigDecimal> highestPrices = new EnumMap<>(Commodity.class);
         Map<Commodity, BigDecimal> lowestPrices = new EnumMap<>(Commodity.class);
+        Map<Commodity, BigDecimal> averagePrices = new EnumMap<>(Commodity.class);
+        Map<Commodity, BigDecimal> medianPrices = new EnumMap<>(Commodity.class);
         List<String> insights = new ArrayList<>();
 
         pricesByComm.forEach((commodity, prices) -> {
@@ -60,25 +76,30 @@ public class AnnualTrendGenerator implements ReportGenerator {
 
             BigDecimal variation = MarketAnalysisHelper.calculateVariation(first, last);
             BigDecimal avg = MarketAnalysisHelper.calculateAverage(prices);
+            BigDecimal median = MarketAnalysisHelper.calculateMedian(prices);
             String trend = MarketAnalysisHelper.determineTrend(variation);
 
-            // Extremos
             BigDecimal max = prices.stream().map(CommodityPrice::getPrice).max(BigDecimal::compareTo).orElse(last);
             BigDecimal min = prices.stream().map(CommodityPrice::getPrice).min(BigDecimal::compareTo).orElse(last);
 
             priceChanges.put(commodity, variation);
             highestPrices.put(commodity, max);
             lowestPrices.put(commodity, min);
+            averagePrices.put(commodity, avg);
+            medianPrices.put(commodity, median);
 
-            insights.add(String.format("%s: %s (%.2f%%, avg R$ %.2f)",
-                    commodity.name(), trend, variation, avg));
+            insights.add(String.format("%s: %s (Var: %.2f%%, Mediana R$ %.2f)",
+                    commodity.name(), trend, variation, median));
         });
 
         ReportPayload payload = new ReportPayload(
                 priceChanges,
                 highestPrices,
                 lowestPrices,
-                BigDecimal.ZERO,
+                medianPrices,
+                averagePrices,
+                avgExchangeRate,
+                exchangeVariation,
                 insights
         );
 
@@ -86,10 +107,20 @@ public class AnnualTrendGenerator implements ReportGenerator {
                 .reportType(ReportType.ANNUAL_TREND)
                 .periodStart(start)
                 .periodEnd(end)
-                .summary("Annual analysis of commodity price movements and market volatility.")
+                .summary("Análise anual de preços e volatilidade com câmbio médio e mediana.")
                 .reportPayload(payload)
                 .generatedAt(LocalDateTime.now())
                 .reportStatus(ReportStatus.GENERATED)
                 .build());
+    }
+
+    private MarketReport createEmptyReport(LocalDate start, LocalDate end) {
+        return MarketReport.builder()
+                .reportType(ReportType.ANNUAL_TREND)
+                .periodStart(start)
+                .periodEnd(end)
+                .reportStatus(ReportStatus.FAILED)
+                .summary("Falha na geração: dados insuficientes.")
+                .build();
     }
 }

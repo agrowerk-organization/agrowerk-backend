@@ -10,7 +10,10 @@ public record ReportPayload(
         Map<Commodity, BigDecimal> priceChangePercent,
         Map<Commodity, BigDecimal> highestPrice,
         Map<Commodity, BigDecimal> lowestPrice,
+        Map<Commodity, BigDecimal> medianPrice,
+        Map<Commodity, BigDecimal> averagePrice,
         BigDecimal avgExchangeRate,
+        BigDecimal exchangeRateVariation,
         List<String> highlights
 ) {
 }
