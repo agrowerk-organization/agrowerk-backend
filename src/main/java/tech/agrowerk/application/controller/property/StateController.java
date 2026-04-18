@@ -54,6 +54,6 @@ public class StateController {
     public ResponseEntity<Page<StateResponse>> search(
             @RequestParam(required = false, defaultValue = "") String term,
             Pageable pageable) {
-        return ResponseEntity.ok(stateService.searchStates(term, pageable).toPage());
+        return ResponseEntity.ok(stateService.searchStates(term, pageable));
     }
 }
