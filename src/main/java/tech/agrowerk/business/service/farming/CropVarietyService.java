@@ -1,15 +1,17 @@
 package tech.agrowerk.business.service.farming;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import tech.agrowerk.application.dto.request.farming.CreateCropVarietyRequest;
 import tech.agrowerk.application.dto.request.farming.UpdateCropVarietyRequest;
 import tech.agrowerk.application.dto.response.farming.CropVarietyResponse;
+import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.business.mapper.farming.CropVarietyMapper;
+import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
@@ -19,9 +21,11 @@ import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.farming.Crop;
 import tech.agrowerk.infrastructure.model.farming.CropVariety;
 import tech.agrowerk.infrastructure.model.farming.enums.BrazilRegion;
+import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropVarietyRepository;
+import tech.agrowerk.infrastructure.repository.file.FileMetadataRepository;
 
 import java.util.UUID;
 
@@ -31,17 +35,23 @@ public class CropVarietyService {
 
     private final CropVarietyRepository cropVarietyRepository;
     private final CropRepository cropRepository;
-    private final CropVarietyMapper cropVarietyMapper;
     private final UserRepository userRepository;
+    private final FileMetadataRepository fileMetadataRepository;
+    private final FileStorageService fileStorageService;
+    private final CropVarietyMapper cropVarietyMapper;
     private final AuthUtil authUtil;
 
     public CropVarietyService(CropVarietyRepository cropVarietyRepository,
                               CropRepository cropRepository,
+                              FileMetadataRepository fileMetadataRepository,
+                              FileStorageService fileStorageService,
                               CropVarietyMapper cropVarietyMapper,
                               UserRepository userRepository,
                               AuthUtil authUtil) {
         this.cropVarietyRepository = cropVarietyRepository;
         this.cropRepository = cropRepository;
+        this.fileMetadataRepository = fileMetadataRepository;
+        this.fileStorageService = fileStorageService;
         this.cropVarietyMapper = cropVarietyMapper;
         this.userRepository = userRepository;
         this.authUtil = authUtil;
@@ -69,26 +79,26 @@ public class CropVarietyService {
         return cropVarietyMapper.toResponse(saved);
     }
 
-    @Cacheable(value = "cropVarieties", key = "#cropId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
-    @Transactional(readOnly = true)
     public Page<CropVarietyResponse> findByCrop(UUID cropId, Pageable pageable) {
         return cropVarietyRepository.findByCrop_Id(cropId, pageable)
                 .map(cropVarietyMapper::toResponse);
     }
 
-    @Cacheable(value = "cropVarieties", key = "#cropId + ':' + #name",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
-    @Transactional(readOnly = true)
-    public Page<CropVarietyResponse> searchByName(
-            UUID cropId, String name, Pageable pageable) {
+    public Page<CropVarietyResponse> searchByName(UUID cropId, String name, Pageable pageable) {
         return cropVarietyRepository
                 .findByCrop_IdAndNameContainingIgnoreCase(cropId, name, pageable)
                 .map(cropVarietyMapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public CropVarietyResponse findById(UUID cropVarietyId) {
+        CropVariety cropVariety = cropVarietyRepository.findById(cropVarietyId)
+                .orElseThrow(() -> new EntityNotFoundException("Crop variety not found"));
+
+        return cropVarietyMapper.toResponse(cropVariety);
+    }
+
+    @Transactional
     public CropVarietyResponse updateCropVariety(UUID cropVarietyId, UpdateCropVarietyRequest request) {
         CropVariety cropVariety = cropVarietyRepository.findById(cropVarietyId)
                 .orElseThrow(() -> new EntityNotFoundException("Crop variety not found"));
@@ -122,5 +132,20 @@ public class CropVarietyService {
 
         log.info("Crop updated id={}", cropVarietyId);
         return cropVarietyMapper.toResponse(cropVariety);
+    }
+
+    @Transactional
+    public FileUploadResponse uploadPhoto(UUID cropId, MultipartFile file) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        cropRepository.findById(cropId)
+                .orElseThrow(() -> new EntityNotFoundException("Crop not found"));
+
+        fileMetadataRepository.findByEntityIdAndFileCategoryAndDeletedFalse(
+                cropId, FileCategory.CROP_VARIETY_PHOTO
+        ).ifPresent(existing -> fileStorageService.delete(existing.getId()));
+
+        log.info("Crop photo uploaded cropId={}", cropId);
+        return fileStorageService.upload(file, FileCategory.CROP_VARIETY_PHOTO, cropId);
     }
 }

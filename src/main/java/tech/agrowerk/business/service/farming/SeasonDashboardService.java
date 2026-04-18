@@ -24,9 +24,6 @@ public class SeasonDashboardService {
         this.farmingViewMapper = farmingViewMapper;
     }
 
-    @Cacheable(value = "seasonDashboard", key = "#propertyId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
     public List<SeasonDashboardResponse> getDashboard(UUID propertyId) {
         List<SeasonDashboardView> results = seasonDashboardViewRepository
                 .findByPropertyId(propertyId);
@@ -39,9 +36,6 @@ public class SeasonDashboardService {
         return results.stream().map(farmingViewMapper::toSeasonDashboardResponse).toList();
     }
 
-    @Cacheable(value = "seasonDashboardDetail", key = "#seasonId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
     public List<SeasonDashboardResponse> getDashboardBySeason(UUID seasonId) {
         log.debug("Fetching dashboard details for season id={}", seasonId);
 

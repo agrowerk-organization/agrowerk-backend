@@ -1,16 +1,17 @@
 package tech.agrowerk.business.service.farming;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.cache.CachedPage;
+import org.springframework.web.multipart.MultipartFile;
 import tech.agrowerk.application.dto.request.farming.CreateCropRequest;
 import tech.agrowerk.application.dto.request.farming.UpdateCropRequest;
 import tech.agrowerk.application.dto.response.farming.CropResponse;
+import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.business.mapper.farming.CropMapper;
+import tech.agrowerk.business.service.file.FileStorageService;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
@@ -18,8 +19,10 @@ import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.farming.Crop;
+import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropRepository;
+import tech.agrowerk.infrastructure.repository.file.FileMetadataRepository;
 
 import java.util.UUID;
 
@@ -28,15 +31,21 @@ import java.util.UUID;
 public class CropService {
     private final CropRepository cropRepository;
     private final UserRepository userRepository;
+    private final FileMetadataRepository fileMetadataRepository;
+    private final FileStorageService fileStorageService;
     private final CropMapper cropMapper;
     private final AuthUtil authUtil;
 
     public CropService(CropRepository cropRepository,
                        UserRepository userRepository,
+                       FileMetadataRepository fileMetadataRepository,
+                       FileStorageService fileStorageService,
                        CropMapper cropMapper,
                        AuthUtil authUtil) {
         this.cropRepository = cropRepository;
         this.userRepository = userRepository;
+        this.fileMetadataRepository = fileMetadataRepository;
+        this.fileStorageService = fileStorageService;
         this.cropMapper = cropMapper;
         this.authUtil = authUtil;
     }
@@ -63,21 +72,15 @@ public class CropService {
         return cropMapper.toResponse(saved);
     }
 
-    @Cacheable(value = "crops", key = "'all'",
-            cacheManager = "redisCacheManager",
-            unless = "#result.content().isEmpty()")
     @Transactional(readOnly = true)
-    public CachedPage<CropResponse> listCrops(Pageable pageable) {
-        return CachedPage.from(cropRepository.findAll(pageable)
-                .map(cropMapper::toResponse));
+    public Page<CropResponse> listCrops(Pageable pageable) {
+        return cropRepository.findAll(pageable)
+                .map(cropMapper::toResponse);
     }
 
-    @Cacheable(value = "crops", key = "#name",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public Page<CropResponse> searchByName(String name, Pageable pageable) {
-        return cropRepository.findByNameContainingIgnoreCase(name, pageable)
+       return cropRepository.findByNameContainingIgnoreCase(name, pageable)
                 .map(cropMapper::toResponse);
     }
 
@@ -124,5 +127,20 @@ public class CropService {
 
         log.info("Crop updated id={}", cropId);
         return cropMapper.toResponse(crop);
+    }
+
+    @Transactional
+    public FileUploadResponse uploadPhoto(UUID cropId, MultipartFile file) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        cropRepository.findById(cropId)
+                .orElseThrow(() -> new EntityNotFoundException("Crop not found"));
+
+        fileMetadataRepository.findByEntityIdAndFileCategoryAndDeletedFalse(
+                cropId, FileCategory.CROP_PHOTO
+        ).ifPresent(existing -> fileStorageService.delete(existing.getId()));
+
+        log.info("Crop photo uploaded cropId={}", cropId);
+        return fileStorageService.upload(file, FileCategory.CROP_PHOTO, cropId);
     }
 }

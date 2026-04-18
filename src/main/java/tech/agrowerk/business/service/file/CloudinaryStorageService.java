@@ -228,6 +228,8 @@ public class CloudinaryStorageService implements FileStorageService {
         return switch (category) {
             case PROPERTY_PHOTO -> "agrowerk/properties";
             case PRODUCT_PHOTO -> "agrowerk/products";
+            case CROP_PHOTO -> "agrowerk/crops";
+            case CROP_VARIETY_PHOTO -> "agrowerk/crop-varieties";
             case EQUIPMENT_PHOTO -> "agrowerk/equipment";
             case USER_AVATAR -> "agrowerk/users";
             case DOCUMENT, INVOICE -> "agrowerk/documents";

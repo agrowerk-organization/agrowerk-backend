@@ -1,6 +1,8 @@
 package tech.agrowerk.business.service.market;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.market.CommodityDashboardResponse;
@@ -36,6 +38,7 @@ public class CommodityPriceService {
         this.commodityPriceMapper = commodityPriceMapper;
     }
 
+    @Cacheable(value = "commodityDashboard", key = "'global'", unless = "#result == null")
     @Transactional(readOnly = true)
     public CommodityDashboardResponse getDashboard() {
         List<CommodityPrice> latestEntities = commodityPriceRepository.findLatestPricePerCommodity();
@@ -97,6 +100,7 @@ public class CommodityPriceService {
         return new CommodityHistoryResponse(commodity, responses, responses.size());
     }
 
+    @CacheEvict(value = "commodityDashboard", key = "'global'")
     @Transactional
     public void saveFromMarketRecord(MarketPrice record) {
         if (commodityPriceRepository.existsByCommodityAndSourceAndReferenceDate(

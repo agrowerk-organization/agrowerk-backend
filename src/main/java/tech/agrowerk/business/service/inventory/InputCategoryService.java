@@ -134,9 +134,8 @@ public class InputCategoryService {
         log.info("InputCategory deactivated id={}", categoryId);
     }
 
+    @Cacheable(value = "inputCategories", key = "'tree'")
     @Transactional(readOnly = true)
-    @Cacheable(value = "inputCategories", key = "'tree'",
-            cacheManager = "redisCacheManager")
     public List<InputCategoryResponse> findTree() {
         return inputCategoryRepository.findByParentIsNullAndIsActiveTrue()
                 .stream()
@@ -144,9 +143,8 @@ public class InputCategoryService {
                 .toList();
     }
 
+    @Cacheable(value = "inputCategories", key = "'flat'")
     @Transactional(readOnly = true)
-    @Cacheable(value = "inputCategories", key = "'flat'",
-            cacheManager = "redisCacheManager")
     public List<InputCategoryResponse> findFlat() {
         return inputCategoryRepository.findAll().stream()
                 .filter(InputCategory::getIsActive)
@@ -154,6 +152,7 @@ public class InputCategoryService {
                 .toList();
     }
 
+    @Cacheable(value = "inputCategories", key = "#categoryId", unless = "#result == null")
     @Transactional(readOnly = true)
     public InputCategoryResponse findById(UUID categoryId) {
         return inputCategoryRepository.findById(categoryId)

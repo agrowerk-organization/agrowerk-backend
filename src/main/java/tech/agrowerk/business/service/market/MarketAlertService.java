@@ -217,7 +217,4 @@ public class MarketAlertService {
                 .divide(from, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
-
-
-
 }

@@ -3,12 +3,10 @@ package tech.agrowerk.business.service.property;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.cache.CachedPage;
 import tech.agrowerk.application.dto.request.property.CreateStateRequest;
 import tech.agrowerk.application.dto.request.property.UpdateStateRequest;
 import tech.agrowerk.application.dto.response.property.StateResponse;
@@ -52,8 +50,8 @@ public class StateService {
         return new StateResponse(saved.getId(), saved.getCode(), saved.getName());
     }
 
-    @Transactional(readOnly = true)
     @Cacheable(value = "states", key = "#stateId")
+    @Transactional(readOnly = true)
     public StateResponse findStateById(UUID stateId) {
         State state = stateRepository.findById(stateId)
                 .orElseThrow(() -> new EntityNotFoundException("State not found"));
@@ -61,6 +59,7 @@ public class StateService {
         return new StateResponse(state.getId(), state.getCode(), state.getName());
     }
 
+    @Cacheable(value = "states", key = "'all'")
     @Transactional(readOnly = true)
     public List<StateResponse> listAllStates() {
         return stateRepository.findAll()
@@ -70,18 +69,13 @@ public class StateService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "states", key = "{ #searchTerm, #pageable.pageNumber, #pageable.pageSize }")
-    public CachedPage<StateResponse> searchStates(String searchTerm, Pageable pageable) {
-        Page<StateResponse> page = stateRepository.searchStates(searchTerm, pageable)
+    public Page<StateResponse> searchStates(String searchTerm, Pageable pageable) {
+        return stateRepository.searchStates(searchTerm, pageable)
                 .map(state -> new StateResponse(state.getId(), state.getCode(), state.getName()));
-        return CachedPage.from(page);
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "states", key = "#stateId"),
-            @CacheEvict(value = "states", allEntries = true)
-    })
+    @CacheEvict(value = "states", allEntries = true)
     public StateResponse updateState(UUID stateId, UpdateStateRequest request) {
         State state = stateRepository.findById(stateId)
                 .orElseThrow(() -> new EntityNotFoundException("State not found"));

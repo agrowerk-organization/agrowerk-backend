@@ -96,9 +96,6 @@ public class FieldService {
         return fieldMapper.toResponse(saved);
     }
 
-    @Cacheable(value = "fields", key = "#propertyId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public Page<FieldResponse> findByProperty(UUID propertyId, Pageable pageable) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();

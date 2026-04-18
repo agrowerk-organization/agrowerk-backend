@@ -1,6 +1,7 @@
 package tech.agrowerk.business.service.weather;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.weather.*;
@@ -36,6 +37,7 @@ public class WeatherDashboardService {
         this.authUtil = authUtil;
     }
 
+    @Cacheable(value = "weatherDashboard", key = "#locationId", unless = "#result == null")
     public Dashboard getDashboard(UUID locationId) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 

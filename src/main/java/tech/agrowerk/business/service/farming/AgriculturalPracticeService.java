@@ -39,7 +39,12 @@ public class AgriculturalPracticeService {
     private final OwnershipValidator ownershipValidator;
     private final AuthUtil authUtil;
 
-    public AgriculturalPracticeService(AgriculturalPracticeRepository agriculturalPracticeRepository, PlantingRepository plantingRepository, UserRepository userRepository, AgriculturalPracticeMapper agriculturalPracticeMapper, OwnershipValidator ownershipValidator, AuthUtil authUtil) {
+    public AgriculturalPracticeService(AgriculturalPracticeRepository agriculturalPracticeRepository,
+                                       PlantingRepository plantingRepository,
+                                       UserRepository userRepository,
+                                       AgriculturalPracticeMapper agriculturalPracticeMapper,
+                                       OwnershipValidator ownershipValidator,
+                                       AuthUtil authUtil) {
         this.agriculturalPracticeRepository = agriculturalPracticeRepository;
         this.plantingRepository = plantingRepository;
         this.userRepository = userRepository;

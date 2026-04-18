@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.cache.CachedPage;
 import tech.agrowerk.application.dto.request.support.FaqRequest;
 import tech.agrowerk.application.dto.response.support.FaqResponse;
 import tech.agrowerk.business.mapper.support.FaqMapper;
@@ -28,14 +27,12 @@ public class FaqService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "faqs", key = "(#faqCategory != null ? #faqCategory.name() : 'all') + '_p' + #pageable.pageNumber + '_s' + #pageable.pageSize")
-    public CachedPage<FaqResponse> listActive(FaqCategory faqCategory, Pageable pageable) {
-        Page<FaqResponse> page = faqCategory != null
+    public Page<FaqResponse> listActive(FaqCategory faqCategory, Pageable pageable) {
+        return faqCategory != null
                 ? faqRepository.findByIsActiveTrueAndFaqCategoryOrderByDisplayOrderAsc(faqCategory, pageable)
                 .map(faqMapper::toResponse)
                 : faqRepository.findByIsActiveTrueOrderByFaqCategoryAscDisplayOrderAsc(pageable)
                 .map(faqMapper::toResponse);
-        return CachedPage.from(page);
     }
 
     @Transactional
@@ -49,14 +46,12 @@ public class FaqService {
     }
 
     @Transactional
-    @CacheEvict(value = "faqs", allEntries = true)
     public FaqResponse createFaq(FaqRequest request) {
         Faq faq = faqMapper.toEntity(request);
         return faqMapper.toResponse(faqRepository.save(faq));
     }
 
     @Transactional
-    @CacheEvict(value = "faqs", allEntries = true)
     public FaqResponse updateFaq(UUID faqId, FaqRequest request) {
         Faq faq = faqRepository.findById(faqId)
                 .orElseThrow(() -> new EntityNotFoundException("FAQ not found"));
@@ -68,7 +63,6 @@ public class FaqService {
     }
 
     @Transactional
-    @CacheEvict(value = "faqs", allEntries = true)
     public void deactivate(UUID id) {
         Faq faq = faqRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("FAQ not found"));

@@ -1,7 +1,6 @@
 package tech.agrowerk.business.service.inventory;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.response.inventory.StockPositionResponse;
@@ -32,9 +31,6 @@ public class StockPositionViewService {
         this.authUtil = authUtil;
     }
 
-    @Cacheable(value = "stockPosition", key = "#propertyId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public List<StockPositionResponse> findByProperty(UUID propertyId) {
         ownershipValidator.validateOwnership(
@@ -46,10 +42,6 @@ public class StockPositionViewService {
                 .toList();
     }
 
-    @Cacheable(value = "stockPosition",
-            key = "{#propertyId, #alert}",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
     @Transactional(readOnly = true)
     public List<StockPositionResponse> findByPropertyAndAlert(
             UUID propertyId, String alert) {

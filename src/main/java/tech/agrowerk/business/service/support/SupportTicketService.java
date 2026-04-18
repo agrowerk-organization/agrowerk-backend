@@ -4,7 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.cache.CachedPage;
 import tech.agrowerk.application.dto.request.support.TicketRequest;
 import tech.agrowerk.application.dto.response.support.TicketResponse;
 import tech.agrowerk.business.mapper.support.SupportTicketMapper;
@@ -61,23 +60,20 @@ public class SupportTicketService {
     }
 
     @Transactional(readOnly = true)
-    public CachedPage<TicketResponse> findMine(Pageable pageable) {
+    public Page<TicketResponse> findMine(Pageable pageable) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
-        Page<TicketResponse> page = supportTicketRepository.findByUserIdOrderByCreatedAtDesc(auth.id(), pageable)
+       return supportTicketRepository.findByUserIdOrderByCreatedAtDesc(auth.id(), pageable)
                 .map(supportTicketMapper::toResponse);
-
-        return CachedPage.from(page);
     }
 
     @Transactional(readOnly = true)
-    public CachedPage<TicketResponse> findAll(SupportTicketStatus status, Pageable pageable) {
-        Page<TicketResponse> page = status != null
+    public Page<TicketResponse> findAll(SupportTicketStatus status, Pageable pageable) {
+        return status != null
                 ? supportTicketRepository.findBySupportTicketStatusOrderByCreatedAtDesc(status, pageable)
                 .map(supportTicketMapper::toResponse)
                 : supportTicketRepository.findAll(pageable)
                 .map(supportTicketMapper::toResponse);
-        return CachedPage.from(page);
     }
 
     @Transactional(readOnly = true)

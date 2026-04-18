@@ -22,9 +22,6 @@ public class FieldProductivityViewService {
         this.farmingViewMapper = farmingViewMapper;
     }
 
-    @Cacheable(value = "fieldProductivity", key = "#fieldId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
     public Optional<FieldProductivityResponse> findFieldProductivityViewById(UUID fieldId) {
         return fieldProductivityViewRepository.findByFieldId(fieldId)
                 .map(farmingViewMapper::toFieldProductivityResponse);

@@ -94,6 +94,11 @@ public class CacheConfig {
                 .prefixCacheNameWith("agrowerk:property:state:")
         );
 
+        cacheConfigurations.put("states", defaultConfig
+                .entryTtl(Duration.ofMinutes(5))
+                .prefixCacheNameWith("agrowerk:property:state:")
+        );
+
         cacheConfigurations.put("weatherCurrent", defaultConfig
                 .entryTtl(Duration.ofMinutes(5))
                 .prefixCacheNameWith("agrowerk:weather:current:")
@@ -116,7 +121,7 @@ public class CacheConfig {
 
         cacheConfigurations.put("weatherStatistics", defaultConfig
                 .entryTtl(Duration.ofMinutes(15))
-                .prefixCacheNameWith("agrowerk:weather:stats:")
+                .prefixCacheNameWith("agrowerk:weather:statistics:")
         );
 
         cacheConfigurations.put("activeAlerts", defaultConfig
@@ -124,54 +129,9 @@ public class CacheConfig {
                 .prefixCacheNameWith("agrowerk:weather:active-alerts:")
         );
 
-        cacheConfigurations.put("fieldProductivity", defaultConfig
-                .entryTtl(Duration.ofMinutes(30))
-                .prefixCacheNameWith("agrowerk:farming:field-productivity:")
-        );
-
-        cacheConfigurations.put("seasons", defaultConfig
-                .entryTtl(Duration.ofMinutes(30))
-                .prefixCacheNameWith("agrowerk:farming:season:")
-        );
-
-        cacheConfigurations.put("crops", defaultConfig
-                .entryTtl(Duration.ofHours(24))
-                .prefixCacheNameWith("agrowerk:farming:crop:")
-        );
-
-        cacheConfigurations.put("cropVarieties", defaultConfig
-                .entryTtl(Duration.ofHours(12))
-                .prefixCacheNameWith("agrowerk:farming:crop-variety:")
-        );
-
-        cacheConfigurations.put("fields", defaultConfig
-                .entryTtl(Duration.ofMinutes(30))
-                .prefixCacheNameWith("agrowerk:farming:field:")
-        );
-
         cacheConfigurations.put("seasonDashboard", defaultConfig
                 .entryTtl(Duration.ofHours(1))
                 .prefixCacheNameWith("agrowerk:farming:dashboard:")
-        );
-
-        cacheConfigurations.put("batchExpiring", defaultConfig
-                .entryTtl(Duration.ofHours(6))
-                .prefixCacheNameWith("agrowerk:inventory:batch:")
-        );
-
-        cacheConfigurations.put("batchExpiring", defaultConfig
-                .entryTtl(Duration.ofMinutes(15))
-                .prefixCacheNameWith("agrowerk:inventory:batch-expiring")
-        );
-
-        cacheConfigurations.put("stockPosition", defaultConfig
-                .entryTtl(Duration.ofMinutes(15))
-                .prefixCacheNameWith("agrowerk:inventory:stock-position:")
-        );
-
-        cacheConfigurations.put("stockMovements", defaultConfig
-                .entryTtl(Duration.ofMinutes(10))
-                .prefixCacheNameWith("agrowerk:inventory:movements:")
         );
 
         cacheConfigurations.put("inputCategories", defaultConfig
@@ -179,13 +139,20 @@ public class CacheConfig {
                 .prefixCacheNameWith("agrowerk:inventory:categories:")
         );
 
-        cacheConfigurations.put("supplierRatings", defaultConfig
-                .entryTtl(Duration.ofMinutes(30))
-                        .prefixCacheNameWith("agrowerk:supplier:supplier-ratings"));
+        cacheConfigurations.put("commodityDashboard", defaultConfig
+                .entryTtl(Duration.ofMinutes(15))
+                .prefixCacheNameWith("agrowerk:market:commodity-dashboard")
+        );
 
-        cacheConfigurations.put("faqs", defaultConfig
+        cacheConfigurations.put("exchangeRate", defaultConfig
                 .entryTtl(Duration.ofHours(24))
-                        .prefixCacheNameWith("agrowerk:support:faq"));
+                .prefixCacheNameWith("agrowerk:market:exchange-rate")
+        );
+
+        cacheConfigurations.put("marketReports", defaultConfig
+                .entryTtl(Duration.ofHours(24))
+                .prefixCacheNameWith("agrowerk:market:market-reports")
+        );
 
         log.info("Redis cache manager initialized with {} cache configurations",
                 cacheConfigurations.size());

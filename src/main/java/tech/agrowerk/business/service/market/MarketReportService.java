@@ -1,6 +1,8 @@
 package tech.agrowerk.business.service.market;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class MarketReportService {
         this.marketReportRepository = marketReportRepository;
     }
 
+    @CacheEvict(value = "marketReports", key = "#type")
     @Transactional
     public MarketReport generate(ReportType type) {
         log.info("Processing generation request for report type: {}", type);
@@ -55,6 +58,7 @@ public class MarketReportService {
         }
     }
 
+    @Cacheable(value = "marketReports", key = "#type", unless = "#result == null")
     public Optional<MarketReport> getLatestByType(ReportType type) {
         log.debug("Fetching latest report for type: {}", type);
         return marketReportRepository

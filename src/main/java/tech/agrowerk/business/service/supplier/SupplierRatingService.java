@@ -1,7 +1,6 @@
 package tech.agrowerk.business.service.supplier;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.request.supplier.CreateSupplierRatingRequest;
@@ -81,7 +80,6 @@ public class SupplierRatingService {
         return supplierRatingMapper.toRatingResponse(saved);
     }
 
-    @Cacheable(value = "supplier-ratings", key = "#supplierId", cacheManager = "redisCacheManager")
     @Transactional(readOnly = true)
     public BigDecimal getAverageRating(UUID supplierId) {
         return supplierRatingRepository.calculateAverageRating(supplierId)

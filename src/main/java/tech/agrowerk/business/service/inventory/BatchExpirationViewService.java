@@ -1,7 +1,6 @@
 package tech.agrowerk.business.service.inventory;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.response.inventory.BatchExpirationResponse;
@@ -32,10 +31,6 @@ public class BatchExpirationViewService {
         this.authUtil = authUtil;
     }
 
-    @Cacheable(value = "batchExpiring", key = "#propertyId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.isEmpty()")
-    @Transactional(readOnly = true)
     public List<BatchExpirationResponse> findByProperty(UUID propertyId) {
         ownershipValidator.validateOwnership(
                 propertyId, authUtil.getAuthenticatedUser().id());

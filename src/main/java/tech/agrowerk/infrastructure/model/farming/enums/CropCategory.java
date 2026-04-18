@@ -5,17 +5,16 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 public enum CropCategory {
-    CEREAL("Cereal"),
     GRAIN("Grão"),
-    OILSEED("Oleaginosa"),
+    SUGAR_CROP("Cultura Açucareira"),
+    FRUIT("Frutífera"),
     FIBER("Fibra"),
     VEGETABLE("Hortaliça"),
-    FRUIT("Frutífera"),
-    LEGUME("Leguminosa"),
     TUBER("Tubérculo"),
-    SUGARCANE("Cana-de-Açúcar"),
-    STIMULANT("Estimulante"),
-    FORAGE("Forrageira"),
+    OILSEED("Oleaginosa"),
+    LEGUME("Leguminosa"),
+    INDUSTRIAL("Industrial"),
+    FORESTRY("Florestal"),
     OTHER("Outros");
 
     private final String description;

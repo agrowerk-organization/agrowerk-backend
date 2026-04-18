@@ -1,11 +1,10 @@
 package tech.agrowerk.business.service.farming;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.cache.CachedPage;
 import tech.agrowerk.application.dto.request.farming.CreateSeasonRequest;
 import tech.agrowerk.application.dto.response.farming.SeasonResponse;
 import tech.agrowerk.business.mapper.property.SeasonMapper;
@@ -126,17 +125,14 @@ public class SeasonService {
         return seasonMapper.toResponse(season);
     }
 
-    @Cacheable(value = "seasons", key = "#propertyId",
-            cacheManager = "redisCacheManager",
-            unless = "#result.content.isEmpty()")
     @Transactional(readOnly = true)
-    public CachedPage<SeasonResponse> findMySeasons(UUID propertyId, Pageable pageable) {
+    public Page<SeasonResponse> findMySeasons(UUID propertyId, Pageable pageable) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
         ownershipValidator.validateOwnership(propertyId, auth.id());
 
-        return CachedPage.from(seasonRepository
+        return seasonRepository
                 .findByProperty_Id(propertyId, pageable)
-                .map(seasonMapper::toResponse));
+                .map(seasonMapper::toResponse);
     }
 
     private Season findAndValidateOwnership(UUID seasonId, UUID userId) {

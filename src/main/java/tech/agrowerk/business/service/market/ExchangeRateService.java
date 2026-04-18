@@ -1,6 +1,8 @@
 package tech.agrowerk.business.service.market;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Cache;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import tech.agrowerk.application.dto.market.PtaxEntry;
@@ -92,7 +94,9 @@ public class ExchangeRateService {
                         });
     }
 
+    @Cacheable(value = "excahngeRate", key = "'usd_brl_today")
     public BigDecimal getUsdToBrl() {
+        log.info("Searching for the PTAX rate of the day (Cache MISS)");
         return fetchFromBcb(LocalDate.now());
     }
 
