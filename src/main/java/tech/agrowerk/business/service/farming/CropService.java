@@ -19,12 +19,15 @@ import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.farming.Crop;
+import tech.agrowerk.infrastructure.model.farming.enums.CropCategory;
+import tech.agrowerk.infrastructure.model.file.FileMetadata;
 import tech.agrowerk.infrastructure.model.file.enums.FileCategory;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropRepository;
 import tech.agrowerk.infrastructure.repository.file.FileMetadataRepository;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
@@ -69,26 +72,38 @@ public class CropService {
         Crop saved = cropRepository.save(crop);
 
         log.info("Crop created id={}", saved.getId());
-        return cropMapper.toResponse(saved);
+        return this.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
     public Page<CropResponse> listCrops(Pageable pageable) {
         return cropRepository.findAll(pageable)
-                .map(cropMapper::toResponse);
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
     public Page<CropResponse> searchByName(String name, Pageable pageable) {
        return cropRepository.findByNameContainingIgnoreCase(name, pageable)
-                .map(cropMapper::toResponse);
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
     public CropResponse findById(UUID id) {
         return cropRepository.findById(id)
-                .map(cropMapper::toResponse)
+                .map(this::toResponse)
                 .orElseThrow(() -> new EntityNotFoundException("Crop not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CropResponse> listByCategory(CropCategory cropCategory, Pageable pageable) {
+        log.info("Listing crops by category: {}", cropCategory);
+
+        if (cropCategory == null) {
+            return listCrops(pageable);
+        }
+
+        return cropRepository.findByCropCategory(cropCategory, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional
@@ -126,7 +141,7 @@ public class CropService {
         }
 
         log.info("Crop updated id={}", cropId);
-        return cropMapper.toResponse(crop);
+        return this.toResponse(crop);
     }
 
     @Transactional
@@ -142,5 +157,29 @@ public class CropService {
 
         log.info("Crop photo uploaded cropId={}", cropId);
         return fileStorageService.upload(file, FileCategory.CROP_PHOTO, cropId);
+    }
+
+    private CropResponse toResponse(Crop crop) {
+        try {
+            String originalUrl = null;
+            String thumbnailUrl = null;
+            String mediumUrl = null;
+
+            var photoMetadata = fileMetadataRepository
+                    .findByEntityIdAndFileCategoryAndDeletedFalse(crop.getId(), FileCategory.CROP_PHOTO);
+
+            if (photoMetadata.isPresent()) {
+                FileMetadata meta = photoMetadata.get();
+                originalUrl = meta.getOriginalUrl();
+                thumbnailUrl = meta.getThumbnailUrl();
+                mediumUrl = meta.getMediumUrl();
+            }
+
+            return cropMapper.toResponse(crop, originalUrl, thumbnailUrl, mediumUrl);
+
+        } catch (Exception e) {
+            log.error("Error mapping Crop to CropResponse for ID: {}", crop.getId(), e);
+            return cropMapper.toResponse(crop, null, null, null);
+        }
     }
 }

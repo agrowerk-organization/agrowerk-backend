@@ -17,7 +17,7 @@ public class CropMapper {
         return crop;
     }
 
-    public CropResponse toResponse(Crop crop) {
+    public CropResponse toResponse(Crop crop, String originalUrl, String mediumUrl, String thumbnailUrl) {
         return new CropResponse(
                 crop.getId(),
                 crop.getName(),
@@ -25,7 +25,10 @@ public class CropMapper {
                 crop.getGrowthCycleDays(),
                 crop.getCropCategory().name(),
                 crop.getCreatedAt(),
-                crop.getUpdatedAt()
+                crop.getUpdatedAt(),
+                originalUrl,
+                mediumUrl,
+                thumbnailUrl
         );
     }
 }

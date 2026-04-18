@@ -10,6 +10,9 @@ public record CropResponse(
     int growthCycleDays,
     String cropCategory,
     Instant createdAt,
-    Instant updatedAt
+    Instant updatedAt,
+    String originalUrl,
+    String mediumUrl,
+    String thumbnailUrl
 ) {
 }

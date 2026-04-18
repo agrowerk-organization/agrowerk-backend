@@ -2,6 +2,7 @@ package tech.agrowerk.application.controller.farming;
 
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import tech.agrowerk.application.dto.request.farming.UpdateCropRequest;
 import tech.agrowerk.application.dto.response.farming.CropResponse;
 import tech.agrowerk.application.dto.response.file.FileUploadResponse;
 import tech.agrowerk.business.service.farming.CropService;
+import tech.agrowerk.infrastructure.model.farming.enums.CropCategory;
 
 import java.util.UUID;
 
@@ -35,8 +37,15 @@ public class CropController {
 
     @GetMapping("/list-crops")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<CropResponse>> listCrops(@PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(cropService.listCrops(pageable));
+    public Page<CropResponse> list(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false)    CropCategory category
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return category != null
+                ? cropService.listByCategory(category, pageable)
+                : cropService.listCrops(pageable);
     }
 
     @GetMapping("/search-crop")
@@ -52,6 +61,7 @@ public class CropController {
     public ResponseEntity<CropResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(cropService.findById(id));
     }
+
 
     @PutMapping("/update-crop/{id}")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
