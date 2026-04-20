@@ -71,20 +71,25 @@ public class AuthService {
 
         User user = userRepository.findByEmail(email).orElse(null);
 
-        assert user != null;
+        if (user == null) {
+            passwordEncoder.matches(password, FAKE_HASH);
+            throw new BadCredentialsException("Invalid email or password");
+        }
+
+        if (!user.getRole().getName().equals(loginRequest.roleType())) {
+            passwordEncoder.matches(password, FAKE_HASH);
+            throw new BadCredentialsException("Invalid email or password");
+        }
+
         if (!user.isEmailVerified()) {
             throw new EmailNotVerifiedException("Please verify your email before logging in");
         }
 
-        boolean validPassword = false;
-        validPassword = passwordEncoder.matches(password, user.getPassword());
-
-        if (!validPassword) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             authHelperService.saveFailedAttempt(user);
             if (user.isLocked()) {
                 auditService.logAccountLocked(user, getClientIp(request));
             }
-
             auditService.logSecurityEvent(
                     SecurityEvent.LOGIN_FAILED,
                     getClientIp(request),
@@ -92,7 +97,6 @@ public class AuthService {
                     user.getId(),
                     "Invalid credentials for email: " + email
             );
-
             throw new BadCredentialsException("Invalid email or password");
         }
 

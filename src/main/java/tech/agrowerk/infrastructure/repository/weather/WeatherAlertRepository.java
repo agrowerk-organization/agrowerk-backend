@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.weather.WeatherAlert;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertSeverity;
+import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertType;
 
 import java.time.Instant;
 import java.util.List;
@@ -27,7 +28,15 @@ public interface WeatherAlertRepository extends JpaRepository<WeatherAlert, UUID
 
     long countByLocationId(UUID locationId);
 
+    long countByLocationAndIsActiveTrue(WeatherLocation weatherLocation);
+
+    long countByLocationAndIsActiveFalse(WeatherLocation weatherLocation);
+
     long countByLocationAndSeverity(WeatherLocation location, WeatherAlertSeverity severity);
+
+    long countByLocationAndAlertType(WeatherLocation weatherLocation, WeatherAlertType weatherAlertType);
+
+    Optional<WeatherAlert> findByLocationAndStartTimeAfter(WeatherLocation weatherLocation, Instant cutoffTime);
 
     @Modifying
     @Transactional

@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertSeverity;
+import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertStatus;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertType;
 
 import java.time.Instant;
@@ -70,6 +71,19 @@ public class WeatherAlert {
     @Column(name = "notified", nullable = false)
     @Builder.Default
     private Boolean notified = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private WeatherAlertStatus weatherAlertStatus;
+
+    @Column(columnDefinition = "TEXT")
+    private String observations;
+
+    @Column
+    private Instant resolvedAt;
+
+    @Column
+    private UUID resolvedBy;
 
     @Column(name = "notified_at")
     private Instant notifiedAt;

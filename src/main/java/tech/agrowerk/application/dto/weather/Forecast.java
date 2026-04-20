@@ -33,6 +33,6 @@ public record Forecast(
         BigDecimal evapotranspiration,
         BigDecimal soilMoisture,
         BigDecimal soilTemperature,
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "UTC")
         Instant fetchedAt
 ) {}

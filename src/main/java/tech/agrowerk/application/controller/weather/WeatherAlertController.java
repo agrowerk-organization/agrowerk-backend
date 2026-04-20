@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.weather.Alert;
+import tech.agrowerk.application.dto.weather.AlertStatistics;
 import tech.agrowerk.business.service.weather.WeatherAlertService;
 import tech.agrowerk.business.service.weather.WeatherLocationService;
 import tech.agrowerk.business.service.weather.WeatherService;
@@ -54,28 +55,25 @@ public class WeatherAlertController {
 
     @GetMapping("/get-statistics/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
-    public ResponseEntity<Map<String, Object>> getAlertStatistics(
+    public ResponseEntity<AlertStatistics> getAlertStatistics(
             @PathVariable UUID locationId) {
 
-        Map<String, Object> stats = alertService.getAlertStatistics(locationId);
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(alertService.getAlertStatistics(locationId));
     }
 
     @PostMapping("resolve/{alertId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SYSTEM_ADMIN')")
     public ResponseEntity<Map<String, String>> resolveAlert(
             @PathVariable UUID alertId,
+            @RequestBody(required = false) Map<String, String> body) {
 
-            Authentication authentication) {
+        String observations = body != null ? body.get("observations") : null;
 
-        String username = authentication.getName();
-
-        alertService.resolveAlert(alertId, username);
+        alertService.resolveAlert(alertId, observations);
 
         return ResponseEntity.ok(Map.of(
                 "message", "Alert resolved successfully",
                 "alertId", alertId.toString(),
-                "resolvedBy", username,
                 "timestamp", Instant.now().toString()
         ));
     }

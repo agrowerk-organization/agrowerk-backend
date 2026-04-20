@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.agrowerk.application.dto.weather.Alert;
+import tech.agrowerk.application.dto.weather.AlertStatistics;
 import tech.agrowerk.business.mapper.weather.WeatherMapper;
 import tech.agrowerk.application.dto.weather.RealTimeUpdate;
 import tech.agrowerk.business.utils.AuthUtil;
@@ -22,6 +23,7 @@ import tech.agrowerk.infrastructure.model.weather.WeatherAlert;
 import tech.agrowerk.infrastructure.model.weather.WeatherCurrent;
 import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertSeverity;
+import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertStatus;
 import tech.agrowerk.infrastructure.model.weather.enums.WeatherAlertType;
 import tech.agrowerk.infrastructure.repository.weather.WeatherAlertRepository;
 import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
@@ -99,7 +101,7 @@ public class WeatherAlertService {
         return generatedAlerts;
     }
 
-    @Cacheable(value = "weatherAlerts", key = "#location.id", unless = "#result == null")
+    @Cacheable(value = "weatherAlerts", key = "#locationId", unless = "#result == null")
     @Transactional(readOnly = true)
     public List<Alert> getActiveAlertsByLocation(UUID locationId) {
         WeatherLocation location = locationRepository.findById(locationId)
@@ -117,32 +119,45 @@ public class WeatherAlertService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getAlertStatistics(UUID locationId) {
+    public AlertStatistics getAlertStatistics(UUID locationId) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
         WeatherAlert sample = alertRepository.findFirstByLocationId(locationId)
-                .orElseThrow(() -> new EntityNotFoundException("No alerts founds for location: " + locationId));
+                .orElseThrow(() -> new EntityNotFoundException("No alerts found for location: " + locationId));
 
         ownershipValidator.validateLocationAccess(sample.getLocation(), auth.id());
 
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalAlerts", alertRepository.countByLocationId(locationId));
+        WeatherLocation location = sample.getLocation();
+
+        long totalActive   = alertRepository.countByLocationAndIsActiveTrue(location);
+        long totalResolved = alertRepository.countByLocationAndIsActiveFalse(location);
 
         Map<WeatherAlertSeverity, Long> bySeverity = Arrays.stream(WeatherAlertSeverity.values())
                 .collect(Collectors.toMap(
-                        severity -> severity,
-                        severity -> alertRepository.countByLocationAndSeverity(sample.getLocation(), severity)
+                        s -> s,
+                        s -> alertRepository.countByLocationAndSeverity(location, s)
                 ));
-        stats.put("bySeverity", bySeverity);
 
-        return stats;
+        Map<WeatherAlertType, Long> byType = Arrays.stream(WeatherAlertType.values())
+                .collect(Collectors.toMap(
+                        t -> t,
+                        t -> alertRepository.countByLocationAndAlertType(location, t)
+                ));
+
+        return new AlertStatistics(
+                totalActive,
+                totalResolved,
+                bySeverity,
+                byType,
+                Instant.now()
+        );
     }
 
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "weatherAlerts", allEntries = true)
     })
-    public void resolveAlert(UUID alertId, String resolvedBy) {
+    public void resolveAlert(UUID alertId, String observations) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
         WeatherAlert alert = alertRepository.findById(alertId)
@@ -150,13 +165,22 @@ public class WeatherAlertService {
 
         ownershipValidator.validateLocationAccess(alert.getLocation(), auth.id());
 
+        if (!alert.getIsActive()) {
+            throw new WeatherAlertException("Alert is already resolved: " + alertId);
+        }
+
         alert.setIsActive(false);
         alert.setEndTime(Instant.now());
+        alert.setResolvedAt(Instant.now());
+        alert.setResolvedBy(auth.id());
+        alert.setObservations(observations);
+        alert.setWeatherAlertStatus(WeatherAlertStatus.RESOLVED);
+
         alertRepository.save(alert);
 
         sendResolutionNotification(alert);
 
-        log.info("Alert manually resolved: id={}, by={}", alertId, resolvedBy);
+        log.info("Alert manually resolved: id={}, resolvedBy={}", alertId, auth.id());
     }
 
     @Scheduled(cron = "0 0 * * * *")
@@ -373,11 +397,8 @@ public class WeatherAlertService {
     private boolean isDuplicateAlert(WeatherLocation location, WeatherAlertType type) {
         Instant cutoffTime = Instant.now().minus(ALERT_DEDUPLICATION_HOURS, ChronoUnit.HOURS);
 
-        return alertRepository.findByLocationAndIsActiveTrue(location).stream()
-                .anyMatch(alert ->
-                        alert.getAlertType() == type &&
-                                alert.getStartTime().isAfter(cutoffTime)
-                );
+        return alertRepository.findByLocationAndStartTimeAfter(location, cutoffTime).stream()
+                .anyMatch(alert -> alert.getAlertType() == type);
     }
 
     private void sendWebSocketNotification(WeatherAlert alert) {

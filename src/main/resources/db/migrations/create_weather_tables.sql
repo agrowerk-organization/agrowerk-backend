@@ -88,39 +88,30 @@ ALTER TABLE weather_forecasts
 
 CREATE TABLE weather_alerts
 (
-    id                  UUID                        NOT NULL,
-    location_id         UUID                        NOT NULL,
-    alert_type          VARCHAR(50)                 NOT NULL,
-    severity            VARCHAR(20)                 NOT NULL,
-    title               VARCHAR(255)                NOT NULL,
-    description         TEXT,
-    start_time          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    end_time            TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    is_active           BOOLEAN                     NOT NULL,
-    recommended_actions TEXT,
-    trigger_condition   VARCHAR(255),
-    source              VARCHAR(50),
-    notified            BOOLEAN                     NOT NULL,
-    notified_at         TIMESTAMP WITHOUT TIME ZONE,
-    created_at          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    updated_at          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    id                   UUID                        NOT NULL,
+    location_id          UUID                        NOT NULL,
+    alert_type           VARCHAR(50)                 NOT NULL,
+    severity             VARCHAR(20)                 NOT NULL,
+    title                VARCHAR(255)                NOT NULL,
+    description          TEXT,
+    start_time           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    end_time             TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    is_active            BOOLEAN                     NOT NULL,
+    recommended_actions  TEXT,
+    trigger_condition    VARCHAR(255),
+    source               VARCHAR(50),
+    notified             BOOLEAN                     NOT NULL,
+    weather_alert_status VARCHAR(255)                NOT NULL,
+    observations         TEXT,
+    resolved_at          TIMESTAMP WITHOUT TIME ZONE,
+    resolved_by          UUID,
+    notified_at          TIMESTAMP WITHOUT TIME ZONE,
+    created_at           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at           TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT pk_weather_alerts PRIMARY KEY (id)
 );
 
+CREATE INDEX idx_weather_alerts_location_active ON weather_alerts (location_id, is_active, start_time);
+
 ALTER TABLE weather_alerts
     ADD CONSTRAINT FK_WEATHER_ALERTS_ON_LOCATION FOREIGN KEY (location_id) REFERENCES weather_locations (id);
-
-CREATE INDEX IF NOT EXISTS idx_weather_currents_location_id
-    ON weather_currents(location_id);
-
-CREATE INDEX IF NOT EXISTS idx_weather_currents_location_timestamp
-    ON weather_currents(location_id, timestamp DESC);
-
-CREATE INDEX IF NOT EXISTS idx_user_properties_user_property
-    ON user_properties(user_id, property_id);
-
-CREATE INDEX IF NOT EXISTS idx_weather_forecasts_location_date
-    ON weather_forecasts(location_id, forecast_date);
-
-CREATE INDEX IF NOT EXISTS idx_weather_alerts_location_active
-    ON weather_alerts(location_id, is_active, start_time);
