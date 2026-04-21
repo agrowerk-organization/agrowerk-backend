@@ -53,6 +53,22 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
+        String accessToken = cookieService.extractAccessToken(request);
+        String refreshToken = cookieService.extractRefreshToken(request);
+
+        if (refreshToken != null) {
+            try {
+                Jwt refreshJwt = jwtDecoder.decode(refreshToken);
+                String refreshJti = refreshJwt.getClaimAsString("jti");
+                if (refreshJti != null && tokenBlacklistService.isBlacklisted(refreshJti)) {
+                    log.warn("Blocked blacklisted refresh token: jti={}", refreshJti);
+                    sendUnauthorizedResponse(response, "Token has been revoked");
+                    return;
+                }
+            } catch (JwtException ignored) {
+            }
+        }
+
         try {
             String token = cookieService.extractAccessToken(request);
 

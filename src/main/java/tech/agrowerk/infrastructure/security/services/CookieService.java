@@ -116,7 +116,8 @@ public class CookieService {
                 .httpOnly(true)
                 .secure(secureCookies)
                 .path(path)
-                .maxAge(0);
+                .maxAge(0)
+                .sameSite(sameSite);
 
         if (cookieDomain != null && !cookieDomain.isBlank()) {
             builder.domain(cookieDomain);

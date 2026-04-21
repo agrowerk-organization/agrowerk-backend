@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.request.supplier.CreateSupplierRequest;
 import tech.agrowerk.application.dto.request.supplier.UpdateSupplierRequest;
+import tech.agrowerk.application.dto.response.property.PropertyResponse;
 import tech.agrowerk.application.dto.response.supplier.SupplierResponse;
 import tech.agrowerk.business.service.supplier.SupplierService;
 

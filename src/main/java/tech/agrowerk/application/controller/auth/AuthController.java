@@ -63,12 +63,13 @@ public class AuthController implements AuthApi {
 
     @Override
     @PostMapping("/logout")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logout(HttpServletRequest httpServletRequest) {
         String accessToken = cookieService.extractAccessToken(httpServletRequest);
         String refreshToken = cookieService.extractRefreshToken(httpServletRequest);
 
-        authService.logout(accessToken, refreshToken, httpServletRequest);
+        if (accessToken != null || refreshToken != null) {
+            authService.logout(accessToken, refreshToken, httpServletRequest);
+        }
 
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, cookieService.deleteAccessTokenCookie().toString())

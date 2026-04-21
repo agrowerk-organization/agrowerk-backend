@@ -71,6 +71,8 @@ public class SecurityConfig {
 
     public static final String[] PUBLIC_ENDPOINTS = {
             "/auth/login",
+            "/auth/logout",
+            "/auth/refresh",
             "/users/register",
             "/roles/list-roles",
             "/auth/forgot-password",
@@ -190,16 +192,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(customAccessDeniedHandler())
                 )
 
-                .logout(logout -> logout
-                        .logoutUrl("/auth/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-                        })
-                        .deleteCookies("accessToken", "refreshToken", "JSESSIONID")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                )
-
+                .logout(AbstractHttpConfigurer::disable)
                 .build();
     }
 

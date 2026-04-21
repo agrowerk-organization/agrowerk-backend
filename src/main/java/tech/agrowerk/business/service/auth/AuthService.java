@@ -191,42 +191,53 @@ public class AuthService {
             throw new InvalidTokenException("Invalid or expired refresh token");
         }
     }
-
     @Transactional
     public void logout(String accessToken, String refreshToken, HttpServletRequest request) {
-        try {
-            if (accessToken != null && !accessToken.isBlank()) {
-                jwtService.invalidateToken(accessToken);
-            }
+        if (accessToken != null && !accessToken.isBlank()) {
+            jwtService.invalidateToken(accessToken);
+        }
 
-            if (refreshToken != null && !refreshToken.isBlank()) {
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            UUID userId = null;
+
+            try {
+                Jwt jwt = jwtService.decodeAndValidateToken(refreshToken);
+                userId = UUID.fromString(jwt.getClaim("userId"));
+
+                String refreshJti = jwt.getClaimAsString("jti");
+                if (refreshJti != null) {
+                    long ttl = jwt.getExpiresAt() != null
+                            ? jwt.getExpiresAt().getEpochSecond() - Instant.now().getEpochSecond()
+                            : 604800L;
+                    tokenBlacklistService.blacklistToken(refreshJti, ttl);
+                }
+            } catch (Exception e) {
+                log.warn("Refresh token decode failed on logout (expired?): {}", e.getMessage());
                 try {
-                    Jwt jwt = jwtService.decodeAndValidateToken(refreshToken);
-                    UUID userId = UUID.fromString(jwt.getClaim("userId"));
-
-                    User user = userRepository.findById(userId).orElse(null);
-                    if (user != null) {
-                        user.invalidateRefreshToken();
-                        userRepository.save(user);
-
-                        auditService.logSecurityEvent(
-                                SecurityEvent.LOGOUT,
-                                getClientIp(request),
-                                request.getHeader("User-Agent"),
-                                userId,
-                                "User logged out"
-                        );
-                    }
-                } catch (Exception e) {
-                    log.debug("Error processing refresh token on logout: {}", e.getMessage());
+                    userId = jwtService.extractUserIdWithoutValidation(refreshToken);
+                } catch (Exception ex) {
+                    log.debug("Could not extract userId from refresh token: {}", ex.getMessage());
                 }
             }
 
-            log.info("User logged out successfully");
+            if (userId != null) {
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    user.invalidateRefreshToken();
+                    userRepository.save(user);
 
-        } catch (Exception e) {
-            log.error("Error during logout: {}", e.getMessage());
+                    auditService.logSecurityEvent(
+                            SecurityEvent.LOGOUT,
+                            getClientIp(request),
+                            request.getHeader("User-Agent"),
+                            userId,
+                            "User logged out"
+                    );
+                }
+            }
         }
+
+        log.info("User logged out successfully");
     }
 
 

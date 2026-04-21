@@ -1,5 +1,6 @@
 package tech.agrowerk.infrastructure.security.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,8 @@ import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.security.details.CustomUserDetails;
 
 import java.time.Instant;
+import java.util.Base64;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -146,15 +149,20 @@ public class JwtService {
             String jti = jwt.getClaimAsString("jti");
             Instant expiration = jwt.getExpiresAt();
 
-            if (jti != null && expiration != null) {
-                long ttl = expiration.getEpochSecond() - Instant.now().getEpochSecond();
-                if (ttl > 0) {
-                    tokenBlacklistService.blacklistToken(jti, ttl);
-                    log.info("Invalided token: jti={}", jti);
-                }
+            if (jti != null) {
+                long ttl = expiration != null
+                        ? Math.max(expiration.getEpochSecond() - Instant.now().getEpochSecond(), 60L)
+                        : accessTokenExpiration;
+                tokenBlacklistService.blacklistToken(jti, ttl);
+                log.info("Token invalidated: jti={}", jti);
             }
         } catch (JwtException e) {
-            log.warn("Tentativa de invalidar token inválido: {}", e.getMessage());
+            log.warn("Token decode failed, attempting forced invalidation: {}", e.getMessage());
+            String jti = extractJtiWithoutValidation(token);
+            if (jti != null) {
+                tokenBlacklistService.blacklistToken(jti, 300L);
+                log.info("Expired token force-blacklisted: jti={}", jti);
+            }
         }
     }
 
@@ -200,6 +208,33 @@ public class JwtService {
 
         if (!user.isEmailVerified()) {
             throw new DisabledException("Email not verified");
+        }
+    }
+
+    private String extractJtiWithoutValidation(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) return null;
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> claims = mapper.readValue(payload, Map.class);
+            return (String) claims.get("jti");
+        } catch (Exception e) {
+            log.warn("Could not extract JTI from token: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public UUID extractUserIdWithoutValidation(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> claims = mapper.readValue(payload, Map.class);
+            return UUID.fromString((String) claims.get("userId"));
+        } catch (Exception e) {
+            log.warn("Could not extract userId from token: {}", e.getMessage());
+            return null;
         }
     }
 
