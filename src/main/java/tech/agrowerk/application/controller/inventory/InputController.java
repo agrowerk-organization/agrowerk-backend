@@ -54,7 +54,7 @@ public class InputController {
     }
 
     @GetMapping("/find-catalog")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<InputResponse>> findCatalog(
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(
