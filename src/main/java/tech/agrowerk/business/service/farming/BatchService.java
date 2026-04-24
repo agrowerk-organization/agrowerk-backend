@@ -116,7 +116,8 @@ public class BatchService {
                 saved.getSupplier().getId(),
                 saved.getInitialQuantity(),
                 saved.getUnitPrice(),
-                saved.getExpirationDate()
+                saved.getExpirationDate(),
+                true
         ));
 
         log.info("Batch created id={} input={} supplier={}",

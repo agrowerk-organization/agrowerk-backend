@@ -1,15 +1,15 @@
-CREATE OR REPLACE VIEW v_active_offers_summary AS
+CREATE OR REPLACE VIEW v_active_offers_summary_view AS
 SELECT
-    CONCAT(offered_crop_id::text, '-', COALESCE(region, 'NACIONAL')) AS id,
-    offered_crop_id,
-    region,
-    COUNT(*)                          AS total_offers,
-    SUM(offered_crop_quantity)        AS total_quantity,
-    AVG(requested_value)              AS avg_requested_value,
-    MIN(expires_at)                   AS nearest_expiration
+    CAST(offered_forecast_id AS VARCHAR) AS id,
+    offered_forecast_id,
+    COUNT(*) AS total_offers,
+    SUM(offered_crop_quantity) AS total_quantity,
+    AVG(requested_value) AS avg_requested_value,
+    MIN(expires_at) AS nearest_expiration
 FROM barter_offers
 WHERE status = 'ACTIVE'
-GROUP BY offered_crop_id, region;
+GROUP BY offered_forecast_id;
+
 
 CREATE OR REPLACE VIEW v_overdue_commitments AS
 SELECT

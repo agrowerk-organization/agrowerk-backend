@@ -18,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/weather-locations")
 @Slf4j
-public class WeatherLocationController implements WeatherLocationApi {
+public class WeatherLocationController {
 
     private final WeatherLocationService locationService;
 

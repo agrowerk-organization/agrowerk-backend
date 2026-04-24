@@ -8,6 +8,8 @@ import java.time.LocalDate;
 public record CommodityPriceResponse(
         Commodity commodity,
         BigDecimal price,
+        BigDecimal priceUsd,
+        BigDecimal ptaxRate,
         String unit,
         LocalDate referenceDate,
         BigDecimal variationPercent

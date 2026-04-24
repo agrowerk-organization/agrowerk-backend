@@ -11,7 +11,7 @@ import tech.agrowerk.business.service.law.LawService;
 
 @RestController
 @RequestMapping("/laws")
-public class LawController implements LawApi {
+public class LawController {
 
     private final LawService lawService;
 
@@ -19,7 +19,6 @@ public class LawController implements LawApi {
         this.lawService = lawService;
     }
 
-    @Override
     @GetMapping("/{slug}")
     public ResponseEntity<LawResponse> getLawContent(@PathVariable String slug) {
         LawResponse response = lawService.getLawContent(slug);

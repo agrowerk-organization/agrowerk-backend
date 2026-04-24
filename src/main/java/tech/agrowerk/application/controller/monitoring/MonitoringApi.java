@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.monitoring;
+/*package tech.agrowerk.application.controller.monitoring;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -39,4 +39,4 @@ public interface MonitoringApi {
             @ApiResponse(responseCode = "200", description = "Circuit Breaker forced open successfully")
     })
     ResponseEntity<String> forceOpen();
-}
+}*/

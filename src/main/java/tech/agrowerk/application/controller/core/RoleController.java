@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/roles")
-public class RoleController implements RoleApi {
+public class RoleController {
 
     private final RoleService roleService;
 
@@ -19,7 +19,6 @@ public class RoleController implements RoleApi {
         this.roleService = roleService;
     }
 
-    @Override
     @GetMapping("/list-roles")
     public ResponseEntity<List<RoleResponse>> listRoles() {
         return ResponseEntity.ok().body(roleService.listRoles());

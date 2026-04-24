@@ -1,12 +1,5 @@
-package tech.agrowerk.application.controller.weather;
+/*package tech.agrowerk.application.controller.weather;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
@@ -87,4 +80,4 @@ public interface WeatherApi {
             @ApiResponse(responseCode = "403", description = "Access denied - Insufficient privileges")
     })
     ResponseEntity<Map<String, String>> forceRefresh(UUID locationId);
-}
+}*/

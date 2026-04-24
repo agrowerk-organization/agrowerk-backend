@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.business.listener.events.BatchCreatedEvent;
 import tech.agrowerk.business.listener.events.BatchReceivedEvent;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.model.inventory.Input;
@@ -13,6 +14,7 @@ import tech.agrowerk.infrastructure.model.inventory.Warehouse;
 import tech.agrowerk.infrastructure.model.inventory.enums.MovementType;
 import tech.agrowerk.infrastructure.model.inventory.enums.StockType;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
+import tech.agrowerk.infrastructure.repository.farming.BatchRepository;
 import tech.agrowerk.infrastructure.repository.inventory.InputRepository;
 import tech.agrowerk.infrastructure.repository.inventory.StockMovementRepository;
 import tech.agrowerk.infrastructure.repository.inventory.StockRepository;
@@ -29,6 +31,7 @@ public class BatchEventListener {
 
     private final StockRepository stockRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final BatchRepository batchRepository;
     private final InputRepository inputRepository;
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
@@ -36,15 +39,47 @@ public class BatchEventListener {
 
     public BatchEventListener(StockRepository stockRepository,
                               StockMovementRepository stockMovementRepository,
+                              BatchRepository batchRepository,
                               InputRepository inputRepository,
                               PropertyRepository propertyRepository,
-                              UserRepository userRepository, WarehouseRepository warehouseRepository) {
+                              UserRepository userRepository,
+                              WarehouseRepository warehouseRepository) {
         this.stockRepository = stockRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.batchRepository = batchRepository;
         this.inputRepository = inputRepository;
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
         this.warehouseRepository = warehouseRepository;
+    }
+
+    @EventListener
+    @Transactional
+    public void onBatchCreated(BatchCreatedEvent event) {
+        if (!event.isBarter()) return;
+
+        Input input = inputRepository.findById(event.inputId())
+                .orElseThrow(() -> new EntityNotFoundException("Input not found"));
+
+        input.setLastPurchasePrice(event.unitPrice());
+
+        CmpAccumulator result = batchRepository.findAllActiveBarterPendingOrReceivedByInputId(event.inputId())
+                .stream()
+                .reduce(
+                        new CmpAccumulator(BigDecimal.ZERO, BigDecimal.ZERO),
+                        (acc, b) -> new CmpAccumulator(
+                                acc.totalValue().add(b.getUnitPrice().multiply(b.getCurrentQuantity())),
+                                acc.totalQuantity().add(b.getCurrentQuantity())
+                        ),
+                        (a, b) -> new CmpAccumulator(a.totalValue().add(b.totalValue()), a.totalQuantity().add(b.totalQuantity()))
+                );
+
+        input.setAveragePurchasePrice(result.calculate());
+
+        inputRepository.save(input);
+        log.info("Barter CMP recalculated for input {}: {}",
+                input.getName(), input.getAveragePurchasePrice());
+
     }
 
     @EventListener
@@ -72,8 +107,10 @@ public class BatchEventListener {
 
         BigDecimal newTotalValue = currentTotalValue.add(event.totalValue());
 
-        BigDecimal newCMP = newTotalValue.divide(
-                newQuantity, 2, RoundingMode.HALF_UP);
+        BigDecimal newCMP = BigDecimal.ZERO;
+        if (newQuantity.compareTo(BigDecimal.ZERO) > 0) {
+            newCMP = newTotalValue.divide(newQuantity, 2, RoundingMode.HALF_UP);
+        }
 
         stock.setCurrentQuantity(newQuantity);
         stock.setTotalValue(newTotalValue);
@@ -101,6 +138,7 @@ public class BatchEventListener {
         movement.setMovementDate(LocalDateTime.now());
         movement.setNotes("Batch received id=" + event.batchId());
         stockMovementRepository.save(movement);
+        inputRepository.save(input);
 
         log.info("Stock updated after batch received id={} property={}",
                 event.batchId(), event.propertyId());
@@ -158,5 +196,13 @@ public class BatchEventListener {
         stock.setTotalValue(BigDecimal.ZERO);
         stock.setWeightedAverageCost(BigDecimal.ZERO);
         return stockRepository.save(stock);
+    }
+
+    public record CmpAccumulator(BigDecimal totalValue, BigDecimal totalQuantity) {
+        public BigDecimal calculate() {
+            return totalQuantity.compareTo(BigDecimal.ZERO) > 0
+                    ? totalValue.divide(totalQuantity, 4, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+        }
     }
 }

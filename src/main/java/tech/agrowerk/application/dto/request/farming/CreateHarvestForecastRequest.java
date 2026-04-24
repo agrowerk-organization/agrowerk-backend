@@ -9,10 +9,21 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record CreateHarvestForecastRequest(
-        @NotNull UUID plantingId,
-        @NotNull @Positive BigDecimal estimatedQuantity,
-        @NotNull LocalDate forecastDate,
-        @NotNull ConfidenceLevel confidenceLevel,
-        @Positive BigDecimal plantedArea,
+        @NotNull
+        UUID plantingId,
+
+        @NotNull
+        @Positive
+        BigDecimal estimatedQuantity,
+
+        @NotNull
+        LocalDate forecastDate,
+
+        @NotNull
+        ConfidenceLevel confidenceLevel,
+
+        @Positive
+        BigDecimal plantedArea,
+
         String notes
 ) {}

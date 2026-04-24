@@ -33,9 +33,10 @@ public class AdvancedGlobalExceptionHandler {
             entry(WeatherApiException.class, serviceUnavailable("Weather service temporarily unavailable")),
             entry(WeatherAlertException.class, notFound("Alert not found")),
             entry(InsufficientStockException.class, badRequest("Insufficient stock")),
-            entry(MarketDataException.class, serviceUnavailable("Service unavailable of CEPEA")),
+            entry(MarketDataException.class, serviceUnavailable("Service unavailable of CBOT")),
             entry(EmailNotVerifiedException.class, forbidden("Verify your email")),
-            entry(DataIntegrityViolationException.class, conflict("Data integrity violation"))
+            entry(DataIntegrityViolationException.class, conflict("Data integrity violation")),
+            entry(PdfGenerationException.class, internalError("Internal error while generating PDF"))
     );
 
     @ExceptionHandler({

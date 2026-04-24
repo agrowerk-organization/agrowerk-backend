@@ -30,6 +30,31 @@ public interface BatchRepository extends JpaRepository<Batch, UUID> {
 
     @Query("""
         SELECT b FROM Batch b
+        JOIN FETCH b.input i
+        WHERE i.id = :inputId
+          AND b.currentQuantity > 0
+          AND b.status IN (
+              tech.agrowerk.infrastructure.model.farming.enums.BatchStatus.AVAILABLE,
+              tech.agrowerk.infrastructure.model.farming.enums.BatchStatus.IN_USE
+          )
+    """)
+    List<Batch> findAllActiveBarterPendingOrReceivedByInputId(@Param("inputId") UUID inputId);
+
+    @Query("""
+    SELECT b FROM Batch b
+    JOIN FETCH b.input i
+    WHERE i.id = :inputId
+      AND b.currentQuantity > 0
+      AND b.status IN (
+          tech.agrowerk.infrastructure.model.farming.enums.BatchStatus.AVAILABLE,
+          tech.agrowerk.infrastructure.model.farming.enums.BatchStatus.IN_USE
+      )
+      AND b.receiptStatus = tech.agrowerk.infrastructure.model.farming.enums.BatchReceiptStatus.RECEIVED
+    """)
+    List<Batch> findAllActiveBarterByInputId(@Param("inputId") UUID inputId);
+
+    @Query("""
+        SELECT b FROM Batch b
         WHERE b.input.id = :inputId
         AND b.status = :status
         AND b.property.id = :propertyId

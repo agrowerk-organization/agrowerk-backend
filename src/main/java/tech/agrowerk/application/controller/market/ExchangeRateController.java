@@ -22,7 +22,7 @@ public class ExchangeRateController {
     @PostMapping("/admin/backfill-exchange-rates")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<Void> backfillExchangeRates() {
-        exchangeRateService.backfillHistoricalRates(LocalDate.of(2021, 1, 1), LocalDate.now());
+        exchangeRateService.backfillHistoricalRates(LocalDate.of(2026, 4, 16), LocalDate.now());
         return ResponseEntity.accepted().build();
     }
 }

@@ -20,7 +20,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/auth")
 @Slf4j
-public class AuthController implements AuthApi {
+public class AuthController {
 
     private final AuthService authService;
     private final CookieService cookieService;
@@ -30,7 +30,6 @@ public class AuthController implements AuthApi {
         this.cookieService = cookieService;
     }
 
-    @Override
     @PostMapping("/login")
     public ResponseEntity<UserInfoDto> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response, HttpServletRequest httpServletRequest) {
         log.info("Login attempt for email: {}", (loginRequest != null) ? loginRequest.email() : "empty body");
@@ -42,7 +41,6 @@ public class AuthController implements AuthApi {
                 .body(loginResult.userInfoDto());
     }
 
-    @Override
     @PostMapping("/refresh")
     public ResponseEntity<UserInfoDto> refresh(HttpServletRequest httpServletRequest) {
         String refreshToken = cookieService.extractRefreshToken(httpServletRequest);
@@ -61,7 +59,6 @@ public class AuthController implements AuthApi {
                 .body(loginResult.userInfoDto());
     }
 
-    @Override
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest httpServletRequest) {
         String accessToken = cookieService.extractAccessToken(httpServletRequest);
@@ -77,7 +74,6 @@ public class AuthController implements AuthApi {
                 .build();
     }
 
-    @Override
     @PutMapping("/change-password")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePassword changePassword) {
@@ -92,7 +88,6 @@ public class AuthController implements AuthApi {
                 .build();
     }
 
-    @Override
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserInfoDto> getCurrentUser() {

@@ -17,11 +17,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/files")
 @RequiredArgsConstructor
-public class FileUploadController implements FileUploadApi {
+public class FileUploadController {
 
     private final FileStorageService fileStorageService;
 
-    @Override
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FileUploadResponse> uploadFile(
@@ -33,7 +32,6 @@ public class FileUploadController implements FileUploadApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Override
     @PostMapping(value = "/upload/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FileUploadResponse>> uploadMultipleFiles(
@@ -45,21 +43,18 @@ public class FileUploadController implements FileUploadApi {
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
-    @Override
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FileUploadResponse> getFile(@PathVariable UUID id) {
         return ResponseEntity.ok(fileStorageService.getFileById(id));
     }
 
-    @Override
     @GetMapping("/public-id/{publicId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<FileUploadResponse> getFileByPublicId(@PathVariable String publicId) {
         return ResponseEntity.ok(fileStorageService.getFileByPublicId(publicId));
     }
 
-    @Override
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FileUploadResponse>> listFiles(
@@ -68,7 +63,6 @@ public class FileUploadController implements FileUploadApi {
         return ResponseEntity.ok(fileStorageService.listFiles(category, entityId));
     }
 
-    @Override
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteFile(@PathVariable UUID id) {
@@ -76,7 +70,6 @@ public class FileUploadController implements FileUploadApi {
         return ResponseEntity.noContent().build();
     }
 
-    @Override
     @DeleteMapping("/{id}/hard")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<Void> hardDeleteFile(@PathVariable UUID id) {
@@ -84,7 +77,6 @@ public class FileUploadController implements FileUploadApi {
         return ResponseEntity.noContent().build();
     }
 
-    @Override
     @PostMapping("/cleanup")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<String> cleanupOldFiles(
@@ -93,7 +85,6 @@ public class FileUploadController implements FileUploadApi {
         return ResponseEntity.ok(deletedCount + " Removed files");
     }
 
-    @Override
     @GetMapping("/stats")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<FileStorageService.StorageStats> getStats() {

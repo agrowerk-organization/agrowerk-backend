@@ -1,19 +1,13 @@
 package tech.agrowerk.application.controller.weather;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.weather.Alert;
 import tech.agrowerk.application.dto.weather.AlertStatistics;
 import tech.agrowerk.business.service.weather.WeatherAlertService;
 import tech.agrowerk.business.service.weather.WeatherLocationService;
-import tech.agrowerk.business.service.weather.WeatherService;
-import tech.agrowerk.infrastructure.model.weather.WeatherLocation;
-import tech.agrowerk.infrastructure.repository.weather.WeatherLocationRepository;
 
 import java.time.Instant;
 import java.util.List;

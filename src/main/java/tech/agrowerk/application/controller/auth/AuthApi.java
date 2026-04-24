@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.auth;
+/*package tech.agrowerk.application.controller.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -53,4 +53,4 @@ public interface AuthApi {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     ResponseEntity<UserInfoDto> getCurrentUser();
-}
+}*/

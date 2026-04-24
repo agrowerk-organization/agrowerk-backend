@@ -25,7 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/weather")
 @Slf4j
-public class WeatherController implements WeatherApi {
+public class WeatherController {
 
     private final WeatherCacheService cacheService;
     private final WeatherDashboardService dashboardService;
@@ -39,7 +39,6 @@ public class WeatherController implements WeatherApi {
         this.openMeteoClient = openMeteoClient;
     }
 
-    @Override
     @GetMapping("/get-current/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Current> getCurrentWeather(@PathVariable UUID locationId) {
@@ -47,7 +46,6 @@ public class WeatherController implements WeatherApi {
         return ResponseEntity.ok(cacheService.getCurrentWeather(locationId));
     }
 
-    @Override
     @GetMapping("/get-forecast/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<List<Forecast>> getForecast(
@@ -59,7 +57,6 @@ public class WeatherController implements WeatherApi {
     }
 
 
-    @Override
     @GetMapping("/get-alerts/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<List<Alert>> getActiveAlerts(@PathVariable UUID locationId) {
@@ -67,7 +64,6 @@ public class WeatherController implements WeatherApi {
         return ResponseEntity.ok(cacheService.getActiveAlerts(locationId));
     }
 
-    @Override
     @GetMapping("/get-dashboard/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Dashboard> getDashboard(@PathVariable UUID locationId) {
@@ -76,7 +72,6 @@ public class WeatherController implements WeatherApi {
     }
 
 
-    @Override
     @GetMapping("/get-statistics/{locationId}")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SUPPLIER_ADMIN', 'SYSTEM_ADMIN')")
     public ResponseEntity<Statistics> getStatistics(@PathVariable UUID locationId) {
@@ -84,7 +79,6 @@ public class WeatherController implements WeatherApi {
         return ResponseEntity.ok(cacheService.calculateStatistics(locationId));
     }
 
-    @Override
     @GetMapping("/get-health")
     public ResponseEntity<Map<String, Object>> healthCheck() {
 
@@ -116,7 +110,6 @@ public class WeatherController implements WeatherApi {
         ));
     }
 
-    @Override
     @PostMapping("/refresh/{locationId}")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<Map<String, String>> forceRefresh(@PathVariable UUID locationId) {

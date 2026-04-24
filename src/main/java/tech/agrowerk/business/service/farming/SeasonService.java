@@ -24,6 +24,7 @@ import tech.agrowerk.infrastructure.repository.property.PropertyRepository;
 import tech.agrowerk.infrastructure.repository.property.UserPropertyRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -132,6 +133,13 @@ public class SeasonService {
 
         return seasonRepository
                 .findByProperty_Id(propertyId, pageable)
+                .map(seasonMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SeasonResponse> findActiveSeason(UUID propertyId) {
+        return seasonRepository
+                .findByProperty_IdAndSeasonStatus(propertyId, SeasonStatus.IN_PROGRESS)
                 .map(seasonMapper::toResponse);
     }
 

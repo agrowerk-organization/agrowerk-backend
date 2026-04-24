@@ -10,5 +10,6 @@ public record BatchCreatedEvent(
         UUID supplierId,
         BigDecimal initialQuantity,
         BigDecimal unitPrice,
-        LocalDate expirationDate
+        LocalDate expirationDate,
+        boolean isBarter
 ) {}

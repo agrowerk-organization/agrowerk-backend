@@ -1,13 +1,17 @@
 package tech.agrowerk.business.mapper.barter;
 
 import org.springframework.stereotype.Component;
+import tech.agrowerk.application.dto.response.barter.BarterOfferItemResponse;
 import tech.agrowerk.application.dto.response.barter.BarterOfferResponse;
 import tech.agrowerk.infrastructure.model.barter.BarterOffer;
+import tech.agrowerk.infrastructure.model.barter.BarterOfferItem;
+
+import java.util.List;
 
 @Component
 public class BarterOfferMapper {
 
-    public BarterOfferResponse toResponse(BarterOffer offer) {
+    public BarterOfferResponse toResponse(BarterOffer offer, String propertyLocal) {
         return new BarterOfferResponse(
                 offer.getId(),
                 offer.getTitle(),
@@ -16,9 +20,10 @@ public class BarterOfferMapper {
                 offer.getOwner().getName(),
                 offer.getProperty() != null ? offer.getProperty().getId() : null,
                 offer.getProperty() != null ? offer.getProperty().getName() : null,
+                propertyLocal,
                 offer.getOfferType(),
-                offer.getOfferedCrop()  != null ? offer.getOfferedCrop().getId()   : null,
-                offer.getOfferedCrop()  != null ? offer.getOfferedCrop().getName() : null,
+                offer.getOfferedForecast() != null ? offer.getOfferedForecast().getId() : null,
+                offer.getOfferedForecast() != null ? offer.getOfferedForecast().getCrop().getName() : null,
                 offer.getOfferedCropQuantity(),
                 offer.getEstimatedHarvestDate(),
                 offer.getOfferedAsset() != null ? offer.getOfferedAsset().getId()   : null,
@@ -28,10 +33,26 @@ public class BarterOfferMapper {
                 offer.getRequestedDescription(),
                 offer.getRequestedValue(),
                 offer.getStatus(),
-                offer.getRegion(),
                 offer.getExpiresAt(),
                 offer.getViewCount(),
+                mapItems(offer.getRequestedItems()),
                 offer.getCreatedAt()
         );
+    }
+
+    private List<BarterOfferItemResponse> mapItems(List<BarterOfferItem> items) {
+        if (items == null || items.isEmpty()) return List.of();
+        return items.stream()
+                .map(item -> new BarterOfferItemResponse(
+                        item.getId(),
+                        item.getInput().getId(),
+                        item.getInput().getName(),
+                        item.getQuantity(),
+                        item.getUnitOfMeasure().toString(),
+                        item.getUnitPriceBrl(),
+                        item.getTotalPriceBrl(),
+                        item.getNotes()
+                ))
+                .toList();
     }
 }

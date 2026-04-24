@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tech.agrowerk.application.dto.request.barter.AcceptTransactionRequest;
 import tech.agrowerk.application.dto.request.barter.ProposeTransactionRequest;
 import tech.agrowerk.application.dto.request.barter.SignContractRequest;
 import tech.agrowerk.application.dto.response.barter.BarterContractResponse;
@@ -39,7 +40,16 @@ public class BarterTransactionController {
         return ResponseEntity.ok(barterTransactionService.listMyTransactions(pageable));
     }
 
-    @GetMapping("/accept-transaction/{barterTransactionId}")
+    @PatchMapping("/accept-transaction/{barterTransactionId}")
+    @PreAuthorize("hasAuthority('PRODUCER')")
+    public ResponseEntity<BarterTransactionResponse> acceptTransaction(
+            @PathVariable UUID barterTransactionId,
+            @Valid @RequestBody AcceptTransactionRequest request) {
+        return ResponseEntity.ok(
+                barterTransactionService.acceptTransaction(barterTransactionId, request));
+    }
+
+    @GetMapping("/find-by-id/{barterTransactionId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<BarterTransactionResponse> findById(@PathVariable UUID barterTransactionId) {
         return ResponseEntity.ok(barterTransactionService.findById(barterTransactionId));

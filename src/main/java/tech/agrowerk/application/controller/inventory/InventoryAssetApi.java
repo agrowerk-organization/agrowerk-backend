@@ -1,4 +1,4 @@
 package tech.agrowerk.application.controller.inventory;
 
-public class InventoryAssetApi {
+public interface InventoryAssetApi {
 }

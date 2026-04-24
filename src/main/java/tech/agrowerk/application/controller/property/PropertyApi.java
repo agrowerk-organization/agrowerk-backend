@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.property;
+/*package tech.agrowerk.application.controller.property;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -59,4 +59,4 @@ public interface PropertyApi {
     ResponseEntity<FileUploadResponse> uploadPhoto(
             @PathVariable UUID propertyId,
             @Parameter(description = "Multipart image file") MultipartFile file);
-}
+}*/

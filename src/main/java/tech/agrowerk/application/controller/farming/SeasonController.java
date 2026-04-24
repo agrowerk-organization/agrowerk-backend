@@ -50,4 +50,12 @@ public class SeasonController {
             ) {
         return ResponseEntity.ok(seasonService.findMySeasons(propertyId, pageable));
     }
+
+    @GetMapping("/active/{propertyId}")
+    @PreAuthorize("hasAuthority('PRODUCER')")
+    public ResponseEntity<SeasonResponse> findActive(@PathVariable UUID propertyId) {
+        return seasonService.findActiveSeason(propertyId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
 }

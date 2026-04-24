@@ -10,13 +10,15 @@ import java.math.RoundingMode;
 @Component
 public class CommodityPriceMapper {
 
-    public CommodityPriceResponse toResponse(CommodityPrice price, CommodityPrice previous) {
+    public CommodityPriceResponse toResponse(CommodityPrice price, CommodityPrice previous, BigDecimal ptaxRate) {
         BigDecimal variation = calculateVariation(price.getPrice(),
                 previous != null ? previous.getPrice() : null);
 
         return new CommodityPriceResponse(
                 price.getCommodity(),
                 price.getPrice(),
+                price.getPriceUsd(),
+                ptaxRate,
                 price.getUnit(),
                 price.getReferenceDate(),
                 variation
@@ -24,7 +26,7 @@ public class CommodityPriceMapper {
     }
 
     public CommodityPriceResponse toResponse(CommodityPrice price) {
-        return toResponse(price, null);
+        return toResponse(price, null, null);
     }
 
     private BigDecimal calculateVariation(BigDecimal current, BigDecimal previous) {

@@ -2,10 +2,12 @@ package tech.agrowerk.business.service.barter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.application.dto.request.barter.BarterOfferItemRequest;
 import tech.agrowerk.application.dto.request.barter.CreateBarterOfferRequest;
 import tech.agrowerk.application.dto.request.barter.UpdateBarterOfferRequest;
 import tech.agrowerk.application.dto.response.barter.BarterOfferResponse;
@@ -17,18 +19,27 @@ import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.OperationDeniedException;
 import tech.agrowerk.infrastructure.model.barter.BarterOffer;
+import tech.agrowerk.infrastructure.model.barter.BarterOfferItem;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferStatus;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 import tech.agrowerk.infrastructure.model.core.User;
 import tech.agrowerk.infrastructure.model.farming.Crop;
+import tech.agrowerk.infrastructure.model.farming.HarvestForecast;
+import tech.agrowerk.infrastructure.model.inventory.Input;
 import tech.agrowerk.infrastructure.model.inventory.InventoryAsset;
 import tech.agrowerk.infrastructure.model.property.Property;
+import tech.agrowerk.infrastructure.repository.barter.BarterOfferItemRepository;
 import tech.agrowerk.infrastructure.repository.barter.BarterOfferRepository;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropRepository;
+import tech.agrowerk.infrastructure.repository.farming.HarvestForecastRepository;
+import tech.agrowerk.infrastructure.repository.inventory.InputRepository;
 import tech.agrowerk.infrastructure.repository.inventory.InventoryAssetRepository;
 import tech.agrowerk.infrastructure.repository.property.PropertyRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,26 +50,32 @@ import java.util.UUID;
 public class BarterOfferService {
 
     private final BarterOfferRepository   offerRepository;
+    private final BarterOfferItemRepository barterOfferItemRepository;
     private final UserRepository          userRepository;
     private final PropertyRepository      propertyRepository;
-    private final CropRepository          cropRepository;
+    private final HarvestForecastRepository harvestForecastRepository;
+    private final InputRepository         inputRepository;
     private final InventoryAssetRepository assetRepository;
     private final BarterOfferMapper       barterOfferMapper;
     private final OwnershipValidator      ownershipValidator;
     private final AuthUtil                authUtil;
 
     public BarterOfferService(BarterOfferRepository offerRepository,
+                              BarterOfferItemRepository barterOfferItemRepository,
                               UserRepository userRepository,
                               PropertyRepository propertyRepository,
-                              CropRepository cropRepository,
+                              HarvestForecastRepository harvestForecastRepository,
+                              InputRepository inputRepository,
                               InventoryAssetRepository assetRepository,
                               BarterOfferMapper barterOfferMapper,
                               OwnershipValidator ownershipValidator,
                               AuthUtil authUtil) {
         this.offerRepository  = offerRepository;
+        this.barterOfferItemRepository = barterOfferItemRepository;
         this.userRepository   = userRepository;
         this.propertyRepository = propertyRepository;
-        this.cropRepository   = cropRepository;
+        this.harvestForecastRepository = harvestForecastRepository;
+        this.inputRepository = inputRepository;
         this.assetRepository  = assetRepository;
         this.barterOfferMapper = barterOfferMapper;
         this.ownershipValidator = ownershipValidator;
@@ -87,7 +104,6 @@ public class BarterOfferService {
                 .requestedType(request.requestedType())
                 .requestedDescription(request.requestedDescription())
                 .requestedValue(request.requestedValue())
-                .region(request.region())
                 .expiresAt(request.expiresAt())
                 .status(OfferStatus.ACTIVE)
                 .viewCount(0)
@@ -96,9 +112,9 @@ public class BarterOfferService {
                 .build();
 
         if (request.offerType() == OfferType.CROP) {
-            Crop crop = cropRepository.findById(request.offeredCropId())
-                    .orElseThrow(() -> new EntityNotFoundException("Crop not found"));
-            offer.setOfferedCrop(crop);
+            HarvestForecast forecast = harvestForecastRepository.findById(request.harvestForecastId())
+                    .orElseThrow(() -> new EntityNotFoundException("Forecast not found"));
+            offer.setOfferedForecast(forecast);
             offer.setOfferedCropQuantity(request.offeredCropQuantity());
             offer.setEstimatedHarvestDate(request.estimatedHarvestDate());
         }
@@ -111,56 +127,49 @@ public class BarterOfferService {
         }
 
         BarterOffer saved = offerRepository.save(offer);
-        log.info("BarterOffer created id={} by user={}", saved.getId(), auth.id());
-        return barterOfferMapper.toResponse(saved);
-    }
 
+        if (request.requestedItems() != null && !request.requestedItems().isEmpty()) {
+            persistOfferItems(saved, request.requestedItems());
+        }
+
+        log.info("BarterOffer created id={} items={} by={}",
+                saved.getId(),
+                request.requestedItems() != null ? request.requestedItems().size() : 0,
+                auth.id());
+
+        return barterOfferMapper.toResponse(saved, resolvePropertyLocal(offer));
+    }
 
     @Transactional(readOnly = true)
     public Page<BarterOfferResponse> listActive(Pageable pageable) {
-        return offerRepository
-                .findByStatusOrderByCreatedAtDesc(OfferStatus.ACTIVE, pageable)
-                .map(barterOfferMapper::toResponse);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<BarterOfferResponse> listByRegion(String region, Pageable pageable) {
-        return offerRepository
-                .findByStatusAndRegionIgnoreCaseOrderByCreatedAtDesc(OfferStatus.ACTIVE, region, pageable)
-                .map(barterOfferMapper::toResponse);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<BarterOfferResponse> listByCrop(UUID cropId, Pageable pageable) {
-        return offerRepository
-                .findByStatusAndOfferedCrop_IdOrderByCreatedAtDesc(OfferStatus.ACTIVE, cropId, pageable)
-                .map(barterOfferMapper::toResponse);
+        List<BarterOffer> content = offerRepository.findActiveWithDetails(OfferStatus.ACTIVE, pageable);
+        long total = offerRepository.countByStatus(OfferStatus.ACTIVE);
+        return toPageResponse(content, total, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<BarterOfferResponse> listByType(OfferType offerType, Pageable pageable) {
-        return offerRepository
-                .findByStatusAndOfferTypeOrderByCreatedAtDesc(OfferStatus.ACTIVE, offerType, pageable)
-                .map(barterOfferMapper::toResponse);
+        List<BarterOffer> content = offerRepository.findByTypeWithDetails(OfferStatus.ACTIVE, offerType, pageable);
+        long total = offerRepository.countByStatusAndOfferType(OfferStatus.ACTIVE, offerType);
+        return toPageResponse(content, total, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<BarterOfferResponse> listMyOffers(Pageable pageable) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
-        return offerRepository
-                .findByOwner_IdOrderByCreatedAtDesc(auth.id(), pageable)
-                .map(barterOfferMapper::toResponse);
+        List<BarterOffer> content = offerRepository.findMyOffersWithDetails(auth.id(), pageable);
+        long total = offerRepository.countByOwnerId(auth.id());
+        return toPageResponse(content, total, pageable);
     }
 
     @Transactional
     public BarterOfferResponse findById(UUID id) {
-        BarterOffer offer = offerRepository.findById(id)
+        BarterOffer offer = offerRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Offer not found"));
-
         offerRepository.incrementViewCount(id);
-
-        return barterOfferMapper.toResponse(offer);
+        return barterOfferMapper.toResponse(offer, resolvePropertyLocal(offer));
     }
+
 
     @Transactional
     public BarterOfferResponse updateOffer(UUID id, UpdateBarterOfferRequest request) {
@@ -174,13 +183,11 @@ public class BarterOfferService {
         if (request.title()               != null) offer.setTitle(request.title());
         if (request.description()         != null) offer.setDescription(request.description());
         if (request.requestedDescription()!= null) offer.setRequestedDescription(request.requestedDescription());
-        if (request.requestedValue()      != null) offer.setRequestedValue(request.requestedValue());
-        if (request.region()              != null) offer.setRegion(request.region());
         if (request.expiresAt()           != null) offer.setExpiresAt(request.expiresAt());
         offer.setUpdatedAt(LocalDateTime.now());
 
         log.info("Barter offer updated id={}", id);
-        return barterOfferMapper.toResponse(offer);
+        return barterOfferMapper.toResponse(offer, resolvePropertyLocal(offer));
     }
 
 
@@ -226,14 +233,58 @@ public class BarterOfferService {
         return offer;
     }
 
+    private void persistOfferItems(BarterOffer offer, List<BarterOfferItemRequest> itemRequests) {
+        List<BarterOfferItem> items = itemRequests.stream().map(req -> {
+            Input input = inputRepository.findById(req.inputId())
+                    .orElseThrow(() -> new EntityNotFoundException("Input not found: " + req.inputId()));
+
+            BigDecimal total = req.unitPriceBrl()
+                    .multiply(req.quantity())
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            return BarterOfferItem.builder()
+                    .barterOffer(offer)
+                    .input(input)
+                    .quantity(req.quantity())
+                    .unitOfMeasure(req.unitOfMeasure())
+                    .unitPriceBrl(req.unitPriceBrl())
+                    .totalPriceBrl(total)
+                    .notes(req.notes())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+        }).toList();
+
+        barterOfferItemRepository.saveAll(items);
+        log.info("BarterOfferItems saved: {} items for offer={}", items.size(), offer.getId());
+    }
+
+
+    private Page<BarterOfferResponse> toPageResponse(List<BarterOffer> content, long total, Pageable pageable) {
+        if (!content.isEmpty()) {
+            List<UUID> ids = content.stream().map(BarterOffer::getId).toList();
+            offerRepository.fetchRequestedItems(ids);
+        }
+        Page<BarterOffer> page = new PageImpl<>(content, pageable, total);
+        return page.map(o -> barterOfferMapper.toResponse(o, resolvePropertyLocal(o)));
+    }
+
     private void validateOfferPayload(CreateBarterOfferRequest request) {
         if (request.offerType() == OfferType.CROP) {
-            if (request.offeredCropId() == null || request.offeredCropQuantity() == null)
+            if (request.harvestForecastId() == null || request.offeredCropQuantity() == null)
                 throw new IllegalArgumentException("Crop offer requires offeredCropId and offeredCropQuantity");
         }
         if (request.offerType() == OfferType.ASSET) {
             if (request.offeredAssetId() == null || request.offeredAssetQuantity() == null)
                 throw new IllegalArgumentException("Asset offer requires offeredAssetId and offeredAssetQuantity");
         }
+    }
+
+    private String resolvePropertyLocal(BarterOffer offer) {
+        if (offer.getProperty() == null) return null;
+        var property = offer.getProperty();
+        var address = property.getAddress();
+        if (address == null) return null;
+        var state = property.getState();
+        return address.getMunicipality() + " / " + (state != null ? state.getName() : "");
     }
 }

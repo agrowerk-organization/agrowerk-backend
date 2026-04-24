@@ -1,10 +1,5 @@
-package tech.agrowerk.application.controller.property;
+/*package tech.agrowerk.application.controller.property;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,4 +38,4 @@ public interface StateApi {
             @Parameter(description = "Search term (name or initials)") @RequestParam(required = false) String term,
             @Parameter(hidden = true) Pageable pageable
     );
-}
+}*/

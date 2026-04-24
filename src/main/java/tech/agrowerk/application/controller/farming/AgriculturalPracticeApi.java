@@ -1,7 +1,5 @@
-package tech.agrowerk.application.controller.farming;
+/*package tech.agrowerk.application.controller.farming;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,3 +33,4 @@ public interface AgriculturalPracticeApi {
     @Operation(summary = "Get property cost by period", description = "Calculates total spending for a property within a date range.")
     ResponseEntity<BigDecimal> getCostByPeriod(@PathVariable UUID propertyId, @RequestParam LocalDate start, @RequestParam LocalDate end);
 }
+*/

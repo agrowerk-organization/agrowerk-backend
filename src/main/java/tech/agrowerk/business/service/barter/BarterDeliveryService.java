@@ -85,8 +85,8 @@ public class BarterDeliveryService {
                 .impurityPercentage(request.impurityPercentage())
                 .qualityGrade(request.qualityGrade())
                 .notes(request.notes())
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         deliveryRepository.save(delivery);
@@ -183,7 +183,7 @@ public class BarterDeliveryService {
         transactionRepository.findById(transactionId).ifPresent(t -> {
             t.setStatus(TransactionStatus.COMPLETED);
             t.setUpdatedAt(LocalDateTime.now());
-            t.getOffer().setStatus(OfferStatus.COMPLETED);
+            t.getBarterOffer().setStatus(OfferStatus.COMPLETED);
             log.info("Transaction completed id={}", transactionId);
         });
 

@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
-public class UserController implements UserApi {
+public class UserController {
 
     private final UserService userService;
 
@@ -31,7 +31,6 @@ public class UserController implements UserApi {
         this.userService = userService;
     }
 
-    @Override
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.ok(userService.createUser(request));
@@ -50,14 +49,12 @@ public class UserController implements UserApi {
         return ResponseEntity.ok(userService.updateAddress(userId, request));
     }
 
-    @Override
     @GetMapping("/get-user-by-id/{id}")
     @PreAuthorize("hasAuthority('SUPPLIER_ADMIN') or #id.toString() == authentication.principal.claims['userId']")
     public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.findUserById(id));
     }
 
-    @Override
     @GetMapping("/get-user-by-email/{email}")
     @PreAuthorize("isAuthenticated() and hasAuthority('SYSTEM_ADMIN')")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
@@ -70,7 +67,6 @@ public class UserController implements UserApi {
         return ResponseEntity.ok(userService.getMyProfile());
     }
 
-    @Override
     @GetMapping("/list-users")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<Page<UserResponse>> listUsers(Pageable pageable) {
@@ -85,14 +81,12 @@ public class UserController implements UserApi {
         return ResponseEntity.ok(userService.searchProducers(query, pageable));
     }
 
-    @Override
     @PutMapping("/update/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserResponse> updateUser(UpdateUserRequest request) {
         return ResponseEntity.ok(userService.updateUser(request));
     }
 
-    @Override
     @DeleteMapping("/delete/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteUser() {

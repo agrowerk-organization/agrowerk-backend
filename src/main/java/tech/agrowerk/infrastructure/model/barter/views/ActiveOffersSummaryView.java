@@ -7,22 +7,22 @@ import org.hibernate.annotations.Subselect;
 import org.hibernate.annotations.Synchronize;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
 @Immutable
 @Subselect("""
     SELECT
-        CAST(CONCAT(offered_crop_id::text, '-', COALESCE(region, 'NACIONAL')) AS VARCHAR) AS id,
-        offered_crop_id,
-        region,
+        CAST(offered_forecast_id AS VARCHAR) AS id,
+        offered_forecast_id,
         COUNT(*)                          AS total_offers,
         SUM(offered_crop_quantity)        AS total_quantity,
         AVG(requested_value)              AS avg_requested_value,
         MIN(expires_at)                   AS nearest_expiration
     FROM barter_offers
     WHERE status = 'ACTIVE'
-    GROUP BY offered_crop_id, region
+    GROUP BY offered_forecast_id
 """)
 @Synchronize({"barter_offers"})
 @Getter
@@ -32,11 +32,8 @@ public class ActiveOffersSummaryView {
     @Column(name = "id")
     private String id;
 
-    @Column(name = "offered_crop_id")
-    private UUID offeredCropId;
-
-    @Column(name = "region")
-    private String region;
+    @Column(name = "offered_forecast_id")
+    private UUID offeredForecastId;
 
     @Column(name = "total_offers")
     private Long totalOffers;
@@ -48,5 +45,5 @@ public class ActiveOffersSummaryView {
     private BigDecimal avgRequestedValue;
 
     @Column(name = "nearest_expiration")
-    private java.time.LocalDate nearestExpiration;
+    private LocalDate nearestExpiration;
 }

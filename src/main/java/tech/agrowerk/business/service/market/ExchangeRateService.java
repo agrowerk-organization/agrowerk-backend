@@ -2,9 +2,11 @@ package tech.agrowerk.business.service.market;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Cache;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import tech.agrowerk.application.dto.market.AwesomeApiResponse;
 import tech.agrowerk.application.dto.market.PtaxEntry;
 import tech.agrowerk.application.dto.market.PtaxResponse;
 import tech.agrowerk.infrastructure.exception.local.MarketDataException;
@@ -25,10 +27,11 @@ public class ExchangeRateService {
     private final RestTemplate restTemplate;
     private final ExchangeRateRepository exchangeRateRepository;
 
-    private static final String PTAX_PERIOD_URL =
-            "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/" +
-                    "CotacaoMoedaPeriodo(moeda='USD',dataInicial=@start,dataFinalCotacao=@end)" +
-                    "?@start='{start}'&@end='{end}'&$top=5000&$format=json&$select=cotacaoVenda,dataHoraCotacao";
+    @Value("${ptax.bcb.base-url}")
+    private String PTAX_PERIOD_URL;
+
+    @Value("${awesome.base-url}")
+    private String awesomeUrl;
 
     public ExchangeRateService(RestTemplate restTemplate,
                                ExchangeRateRepository exchangeRateRepository) {
@@ -94,7 +97,6 @@ public class ExchangeRateService {
                         });
     }
 
-    @Cacheable(value = "excahngeRate", key = "'usd_brl_today")
     public BigDecimal getUsdToBrl() {
         log.info("Searching for the PTAX rate of the day (Cache MISS)");
         return fetchFromBcb(LocalDate.now());
@@ -133,7 +135,23 @@ public class ExchangeRateService {
                 log.warn("PTAX unavailable for {}: {}", date, e.getMessage());
             }
         }
-        throw new MarketDataException("Could not fetch USD/BRL rate for date: " + targetDate);
+
+        log.warn("BCB exhausted after 5 attempts, falling back to AwesomeAPI");
+        return fetchFromAwesomeApi();
+    }
+
+    private BigDecimal fetchFromAwesomeApi() {
+        try {
+            AwesomeApiResponse response = restTemplate.getForObject(awesomeUrl,
+                    AwesomeApiResponse.class
+            );
+            assert response != null;
+            BigDecimal rate = response.usdBrl().ask();
+            log.info("AwesomeAPI fallback USD/BRL: {}", rate);
+            return rate;
+        } catch (Exception e) {
+            throw new MarketDataException("Could not fetch USD/BRL rate from any source", e);
+        }
     }
 }
 

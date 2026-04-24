@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.weather;
+/*package tech.agrowerk.application.controller.weather;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -67,4 +67,4 @@ public interface WeatherLocationApi {
             @ApiResponse(responseCode = "403", description = "Access denied")
     })
     ResponseEntity<Void> deleteLocation(UUID id);
-}
+}*/

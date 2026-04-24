@@ -15,12 +15,6 @@ public record UpdateBarterOfferRequest(
 
         String requestedDescription,
 
-        @Positive
-        BigDecimal requestedValue,
-
-        @Size(max = 100)
-        String region,
-
         @Future
         LocalDate expiresAt
 ) {

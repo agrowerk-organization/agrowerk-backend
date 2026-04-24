@@ -25,7 +25,7 @@ public class BatchMapper {
         batch.setEntryDate(request.entryDate());
         batch.setUnitPrice(request.unitPrice());
         batch.setTotalValue(request.initialQuantity().multiply(request.unitPrice()));
-        batch.setStatus(BatchStatus.IN_USE);
+        batch.setStatus(BatchStatus.AVAILABLE);
         batch.setReceiptStatus(BatchReceiptStatus.PENDING);
         batch.setNotes(request.notes());
         return batch;

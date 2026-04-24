@@ -1,6 +1,7 @@
 package tech.agrowerk.infrastructure.model.barter;
 
 import jakarta.persistence.*;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 import tech.agrowerk.infrastructure.model.barter.enums.TransactionStatus;
@@ -16,18 +17,22 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "barter_transactions")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Table(name = "barter_transactions", indexes = {
+        @Index(name = "idx_bt_offer_id",            columnList = "barter_offer_id"),
+        @Index(name = "idx_bt_offeror_id",          columnList = "offeror_id"),
+        @Index(name = "idx_bt_acceptor_id",         columnList = "acceptor_id"),
+        @Index(name = "idx_bt_status",              columnList = "status"),
+        @Index(name = "idx_bt_offer_offeror_status",columnList = "barter_offer_id, offeror_id, status"),
+        @Index(name = "idx_bt_offer_status",        columnList = "barter_offer_id, status")
+})
+@NoArgsConstructor @AllArgsConstructor
+@Getter @Setter
 @Builder
 public class BarterTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "offer_id", nullable = false)
-    private BarterOffer offer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "offeror_id", nullable = false)
@@ -78,17 +83,29 @@ public class BarterTransaction {
     private TransactionStatus status;
 
     private LocalDate offerorDeliveryDate;
+
     private LocalDate acceptorDeliveryDate;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @OneToOne(mappedBy = "transaction", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "transaction")
     private BarterContract barterContract;
 
     @OneToMany(mappedBy = "transaction", orphanRemoval = true)
     @Builder.Default
     private List<CropCommitment> cropCommitments = new ArrayList<>();
+
+    @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL)
+    private BarterPriceSnapshot priceSnapshot;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "barter_offer_id", nullable = false)
+    private BarterOffer barterOffer;
+
+    @OneToMany(mappedBy = "barterTransaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<BarterTransactionItem> items = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

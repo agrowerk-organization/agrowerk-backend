@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.core;
+/*package tech.agrowerk.application.controller.core;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,7 +49,7 @@ public interface UserApi {
     ResponseEntity<UserResponse> getUserByEmail(String email);
 
     /*@Operation(summary = "Get current user profile", description = "Returns the profile data of the currently authenticated user.")
-    ResponseEntity<UserResponse> getCurrentUser(); */
+    ResponseEntity<UserResponse> getCurrentUser();
 
     @Operation(summary = "List all users", description = "Returns a paginated list of all registered users. Admin only.")
     ResponseEntity<Page<UserResponse>> listUsers(@Parameter(hidden = true) Pageable pageable);
@@ -72,4 +72,4 @@ public interface UserApi {
             @ApiResponse(responseCode = "204", description = "User deleted successfully")
     })
     ResponseEntity<Void> deleteUser();
-}
+}*/

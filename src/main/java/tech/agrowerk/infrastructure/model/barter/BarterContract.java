@@ -13,7 +13,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "barter_contracts")
+@Table(name = "barter_contracts", indexes = {
+        @Index(name = "idx_bc_transaction_id",    columnList = "transaction_id", unique = true),
+        @Index(name = "idx_bc_contract_status",   columnList = "contract_status")
+})
 @Getter
 @Setter
 @NoArgsConstructor

@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.core;
+/*package tech.agrowerk.application.controller.core;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,4 +11,4 @@ import java.util.List;
 public interface RoleApi {
     @Operation(summary = "List all roles", description = "Returns a list of roles")
     ResponseEntity<List<RoleResponse>> listRoles();
-}
+} */

@@ -18,6 +18,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(rateLimitInterceptor)
                 .addPathPatterns("/auth/login")
-                .excludePathPatterns("/actuator/**", "swagger-ui/**");
+                .excludePathPatterns("/actuator/**");
     }
 }

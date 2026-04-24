@@ -1,10 +1,12 @@
 package tech.agrowerk.application.dto.request.barter;
 
 import jakarta.validation.constraints.*;
+import tech.agrowerk.application.dto.response.barter.BarterOfferResponse;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 public record CreateBarterOfferRequest(
@@ -20,7 +22,7 @@ public record CreateBarterOfferRequest(
         @NotNull
         OfferType offerType,
 
-        UUID offeredCropId,
+        UUID harvestForecastId,
 
         @Positive
         BigDecimal offeredCropQuantity,
@@ -42,6 +44,8 @@ public record CreateBarterOfferRequest(
 
         @Size(max = 100)
         String region,
+
+        List<BarterOfferItemRequest> requestedItems,
 
         @NotNull
         @Future

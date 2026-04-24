@@ -6,6 +6,7 @@ import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record BarterOfferResponse(
@@ -16,8 +17,9 @@ public record BarterOfferResponse(
         String ownerName,
         UUID propertyId,
         String propertyName,
+        String propertyLocal,
         OfferType offerType,
-        UUID offeredCropId,
+        UUID harvestForecastId,
         String offeredCropName,
         BigDecimal offeredCropQuantity,
         LocalDate estimatedHarvestDate,
@@ -28,8 +30,8 @@ public record BarterOfferResponse(
         String requestedDescription,
         BigDecimal requestedValue,
         OfferStatus status,
-        String region,
         LocalDate expiresAt,
         Integer viewCount,
+        List<BarterOfferItemResponse> requestedItems,
         LocalDateTime createdAt
 ) {}

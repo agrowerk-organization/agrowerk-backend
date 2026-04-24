@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.core;
+/*package tech.agrowerk.application.controller.core;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,4 +20,4 @@ public interface EmailVerificationApi {
             @ApiResponse(responseCode = "400", description = "Invalid or expired token")
     })
     ResponseEntity<String> verifyEmail(@RequestParam String token);
-}
+} */

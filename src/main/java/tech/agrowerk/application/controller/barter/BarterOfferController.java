@@ -38,19 +38,6 @@ public class BarterOfferController {
         return ResponseEntity.ok(service.listActive(pageable));
     }
 
-    @GetMapping("/list-by-region")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<BarterOfferResponse>> listByRegion(
-            @RequestParam String region, @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(service.listByRegion(region, pageable));
-    }
-
-    @GetMapping("/list-by-crop/{cropId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<BarterOfferResponse>> listByCrop(
-            @PathVariable UUID cropId, @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(service.listByCrop(cropId, pageable));
-    }
 
     @GetMapping("/list-by-type")
     @PreAuthorize("isAuthenticated()")
@@ -72,7 +59,7 @@ public class BarterOfferController {
     }
 
     @PutMapping("/update-offer/{barterOfferId}")
-    @PreAuthorize("hasRole('PRODUCER')")
+    @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<BarterOfferResponse> updateOffer(
             @PathVariable UUID barterOfferId,
             @Valid @RequestBody UpdateBarterOfferRequest request) {
@@ -80,7 +67,7 @@ public class BarterOfferController {
     }
 
     @PatchMapping("/cancel/{barterOfferId}")
-    @PreAuthorize("hasRole('PRODUCER')")
+    @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Void> cancelOffer(@PathVariable UUID barterOfferId) {
         service.cancelOffer(barterOfferId);
         return ResponseEntity.noContent().build();

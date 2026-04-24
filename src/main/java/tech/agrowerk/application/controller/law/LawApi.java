@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.law;
+/*package tech.agrowerk.application.controller.law;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,4 +23,4 @@ public interface LawApi {
     ResponseEntity<LawResponse> getLawContent(
             @Parameter(description = "Law slug identifier (e.g., 'lei-11326-2006')")             String fileName
     );
-}
+} */

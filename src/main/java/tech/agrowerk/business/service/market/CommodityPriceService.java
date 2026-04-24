@@ -30,21 +30,26 @@ public class CommodityPriceService {
     private static final int DEFAULT_HISTORY_DAYS = 30;
 
     private final CommodityPriceRepository commodityPriceRepository;
+    private final ExchangeRateService exchangeRateService;
     private final CommodityPriceMapper commodityPriceMapper;
 
     public CommodityPriceService(CommodityPriceRepository commodityPriceRepository,
-                                 CommodityPriceMapper commodityPriceMapper) {
+                                 ExchangeRateService exchangeRateService,
+                                 CommodityPriceMapper commodityPriceMapper
+                                 ) {
         this.commodityPriceRepository = commodityPriceRepository;
+        this.exchangeRateService = exchangeRateService;
         this.commodityPriceMapper = commodityPriceMapper;
     }
 
     @Cacheable(value = "commodityDashboard", key = "'global'", unless = "#result == null")
     @Transactional(readOnly = true)
     public CommodityDashboardResponse getDashboard() {
+        BigDecimal ptaxRate = fetchUsdToBrl();
         List<CommodityPrice> latestEntities = commodityPriceRepository.findLatestPricePerCommodity();
 
         List<CommodityPriceResponse> latestResponse = latestEntities.stream()
-                .map(p -> commodityPriceMapper.toResponse(p, getPrevious(p).orElse(null)))
+                .map(p -> commodityPriceMapper.toResponse(p, getPrevious(p).orElse(null), ptaxRate))
                 .toList();
 
         LocalDate since = LocalDate.now().minusDays(1825);
@@ -79,11 +84,13 @@ public class CommodityPriceService {
 
     @Transactional(readOnly = true)
     public CommodityPriceResponse getLatest(Commodity commodity) {
+        BigDecimal ptaxRate = fetchUsdToBrl();
+
         CommodityPrice current = commodityPriceRepository
                 .findTopByCommodityOrderByReferenceDateDesc(commodity)
                 .orElseThrow(() -> new MarketDataException("No data for " + commodity));
 
-        return commodityPriceMapper.toResponse(current, getPrevious(current).orElse(null));
+        return commodityPriceMapper.toResponse(current, getPrevious(current).orElse(null), ptaxRate);
     }
 
     @Transactional(readOnly = true)
@@ -127,5 +134,9 @@ public class CommodityPriceService {
     private Optional<CommodityPrice> getPrevious(CommodityPrice current) {
         return commodityPriceRepository.findFirstByCommodityAndReferenceDateBeforeOrderByReferenceDateDesc(
                         current.getCommodity(),  current.getReferenceDate());
+    }
+
+    private BigDecimal fetchUsdToBrl() {
+        return exchangeRateService.getUsdToBrl();
     }
 }

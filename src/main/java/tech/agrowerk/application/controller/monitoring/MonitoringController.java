@@ -12,30 +12,26 @@ import tech.agrowerk.infrastructure.client.OpenMeteoClient;
 @RestController
 @RequestMapping("/monitoring")
 @RequiredArgsConstructor
-public class MonitoringController implements MonitoringApi {
+public class MonitoringController {
 
     private final OpenMeteoClient openMeteoClient;
 
-    @Override
     @GetMapping("/circuit-breaker/state")
     public ResponseEntity<String> getCircuitBreakerState() {
         return ResponseEntity.ok(openMeteoClient.getCircuitBreakerState());
     }
 
-    @Override
     @GetMapping("/circuit-breaker/metrics")
     public ResponseEntity<CircuitBreakerMetrics> getMetrics() {
         return ResponseEntity.ok(openMeteoClient.getMetrics());
     }
 
-    @Override
     @PostMapping("/circuit-breaker/reset")
     public ResponseEntity<String> resetCircuitBreaker() {
         openMeteoClient.resetCircuitBreaker();
         return ResponseEntity.ok("Circuit Breaker reset");
     }
 
-    @Override
     @PostMapping("/circuit-breaker/force-open")
     public ResponseEntity<String> forceOpen() {
         openMeteoClient.forceOpen();

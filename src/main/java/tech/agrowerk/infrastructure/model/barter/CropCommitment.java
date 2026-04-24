@@ -12,7 +12,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "crop_commitments")
+@Table(name = "crop_commitments", indexes = {
+        @Index(name = "idx_cc_transaction_id",       columnList = "transaction_id"),
+        @Index(name = "idx_cc_farmer_id",            columnList = "farmer_id"),
+        @Index(name = "idx_cc_expected_delivery",    columnList = "expected_delivery_date"),  // OverdueCommitmentsView
+        @Index(name = "idx_cc_status",               columnList = "status")
+})
 @Getter
 @Setter
 @NoArgsConstructor

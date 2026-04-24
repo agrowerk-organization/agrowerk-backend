@@ -1,4 +1,4 @@
-package tech.agrowerk.application.controller.farming;
+/*package tech.agrowerk.application.controller.farming;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,4 +25,4 @@ public interface AgronomicPrescriptionApi {
 
     @Operation(summary = "Find near expiration", description = "Lists prescriptions close to their expiration date for a property.")
     ResponseEntity<List<PrescriptionResponse>> findNearExpiration(@PathVariable UUID propertyId);
-}
+} */

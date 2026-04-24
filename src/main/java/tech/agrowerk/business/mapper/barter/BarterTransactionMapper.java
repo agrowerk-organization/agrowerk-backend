@@ -22,8 +22,8 @@ public class BarterTransactionMapper {
 
         return new BarterTransactionResponse(
                 t.getId(),
-                t.getOffer().getId(),
-                t.getOffer().getTitle(),
+                t.getBarterOffer().getId(),
+                t.getBarterOffer().getTitle(),
                 t.getOfferor().getId(),
                 t.getOfferor().getName(),
                 t.getAcceptor().getId(),

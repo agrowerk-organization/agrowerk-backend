@@ -144,11 +144,6 @@ public class CacheConfig {
                 .prefixCacheNameWith("agrowerk:market:commodity-dashboard")
         );
 
-        cacheConfigurations.put("exchangeRate", defaultConfig
-                .entryTtl(Duration.ofHours(24))
-                .prefixCacheNameWith("agrowerk:market:exchange-rate")
-        );
-
         cacheConfigurations.put("marketReports", defaultConfig
                 .entryTtl(Duration.ofHours(24))
                 .prefixCacheNameWith("agrowerk:market:market-reports")

@@ -1,9 +1,5 @@
-package tech.agrowerk.application.controller.file;
+/*package tech.agrowerk.application.controller.file;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import tech.agrowerk.application.dto.response.file.FileUploadResponse;
@@ -54,4 +50,4 @@ public interface FileUploadApi {
 
     @Operation(summary = "Storage statistics", description = "Retrieves storage usage metrics. Admin only.")
     ResponseEntity<FileStorageService.StorageStats> getStats();
-}
+}*/
