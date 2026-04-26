@@ -163,6 +163,7 @@ CREATE TABLE harvest_forecasts
     property_id        UUID                        NOT NULL,
     planting_id        UUID                        NOT NULL,
     estimated_quantity DECIMAL(10, 2)              NOT NULL,
+    committedQuantity DECIMAL(10, 2)               NOT NULL,
     forecast_date      date                        NOT NULL,
     confidence_level   VARCHAR(255)                NOT NULL,
     planted_area       DECIMAL(5, 2),

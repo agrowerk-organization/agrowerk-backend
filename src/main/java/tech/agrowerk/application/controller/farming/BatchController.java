@@ -55,6 +55,13 @@ public class BatchController {
         return ResponseEntity.ok(batchService.findBySupplier(supplierId, pageable));
     }
 
+    @GetMapping("/find-my-available")
+    @PreAuthorize("hasAuthority('SUPPLIER_ADMIN')")
+    public ResponseEntity<Page<BatchResponse>> findMyAvailable(
+            @PageableDefault(size = 50) Pageable pageable) {
+        return ResponseEntity.ok(batchService.findMyAvailableBatches(pageable));
+    }
+
     @GetMapping("/find-by-input/{inputId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<BatchResponse>> findByInput(

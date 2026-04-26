@@ -16,6 +16,12 @@ public record UpdateBarterOfferRequest(
         String requestedDescription,
 
         @Future
-        LocalDate expiresAt
+        LocalDate expiresAt,
+
+        @Positive
+        BigDecimal offeredCropQuantity,
+
+        @Positive
+        BigDecimal offeredAssetQuantity
 ) {
 }

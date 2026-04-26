@@ -51,6 +51,8 @@ public class HarvestForecastMapper {
                 planting.getSeason().getName(),
                 planting.getProperty().getName(),
                 forecast.getEstimatedQuantity(),
+                forecast.getCommittedQuantity(),
+                forecast.getAvailableQuantity(),
                 forecast.getForecastDate(),
                 forecast.getConfidenceLevel().name(),
                 forecast.getPlantedArea(),

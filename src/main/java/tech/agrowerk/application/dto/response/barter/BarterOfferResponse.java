@@ -1,5 +1,6 @@
 package tech.agrowerk.application.dto.response.barter;
 
+import tech.agrowerk.application.dto.market.CommodityResolution;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferStatus;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 
@@ -33,5 +34,8 @@ public record BarterOfferResponse(
         LocalDate expiresAt,
         Integer viewCount,
         List<BarterOfferItemResponse> requestedItems,
+        BigDecimal suggestedQuantity,
+        BigDecimal referencePrice,
+        LocalDate referencePriceDate,
         LocalDateTime createdAt
 ) {}

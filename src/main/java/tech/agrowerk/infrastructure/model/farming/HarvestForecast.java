@@ -44,6 +44,9 @@ public class HarvestForecast {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal estimatedQuantity;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal committedQuantity = BigDecimal.ZERO;
+
     @Column(nullable = false)
     private LocalDate forecastDate;
 
@@ -64,5 +67,10 @@ public class HarvestForecast {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Transient
+    public BigDecimal getAvailableQuantity() {
+        return estimatedQuantity.subtract(committedQuantity);
+    }
 
 }

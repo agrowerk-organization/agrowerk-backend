@@ -18,14 +18,13 @@ import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
 import tech.agrowerk.infrastructure.exception.local.OperationDeniedException;
 import tech.agrowerk.infrastructure.model.barter.*;
-import tech.agrowerk.infrastructure.model.barter.enums.CommitmentStatus;
-import tech.agrowerk.infrastructure.model.barter.enums.ContractStatus;
-import tech.agrowerk.infrastructure.model.barter.enums.OfferStatus;
-import tech.agrowerk.infrastructure.model.barter.enums.TransactionStatus;
+import tech.agrowerk.infrastructure.model.barter.enums.*;
 import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.Crop;
 import tech.agrowerk.infrastructure.repository.barter.*;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
+import tech.agrowerk.infrastructure.repository.farming.BatchRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropRepository;
 
 import java.math.BigDecimal;
@@ -45,6 +44,7 @@ public class BarterTransactionService {
     private final BarterTransactionItemRepository barterTransactionItemRepository;
     private final BarterOfferItemRepository barterOfferItemRepository;
     private final CropCommitmentRepository cropCommitmentRepository;
+    private final BatchRepository batchRepository;
     private final UserRepository userRepository;
     private final CropRepository cropRepository;
     private final BarterPricingService barterPricingService;
@@ -60,6 +60,7 @@ public class BarterTransactionService {
                                     BarterTransactionItemRepository barterTransactionItemRepository,
                                     BarterOfferItemRepository barterOfferItemRepository,
                                     CropCommitmentRepository cropCommitmentRepository,
+                                    BatchRepository batchRepository,
                                     UserRepository userRepository,
                                     CropRepository cropRepository,
                                     BarterPricingService barterPricingService,
@@ -73,6 +74,7 @@ public class BarterTransactionService {
         this.barterTransactionItemRepository = barterTransactionItemRepository;
         this.barterOfferItemRepository = barterOfferItemRepository;
         this.cropCommitmentRepository = cropCommitmentRepository;
+        this.batchRepository = batchRepository;
         this.userRepository = userRepository;
         this.cropRepository = cropRepository;
         this.barterPricingService = barterPricingService;
@@ -86,7 +88,6 @@ public class BarterTransactionService {
     public BarterTransactionResponse proposeTransaction(ProposeTransactionRequest request) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 
-        // ← lock aqui, na oferta
         BarterOffer offer = barterOfferRepository.findByIdWithLock(request.offerId())
                 .orElseThrow(() -> new EntityNotFoundException("Offer not found"));
 
@@ -107,13 +108,25 @@ public class BarterTransactionService {
         User offeror = userRepository.findById(auth.id())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+        Batch batch = batchRepository.findById(request.batchId())
+                .orElseThrow(() -> new EntityNotFoundException("Batch not found"));
+
+        if (!batch.getSupplier().getAdministrator().getId().equals(auth.id()))
+            throw new AccessDeniedException("Batch does not belong to your supplier");
+
+        boolean batchMatchesOffer = offer.getRequestedItems().stream()
+                .anyMatch(item -> item.getInput().getId()
+                        .equals(batch.getInput().getId()));
+
+        if (!batchMatchesOffer)
+            throw new OperationDeniedException("Batch input does not match offer requirements");
+
         BarterTransaction transaction = BarterTransaction.builder()
                 .barterOffer(offer)
                 .offeror(offeror)
                 .acceptor(offer.getOwner())
-                .offerorGives(request.offerorGives())
-                .offerorCropQuantity(request.offerorCropQuantity())
-                .offerorAssetQuantity(request.offerorAssetQuantity())
+                .offerorGives(OfferType.ASSET)
+                .offerorBatch(batch)
                 .acceptorGives(offer.getOfferType())
                 .acceptorCropQuantity(offer.getOfferedCropQuantity())
                 .acceptorAsset(offer.getOfferedAsset())
@@ -125,14 +138,9 @@ public class BarterTransactionService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        if (request.offerorCropId() != null) {
-            Crop crop = cropRepository.findById(request.offerorCropId())
-                    .orElseThrow(() -> new EntityNotFoundException("Crop not found"));
-            transaction.setOfferorCrop(crop);
-        }
-
         BarterTransaction saved = barterTransactionRepository.save(transaction);
-        log.info("Transaction proposed id={} offer={} by={}", saved.getId(), offer.getId(), auth.id());
+        log.info("Transaction proposed id={} offer={} batch={} by={}",
+                saved.getId(), offer.getId(), batch.getId(), auth.id());
         return barterTransactionMapper.toResponse(saved);
     }
 

@@ -6,6 +6,7 @@ import lombok.*;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 import tech.agrowerk.infrastructure.model.barter.enums.TransactionStatus;
 import tech.agrowerk.infrastructure.model.core.User;
+import tech.agrowerk.infrastructure.model.farming.Batch;
 import tech.agrowerk.infrastructure.model.farming.Crop;
 import tech.agrowerk.infrastructure.model.inventory.InventoryAsset;
 
@@ -67,6 +68,10 @@ public class BarterTransaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "acceptor_crop_id")
     private Crop acceptorCrop;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "offeror_batch_id")
+    private Batch offerorBatch;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal acceptorCropQuantity;

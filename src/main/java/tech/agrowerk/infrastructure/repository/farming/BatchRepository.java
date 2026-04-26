@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.farming.Batch;
+import tech.agrowerk.infrastructure.model.farming.enums.BatchReceiptStatus;
 import tech.agrowerk.infrastructure.model.farming.enums.BatchStatus;
 
 import java.time.LocalDate;
@@ -109,4 +110,21 @@ public interface BatchRepository extends JpaRepository<Batch, UUID> {
             @Param("propertyId") UUID propertyId,
             @Param("status") BatchStatus status
     );
+
+    @Query("""
+        SELECT DISTINCT b.input.id FROM Batch b
+        WHERE b.supplier.administrator.id = :userId
+        AND b.status = tech.agrowerk.infrastructure.model.farming.enums.BatchStatus.AVAILABLE
+    """)
+    List<UUID> findAvailableInputIdsBySupplier(@Param("userId") UUID userId);
+
+    @Query("""
+        SELECT b FROM Batch b
+        WHERE b.supplier.administrator.id = :adminId
+        AND b.status = :status
+    """)
+    Page<Batch> findAvailableBySupplierAdmin(
+            @Param("adminId") UUID adminId,
+            @Param("status") BatchStatus status,
+            Pageable pageable);
 }

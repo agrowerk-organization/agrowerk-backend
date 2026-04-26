@@ -1,6 +1,7 @@
 package tech.agrowerk.application.dto.response.barter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 public record BarterOfferItemResponse(
@@ -11,5 +12,7 @@ public record BarterOfferItemResponse(
         String unit,
         BigDecimal unitPriceBrl,
         BigDecimal totalPriceBrl,
-        String notes
+        BigDecimal currentAveragePriceBrl,
+        String notes,
+        Instant updatedAt
 ) {}

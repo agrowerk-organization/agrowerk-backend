@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tech.agrowerk.application.dto.market.CommodityPriceLatestResponse;
 import tech.agrowerk.application.dto.request.barter.CreateBarterOfferRequest;
 import tech.agrowerk.application.dto.request.barter.UpdateBarterOfferRequest;
 import tech.agrowerk.application.dto.response.barter.BarterOfferResponse;
@@ -50,6 +51,21 @@ public class BarterOfferController {
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<Page<BarterOfferResponse>> listMyOffers(@PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(service.listMyOffers(pageable));
+    }
+
+    @GetMapping("/commodity-price/latest")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommodityPriceLatestResponse> getLatestCommodityPrice(
+            @RequestParam String commodity) {
+        return ResponseEntity.ok(service.getLatestCommodityPrice(commodity));
+    }
+
+    @GetMapping("list-for-supplier")
+    @PreAuthorize("hasAuthority('SUPPLIER_ADMIN')")
+    public ResponseEntity<Page<BarterOfferResponse>> listForSupplier(
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(service.listActiveForSupplier(pageable));
     }
 
     @GetMapping("/find-by-id/{barterOfferId}")

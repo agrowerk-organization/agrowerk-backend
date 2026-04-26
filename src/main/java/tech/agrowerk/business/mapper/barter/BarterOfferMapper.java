@@ -6,12 +6,19 @@ import tech.agrowerk.application.dto.response.barter.BarterOfferResponse;
 import tech.agrowerk.infrastructure.model.barter.BarterOffer;
 import tech.agrowerk.infrastructure.model.barter.BarterOfferItem;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
 public class BarterOfferMapper {
 
-    public BarterOfferResponse toResponse(BarterOffer offer, String propertyLocal) {
+    public BarterOfferResponse toResponse(BarterOffer offer,
+                                          String propertyLocal,
+                                          BigDecimal suggestedQuantity,
+                                          BigDecimal referencePrice,
+                                          LocalDate referencePriceDate
+    ) {
         return new BarterOfferResponse(
                 offer.getId(),
                 offer.getTitle(),
@@ -36,6 +43,9 @@ public class BarterOfferMapper {
                 offer.getExpiresAt(),
                 offer.getViewCount(),
                 mapItems(offer.getRequestedItems()),
+                suggestedQuantity,
+                referencePrice,
+                referencePriceDate,
                 offer.getCreatedAt()
         );
     }
@@ -51,7 +61,9 @@ public class BarterOfferMapper {
                         item.getUnitOfMeasure().toString(),
                         item.getUnitPriceBrl(),
                         item.getTotalPriceBrl(),
-                        item.getNotes()
+                        item.getInput().getAveragePurchasePrice(),
+                        item.getNotes(),
+                        item.getInput().getUpdatedAt()
                 ))
                 .toList();
     }

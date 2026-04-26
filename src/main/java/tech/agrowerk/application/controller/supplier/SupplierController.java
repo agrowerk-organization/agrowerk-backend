@@ -25,7 +25,6 @@ public class SupplierController {
         this.supplierService = supplierService;
     }
 
-
     @PostMapping("/create-supplier")
     @PreAuthorize("hasAuthority('SUPPLIER_ADMIN')")
     public ResponseEntity<SupplierResponse> createSupplier(@Valid @RequestBody CreateSupplierRequest request) {

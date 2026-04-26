@@ -14,6 +14,8 @@ public record HarvestForecastResponse(
         String seasonName,
         String propertyName,
         BigDecimal estimatedQuantity,
+        BigDecimal committedQuantity,
+        BigDecimal availableQuantity,
         LocalDate forecastDate,
         String confidenceLevel,
         BigDecimal plantedArea,

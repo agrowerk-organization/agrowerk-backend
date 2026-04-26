@@ -44,6 +44,8 @@ CREATE TABLE barter_transactions (
                                      CONSTRAINT fk_bt_offer FOREIGN KEY (barter_offer_id) REFERENCES barter_offers(id)
 );
 
+ALTER TABLE barter_transactions
+    ADD COLUMN offeror_batch_id UUID REFERENCES batchs(id);
 
 CREATE TABLE barter_offer_items (
                                     id UUID PRIMARY KEY,

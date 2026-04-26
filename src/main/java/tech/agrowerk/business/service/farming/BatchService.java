@@ -213,6 +213,15 @@ public class BatchService {
     }
 
     @Transactional(readOnly = true)
+    public Page<BatchResponse> findMyAvailableBatches(Pageable pageable) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        return batchRepository.findAvailableBySupplierAdmin(
+                auth.id(), BatchStatus.AVAILABLE, pageable
+        ).map(batchMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public Page<BatchResponse> findByInput(UUID inputId, Pageable pageable) {
         return batchRepository.findByInput_Id(inputId, pageable)
                 .map(batchMapper::toResponse);

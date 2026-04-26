@@ -99,6 +99,31 @@ public interface BarterOfferRepository extends JpaRepository<BarterOffer, UUID> 
     """)
     Optional<BarterOffer> findByIdWithDetails(@Param("id") UUID id);
 
+    @Query("""
+        SELECT DISTINCT o FROM BarterOffer o
+        JOIN FETCH o.owner
+        JOIN FETCH o.property p
+        JOIN FETCH p.state
+        LEFT JOIN FETCH o.offeredForecast f
+        LEFT JOIN FETCH f.crop
+        JOIN o.requestedItems ri
+        WHERE o.status = :status
+        AND ri.input.id IN :inputIds
+        ORDER BY o.createdAt DESC
+    """)
+    List<BarterOffer> findActiveWithRequestedInputs(
+            @Param("status") OfferStatus status,
+            @Param("inputIds") List<UUID> inputIds,
+            Pageable pageable);
+
+    @Query("""
+        SELECT COUNT(DISTINCT o.id) FROM BarterOffer o
+        JOIN o.requestedItems ri
+        WHERE o.status = 'ACTIVE'
+        AND ri.input.id IN :inputIds
+    """)
+    long countActiveWithRequestedInputs(@Param("inputIds") List<UUID> inputIds);
+
 
     Page<BarterOffer> findByStatusAndOfferedForecast_IdOrderByCreatedAtDesc(
             OfferStatus status, UUID forecastId, Pageable pageable);

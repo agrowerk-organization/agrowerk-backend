@@ -29,6 +29,13 @@ public interface CommodityPriceRepository extends JpaRepository<CommodityPrice, 
 
     boolean existsByCommodityAndSourceAndReferenceDate(Commodity commodity, String source, LocalDate referenceDate);
 
+    @Query("""
+        SELECT p FROM CommodityPrice p
+        WHERE p.commodity = :commodity
+        ORDER BY p.referenceDate DESC
+        LIMIT 1
+    """)
+    Optional<CommodityPrice> findLatestByCommodity(@Param("commodity") Commodity commodity);
 
     @Query("""
         SELECT cp FROM CommodityPrice cp

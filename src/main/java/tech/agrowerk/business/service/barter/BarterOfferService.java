@@ -1,12 +1,15 @@
 package tech.agrowerk.business.service.barter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.agrowerk.application.dto.market.CommodityPriceLatestResponse;
+import tech.agrowerk.application.dto.market.CommodityResolution;
 import tech.agrowerk.application.dto.request.barter.BarterOfferItemRequest;
 import tech.agrowerk.application.dto.request.barter.CreateBarterOfferRequest;
 import tech.agrowerk.application.dto.request.barter.UpdateBarterOfferRequest;
@@ -14,6 +17,7 @@ import tech.agrowerk.application.dto.response.barter.BarterOfferResponse;
 import tech.agrowerk.business.mapper.barter.BarterOfferMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.utils.AuthenticatedUser;
+import tech.agrowerk.business.utils.StringUtils;
 import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.exception.local.AccessDeniedException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
@@ -23,27 +27,34 @@ import tech.agrowerk.infrastructure.model.barter.BarterOfferItem;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferStatus;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 import tech.agrowerk.infrastructure.model.core.User;
-import tech.agrowerk.infrastructure.model.farming.Crop;
 import tech.agrowerk.infrastructure.model.farming.HarvestForecast;
 import tech.agrowerk.infrastructure.model.inventory.Input;
 import tech.agrowerk.infrastructure.model.inventory.InventoryAsset;
+import tech.agrowerk.infrastructure.model.market.enums.Commodity;
 import tech.agrowerk.infrastructure.model.property.Property;
 import tech.agrowerk.infrastructure.repository.barter.BarterOfferItemRepository;
 import tech.agrowerk.infrastructure.repository.barter.BarterOfferRepository;
 import tech.agrowerk.infrastructure.repository.core.UserRepository;
+import tech.agrowerk.infrastructure.repository.farming.BatchRepository;
 import tech.agrowerk.infrastructure.repository.farming.CropRepository;
 import tech.agrowerk.infrastructure.repository.farming.HarvestForecastRepository;
 import tech.agrowerk.infrastructure.repository.inventory.InputRepository;
 import tech.agrowerk.infrastructure.repository.inventory.InventoryAssetRepository;
+import tech.agrowerk.infrastructure.repository.market.CommodityPriceRepository;
 import tech.agrowerk.infrastructure.repository.property.PropertyRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -56,6 +67,8 @@ public class BarterOfferService {
     private final HarvestForecastRepository harvestForecastRepository;
     private final InputRepository         inputRepository;
     private final InventoryAssetRepository assetRepository;
+    private final CommodityPriceRepository commodityPriceRepository;
+    private final BatchRepository         batchRepository;
     private final BarterOfferMapper       barterOfferMapper;
     private final OwnershipValidator      ownershipValidator;
     private final AuthUtil                authUtil;
@@ -67,6 +80,8 @@ public class BarterOfferService {
                               HarvestForecastRepository harvestForecastRepository,
                               InputRepository inputRepository,
                               InventoryAssetRepository assetRepository,
+                              CommodityPriceRepository commodityPriceRepository,
+                              BatchRepository batchRepository,
                               BarterOfferMapper barterOfferMapper,
                               OwnershipValidator ownershipValidator,
                               AuthUtil authUtil) {
@@ -77,6 +92,8 @@ public class BarterOfferService {
         this.harvestForecastRepository = harvestForecastRepository;
         this.inputRepository = inputRepository;
         this.assetRepository  = assetRepository;
+        this.commodityPriceRepository = commodityPriceRepository;
+        this.batchRepository = batchRepository;
         this.barterOfferMapper = barterOfferMapper;
         this.ownershipValidator = ownershipValidator;
         this.authUtil         = authUtil;
@@ -114,8 +131,19 @@ public class BarterOfferService {
         if (request.offerType() == OfferType.CROP) {
             HarvestForecast forecast = harvestForecastRepository.findById(request.harvestForecastId())
                     .orElseThrow(() -> new EntityNotFoundException("Forecast not found"));
+
+            BigDecimal requested = request.offeredCropQuantity();
+
+            if (requested.compareTo(forecast.getAvailableQuantity()) > 0)
+                throw new OperationDeniedException(
+                        "Unavailable quantity. Available: " + forecast.getAvailableQuantity()
+                );
+
+            forecast.setCommittedQuantity(forecast.getCommittedQuantity().add(requested));
+            harvestForecastRepository.save(forecast);
+
             offer.setOfferedForecast(forecast);
-            offer.setOfferedCropQuantity(request.offeredCropQuantity());
+            offer.setOfferedCropQuantity(requested);
             offer.setEstimatedHarvestDate(request.estimatedHarvestDate());
         }
 
@@ -137,7 +165,15 @@ public class BarterOfferService {
                 request.requestedItems() != null ? request.requestedItems().size() : 0,
                 auth.id());
 
-        return barterOfferMapper.toResponse(saved, resolvePropertyLocal(offer));
+        CommodityResolution commodity = resolveCommodityData(offer);
+
+        return barterOfferMapper.toResponse(
+                offer,
+                resolvePropertyLocal(offer),
+                commodity != null ? commodity.suggestedQuantity() : null,
+                commodity != null ? commodity.referencePrice() : null,
+                commodity != null ? commodity.referencePriceDate() : null
+        );
     }
 
     @Transactional(readOnly = true)
@@ -162,14 +198,54 @@ public class BarterOfferService {
         return toPageResponse(content, total, pageable);
     }
 
+    @Transactional(readOnly = true)
+    public CommodityPriceLatestResponse getLatestCommodityPrice(String commodity) {
+        Commodity commodityEnum;
+        try {
+            commodityEnum = Commodity.valueOf(StringUtils.normalizeCommodity(commodity));
+        } catch (IllegalArgumentException e) {
+            throw new EntityNotFoundException("Commodity não mapeada: " + commodity);
+        }
+
+        return commodityPriceRepository.findLatestByCommodity(commodityEnum)
+                .map(p -> new CommodityPriceLatestResponse(p.getPrice(), p.getReferenceDate()))
+                .orElseThrow(() -> new EntityNotFoundException("Preço não encontrado para: " + commodity));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BarterOfferResponse> listActiveForSupplier(Pageable pageable) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        List<UUID> availableInputIds = batchRepository
+                .findAvailableInputIdsBySupplier(auth.id());
+
+        if (availableInputIds.isEmpty())
+            return Page.empty(pageable);
+
+        List<BarterOffer> content = offerRepository
+                .findActiveWithRequestedInputs(OfferStatus.ACTIVE, availableInputIds, pageable);
+        long total = offerRepository
+                .countActiveWithRequestedInputs(availableInputIds);
+
+        return toPageResponse(content, total, pageable);
+    }
+
     @Transactional
     public BarterOfferResponse findById(UUID id) {
         BarterOffer offer = offerRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Offer not found"));
         offerRepository.incrementViewCount(id);
-        return barterOfferMapper.toResponse(offer, resolvePropertyLocal(offer));
-    }
 
+        CommodityResolution commodity = resolveCommodityData(offer);
+
+        return barterOfferMapper.toResponse(
+                offer,
+                resolvePropertyLocal(offer),
+                commodity != null ? commodity.suggestedQuantity() : null,
+                commodity != null ? commodity.referencePrice() : null,
+                commodity != null ? commodity.referencePriceDate() : null
+        );
+    }
 
     @Transactional
     public BarterOfferResponse updateOffer(UUID id, UpdateBarterOfferRequest request) {
@@ -184,12 +260,30 @@ public class BarterOfferService {
         if (request.description()         != null) offer.setDescription(request.description());
         if (request.requestedDescription()!= null) offer.setRequestedDescription(request.requestedDescription());
         if (request.expiresAt()           != null) offer.setExpiresAt(request.expiresAt());
+        if (request.offeredAssetQuantity() != null) offer.setOfferedAssetQuantity(request.offeredAssetQuantity());
+
+        if (request.offeredCropQuantity() != null && offer.getOfferType() == OfferType.CROP
+                && offer.getOfferedForecast() != null) {
+
+            BigDecimal oldQuantity = offer.getOfferedCropQuantity();
+            BigDecimal newQuantity = request.offeredCropQuantity();
+            HarvestForecast forecast = adjustmCommittedQuantity(newQuantity, oldQuantity, offer);
+            harvestForecastRepository.save(forecast);
+            offer.setOfferedCropQuantity(newQuantity);
+        }
+
         offer.setUpdatedAt(LocalDateTime.now());
 
         log.info("Barter offer updated id={}", id);
-        return barterOfferMapper.toResponse(offer, resolvePropertyLocal(offer));
+        CommodityResolution commodity = resolveCommodityData(offer);
+        return barterOfferMapper.toResponse(
+                offer,
+                resolvePropertyLocal(offer),
+                commodity != null ? commodity.suggestedQuantity() : null,
+                commodity != null ? commodity.referencePrice() : null,
+                commodity != null ? commodity.referencePriceDate() : null
+        );
     }
-
 
     @Transactional
     public void cancelOffer(UUID id) {
@@ -202,6 +296,15 @@ public class BarterOfferService {
 
         if (offer.getStatus() == OfferStatus.CANCELLED)
             throw new OperationDeniedException("Offer is already cancelled");
+
+        if (offer.getOfferType() == OfferType.CROP && offer.getOfferedForecast() != null) {
+            HarvestForecast forecast = offer.getOfferedForecast();
+            BigDecimal released = offer.getOfferedCropQuantity();
+            forecast.setCommittedQuantity(
+                    forecast.getCommittedQuantity().subtract(released).max(BigDecimal.ZERO)
+            );
+            harvestForecastRepository.save(forecast);
+        }
 
         offer.setStatus(OfferStatus.CANCELLED);
         offer.setUpdatedAt(LocalDateTime.now());
@@ -258,14 +361,81 @@ public class BarterOfferService {
         log.info("BarterOfferItems saved: {} items for offer={}", items.size(), offer.getId());
     }
 
-
     private Page<BarterOfferResponse> toPageResponse(List<BarterOffer> content, long total, Pageable pageable) {
         if (!content.isEmpty()) {
             List<UUID> ids = content.stream().map(BarterOffer::getId).toList();
             offerRepository.fetchRequestedItems(ids);
         }
+
+        Map<Commodity, CommodityResolution> commodityCache = content.stream()
+                .filter(o -> o.getOfferType() == OfferType.CROP && o.getOfferedForecast() != null)
+                .map(o -> StringUtils.normalizeCommodity(o.getOfferedForecast().getCrop().getName()))
+                .filter(Objects::nonNull)
+                .distinct()
+                .flatMap(normalized -> {
+                    try {
+                        return Stream.of(Commodity.valueOf(normalized));
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Commodity não mapeada no cache: {}", normalized);
+                        return Stream.empty();
+                    }
+                })
+                .distinct()
+                .collect(Collectors.toMap(
+                        commodity -> commodity,
+                        commodity -> commodityPriceRepository.findLatestByCommodity(commodity)
+                                .map(latest -> new CommodityResolution(null, latest.getPrice(), latest.getReferenceDate()))
+                                .orElse(null)
+                ));
+
         Page<BarterOffer> page = new PageImpl<>(content, pageable, total);
-        return page.map(o -> barterOfferMapper.toResponse(o, resolvePropertyLocal(o)));
+        return page.map(o -> {
+            CommodityResolution base = null;
+            if (o.getOfferType() == OfferType.CROP && o.getOfferedForecast() != null) {
+                String normalized = StringUtils.normalizeCommodity(o.getOfferedForecast().getCrop().getName());
+                try {
+                    Commodity key = Commodity.valueOf(normalized);
+                    CommodityResolution cached = commodityCache.get(key);
+                    if (cached != null && cached.referencePrice() != null) {
+                        BigDecimal total2 = o.getRequestedItems().stream()
+                                .map(item -> item.getInput().getAveragePurchasePrice()
+                                        .multiply(item.getQuantity()))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        BigDecimal suggested = cached.referencePrice().compareTo(BigDecimal.ZERO) > 0
+                                ? total2.divide(cached.referencePrice(), 2, RoundingMode.HALF_UP)
+                                : null;
+                        base = new CommodityResolution(suggested, cached.referencePrice(), cached.referencePriceDate());
+                    }
+                } catch (IllegalArgumentException e) {
+                    log.warn("Commodity não mapeada no map: {}", normalized);
+                }
+            }
+            return barterOfferMapper.toResponse(
+                    o,
+                    resolvePropertyLocal(o),
+                    base != null ? base.suggestedQuantity() : null,
+                    base != null ? base.referencePrice() : null,
+                    base != null ? base.referencePriceDate() : null
+            );
+        });
+    }
+
+    private static HarvestForecast adjustmCommittedQuantity(BigDecimal newQuantity, BigDecimal oldQuantity, BarterOffer offer) {
+        BigDecimal delta = newQuantity.subtract(oldQuantity);
+
+        HarvestForecast forecast = offer.getOfferedForecast();
+
+        if (delta.compareTo(BigDecimal.ZERO) > 0
+                && delta.compareTo(forecast.getAvailableQuantity()) > 0) {
+            throw new OperationDeniedException(
+                    "Unaivalable quantity. Available: " + forecast.getAvailableQuantity()
+            );
+        }
+
+        forecast.setCommittedQuantity(
+                forecast.getCommittedQuantity().add(delta).max(BigDecimal.ZERO)
+        );
+        return forecast;
     }
 
     private void validateOfferPayload(CreateBarterOfferRequest request) {
@@ -286,5 +456,35 @@ public class BarterOfferService {
         if (address == null) return null;
         var state = property.getState();
         return address.getMunicipality() + " / " + (state != null ? state.getName() : "");
+    }
+
+    private CommodityResolution resolveCommodityData(BarterOffer offer) {
+        if (offer.getOfferType() != OfferType.CROP) return null;
+        if (offer.getOfferedForecast() == null) return null;
+
+        String normalized = StringUtils.normalizeCommodity(offer.getOfferedForecast().getCrop().getName());
+
+        Commodity commodity;
+        try {
+            commodity = Commodity.valueOf(normalized);
+        } catch (IllegalArgumentException e) {
+            log.warn("Commodity não mapeada: {}", normalized);
+            return null;
+        }
+
+        return commodityPriceRepository.findLatestByCommodity(commodity)
+                .map(latest -> {
+                    BigDecimal total = offer.getRequestedItems().stream()
+                            .map(item -> item.getInput().getAveragePurchasePrice()
+                                    .multiply(item.getQuantity()))
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal suggested = latest.getPrice().compareTo(BigDecimal.ZERO) > 0
+                            ? total.divide(latest.getPrice(), 2, RoundingMode.HALF_UP)
+                            : null;
+
+                    return new CommodityResolution(suggested, latest.getPrice(), latest.getReferenceDate());
+                })
+                .orElse(null);
     }
 }

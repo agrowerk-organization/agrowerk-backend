@@ -14,17 +14,7 @@ public record ProposeTransactionRequest(
         UUID offerId,
 
         @NotNull
-        OfferType offerorGives,
-
-        UUID offerorCropId,
-
-        @Positive
-        BigDecimal offerorCropQuantity,
-
-        UUID offerorAssetId,
-
-        @Positive
-        BigDecimal offerorAssetQuantity,
+        UUID batchId,
 
         @NotNull
         @Future
@@ -35,5 +25,4 @@ public record ProposeTransactionRequest(
         LocalDate acceptorDeliveryDate,
 
         String notes
-) {
-}
+) {}
