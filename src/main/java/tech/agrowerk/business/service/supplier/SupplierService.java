@@ -113,6 +113,8 @@ public class SupplierService {
         if (request.observations()       != null) supplier.setObservations(request.observations());
         if (request.acceptsBarterDeals() != null) supplier.setAcceptsBarterDeals(request.acceptsBarterDeals());
         if (request.barterTerms()        != null) supplier.setBarterTerms(request.barterTerms());
+        if (request.address() != null)
+            supplier.setAddress(supplierMapper.toAddress(request.address()));
 
         log.info("Supplier updated id={}", supplier.getId());
         return supplierMapper.toResponse(supplier);

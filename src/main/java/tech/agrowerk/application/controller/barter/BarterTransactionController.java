@@ -29,13 +29,13 @@ public class BarterTransactionController {
     }
 
     @PostMapping("/propose-transaction")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("hasAuthority('SUPPLIER_ADMIN')")
     public ResponseEntity<BarterTransactionResponse> proposeTransaction(@Valid @RequestBody ProposeTransactionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(barterTransactionService.proposeTransaction(request));
     }
 
     @GetMapping("/list-my-transactions")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<BarterTransactionResponse>> listMine(@PageableDefault(size = 10)Pageable pageable) {
         return ResponseEntity.ok(barterTransactionService.listMyTransactions(pageable));
     }
@@ -50,33 +50,33 @@ public class BarterTransactionController {
     }
 
     @GetMapping("/find-by-id/{barterTransactionId}")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("hasAuthority('SUPPLIER_ADMIN')")
     public ResponseEntity<BarterTransactionResponse> findById(@PathVariable UUID barterTransactionId) {
         return ResponseEntity.ok(barterTransactionService.findById(barterTransactionId));
     }
 
     @PatchMapping("/decline-transaction/{barterTransactionId}")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> declineTransaction(@PathVariable UUID barterTransactionId) {
         barterTransactionService.declineTransaction(barterTransactionId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/cancel-transaction/{barterTransactionId}")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("isAuthenticated")
     public ResponseEntity<Void> cancelTransaction(@PathVariable UUID barterTransactionId) {
         barterTransactionService.cancelTransaction(barterTransactionId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/contract-transaction/{barterTransactionId}")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BarterContractResponse> findContract(@PathVariable UUID barterTransactionId) {
         return ResponseEntity.ok(barterTransactionService.findContract(barterTransactionId));
     }
 
     @PostMapping("/sign-contract")
-    @PreAuthorize("hasAuthority('PRODUCER')")
+    @PreAuthorize("hasAuthority('PRODUCER') && hasAuthority('SUPPLIER_ADMIN')")
     public ResponseEntity<BarterContractResponse> signContract(
             @Valid @RequestBody SignContractRequest request,
             HttpServletRequest httpRequest) {

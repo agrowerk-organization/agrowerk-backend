@@ -20,9 +20,5 @@ public record ProposeTransactionRequest(
         @Future
         LocalDate offerorDeliveryDate,
 
-        @NotNull
-        @Future
-        LocalDate acceptorDeliveryDate,
-
         String notes
 ) {}

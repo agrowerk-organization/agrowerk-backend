@@ -97,16 +97,16 @@ public class BarterTransaction {
     @OneToOne(mappedBy = "transaction")
     private BarterContract barterContract;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "barter_offer_id", nullable = false)
+    private BarterOffer barterOffer;
+
     @OneToMany(mappedBy = "transaction", orphanRemoval = true)
     @Builder.Default
     private List<CropCommitment> cropCommitments = new ArrayList<>();
 
     @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL)
     private BarterPriceSnapshot priceSnapshot;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "barter_offer_id", nullable = false)
-    private BarterOffer barterOffer;
 
     @OneToMany(mappedBy = "barterTransaction", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

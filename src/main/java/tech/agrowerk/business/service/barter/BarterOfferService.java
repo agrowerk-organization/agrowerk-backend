@@ -165,10 +165,13 @@ public class BarterOfferService {
                 request.requestedItems() != null ? request.requestedItems().size() : 0,
                 auth.id());
 
+        BarterOffer withItems = offerRepository.findByIdWithDetails(saved.getId())
+                .orElse(saved);
+
         CommodityResolution commodity = resolveCommodityData(offer);
 
         return barterOfferMapper.toResponse(
-                offer,
+                withItems,
                 resolvePropertyLocal(offer),
                 commodity != null ? commodity.suggestedQuantity() : null,
                 commodity != null ? commodity.referencePrice() : null,
@@ -223,9 +226,9 @@ public class BarterOfferService {
             return Page.empty(pageable);
 
         List<BarterOffer> content = offerRepository
-                .findActiveWithRequestedInputs(OfferStatus.ACTIVE, availableInputIds, pageable);
+                .findActiveWithRequestedInputs(OfferStatus.ACTIVE, availableInputIds, auth.id(), pageable);
         long total = offerRepository
-                .countActiveWithRequestedInputs(availableInputIds);
+                .countActiveWithRequestedInputs(availableInputIds, auth.id());
 
         return toPageResponse(content, total, pageable);
     }

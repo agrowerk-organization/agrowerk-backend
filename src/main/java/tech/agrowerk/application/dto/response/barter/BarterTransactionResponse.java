@@ -1,5 +1,6 @@
 package tech.agrowerk.application.dto.response.barter;
 
+import tech.agrowerk.application.dto.response.core.AddressResponse;
 import tech.agrowerk.infrastructure.model.barter.enums.OfferType;
 import tech.agrowerk.infrastructure.model.barter.enums.TransactionStatus;
 
@@ -23,6 +24,8 @@ public record BarterTransactionResponse(
         UUID offerorAssetId,
         String offerorAssetName,
         BigDecimal offerorAssetQuantity,
+        String offerorBatchNumber,
+        String offerorInputName,
         OfferType acceptorGives,
         UUID acceptorCropId,
         String acceptorCropName,
@@ -33,5 +36,6 @@ public record BarterTransactionResponse(
         String notes,
         UUID contractId,
         ContractSignatureStatus contractSignatureStatus,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        AddressResponse offerorAddress
 ) {}

@@ -1,6 +1,7 @@
 package tech.agrowerk.business.mapper.supplier;
 
 import org.springframework.stereotype.Component;
+import tech.agrowerk.application.dto.request.core.AddAddressRequest;
 import tech.agrowerk.application.dto.request.supplier.CreateSupplierRequest;
 import tech.agrowerk.application.dto.response.core.AddressResponse;
 import tech.agrowerk.application.dto.response.supplier.*;
@@ -28,10 +29,12 @@ public class SupplierMapper {
         supplier.setEmail(request.email());
         supplier.setTelephone(request.telephone());
         supplier.setNameContact(request.nameContact());
+        supplier.setAddress(toAddress(request.address()));
         supplier.setObservations(request.observations());
         supplier.setIsActive(true);
         supplier.setAcceptsBarterDeals(request.acceptsBarterDeals() != null && request.acceptsBarterDeals());
         supplier.setBarterTerms(request.barterTerms());
+
         return supplier;
     }
 
@@ -55,6 +58,22 @@ public class SupplierMapper {
                 supplierSpecialtyMapper.toSpecialtyResponses(supplier.getSpecialties()),
                 supplier.getCreatedAt()
         );
+    }
+
+    public Address toAddress(AddAddressRequest request) {
+        if (request == null) return null;
+
+        Address address = new Address();
+        address.setRural(request.rural());
+        address.setCode(request.code());
+        address.setMunicipality(request.municipality());
+        address.setLocationName(request.locationName());
+        address.setStreet(request.street());
+        address.setNumber(request.number());
+        address.setNeighborhood(request.neighborhood());
+        address.setLandmark(request.landmark());
+
+        return address;
     }
 
     private AddressResponse toAddressResponse(Address address) {

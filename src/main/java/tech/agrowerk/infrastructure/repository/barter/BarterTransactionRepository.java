@@ -29,11 +29,29 @@ public interface BarterTransactionRepository extends JpaRepository<BarterTransac
     @Query("SELECT t FROM BarterTransaction t WHERE t.id = :id")
     Optional<BarterTransaction> findByIdWithLock(@Param("id") UUID id);
 
-    @Query("""
+    @Query(value = """
         SELECT t FROM BarterTransaction t
+        LEFT JOIN FETCH t.offeror
+        LEFT JOIN FETCH t.acceptor
+        LEFT JOIN FETCH t.barterOffer bo
+        LEFT JOIN FETCH bo.offeredForecast f
+        LEFT JOIN FETCH f.crop
+        LEFT JOIN FETCH t.offerorCrop
+        LEFT JOIN FETCH t.acceptorCrop
+        LEFT JOIN FETCH t.offerorBatch b
+        LEFT JOIN FETCH b.input
+        LEFT JOIN FETCH t.offerorAsset
+        LEFT JOIN FETCH t.barterContract
+        LEFT JOIN FETCH b.supplier sup
+        LEFT JOIN FETCH sup.address
         WHERE t.offeror.id = :userId OR t.acceptor.id = :userId
         ORDER BY t.createdAt DESC
-    """)
+    """,
+            countQuery = """
+        SELECT COUNT(t) FROM BarterTransaction t
+        WHERE t.offeror.id = :userId OR t.acceptor.id = :userId
+    """
+    )
     Page<BarterTransaction> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
 
     @Modifying

@@ -62,7 +62,7 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.listByState(state, pageable));
     }
 
-    @PutMapping("/update-me")
+    @PatchMapping("/update-me")
     @PreAuthorize("hasAuthority('SUPPLIER_ADMIN')")
     public ResponseEntity<SupplierResponse> updateSupplier(@Valid @RequestBody UpdateSupplierRequest request) {
         return ResponseEntity.ok(supplierService.updateSupplier(request));

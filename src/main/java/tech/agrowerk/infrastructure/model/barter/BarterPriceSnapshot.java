@@ -30,7 +30,7 @@ public class BarterPriceSnapshot {
     @Column(nullable = false, length = 20)
     private String commodity;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = true, length = 10)
     private String cbotContractMonth;
 
     @Column(nullable = false, precision = 10, scale = 4)

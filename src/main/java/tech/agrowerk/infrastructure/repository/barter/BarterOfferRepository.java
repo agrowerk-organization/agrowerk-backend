@@ -109,11 +109,18 @@ public interface BarterOfferRepository extends JpaRepository<BarterOffer, UUID> 
         JOIN o.requestedItems ri
         WHERE o.status = :status
         AND ri.input.id IN :inputIds
+        AND NOT EXISTS (
+            SELECT t FROM BarterTransaction t
+            WHERE t.barterOffer.id = o.id
+              AND t.offeror.id = :userId
+              AND t.status <> 'CANCELLED'
+        )
         ORDER BY o.createdAt DESC
     """)
     List<BarterOffer> findActiveWithRequestedInputs(
             @Param("status") OfferStatus status,
             @Param("inputIds") List<UUID> inputIds,
+            @Param("userId") UUID userId,
             Pageable pageable);
 
     @Query("""
@@ -121,9 +128,16 @@ public interface BarterOfferRepository extends JpaRepository<BarterOffer, UUID> 
         JOIN o.requestedItems ri
         WHERE o.status = 'ACTIVE'
         AND ri.input.id IN :inputIds
+        AND NOT EXISTS (
+            SELECT t FROM BarterTransaction t
+            WHERE t.barterOffer.id = o.id
+              AND t.offeror.id = :userId
+              AND t.status <> 'CANCELLED'
+        )
     """)
-    long countActiveWithRequestedInputs(@Param("inputIds") List<UUID> inputIds);
-
+    long countActiveWithRequestedInputs(
+            @Param("inputIds") List<UUID> inputIds,
+            @Param("userId") UUID userId);
 
     Page<BarterOffer> findByStatusAndOfferedForecast_IdOrderByCreatedAtDesc(
             OfferStatus status, UUID forecastId, Pageable pageable);

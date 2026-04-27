@@ -121,22 +121,21 @@ public class BarterTransactionService {
         if (!batchMatchesOffer)
             throw new OperationDeniedException("Batch input does not match offer requirements");
 
-        BarterTransaction transaction = BarterTransaction.builder()
-                .barterOffer(offer)
-                .offeror(offeror)
-                .acceptor(offer.getOwner())
-                .offerorGives(OfferType.ASSET)
-                .offerorBatch(batch)
-                .acceptorGives(offer.getOfferType())
-                .acceptorCropQuantity(offer.getOfferedCropQuantity())
-                .acceptorAsset(offer.getOfferedAsset())
-                .offerorDeliveryDate(request.offerorDeliveryDate())
-                .acceptorDeliveryDate(request.acceptorDeliveryDate())
-                .status(TransactionStatus.PENDING)
-                .notes(request.notes())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        BarterTransaction transaction = new BarterTransaction();
+        transaction.setBarterOffer(offer);
+        transaction.setOfferor(offeror);
+        transaction.setAcceptor(offer.getOwner());
+        transaction.setOfferorGives(OfferType.ASSET);
+        transaction.setOfferorBatch(batch);
+        transaction.setAcceptorGives(offer.getOfferType());
+        transaction.setAcceptorCropQuantity(offer.getOfferedCropQuantity());
+        transaction.setAcceptorAsset(offer.getOfferedAsset());
+        transaction.setOfferorDeliveryDate(request.offerorDeliveryDate());
+        transaction.setAcceptorDeliveryDate(offer.getEstimatedHarvestDate());
+        transaction.setStatus(TransactionStatus.PENDING);
+        transaction.setNotes(request.notes());
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setUpdatedAt(LocalDateTime.now());
 
         BarterTransaction saved = barterTransactionRepository.save(transaction);
         log.info("Transaction proposed id={} offer={} batch={} by={}",
@@ -317,7 +316,6 @@ public class BarterTransactionService {
 
         return barterTransactionMapper.toContractResponse(contract);
     }
-
 
     private BarterTransaction findTransactionAndValidateAcceptor(UUID transactionId, UUID userId) {
         BarterTransaction t = barterTransactionRepository.findById(transactionId)

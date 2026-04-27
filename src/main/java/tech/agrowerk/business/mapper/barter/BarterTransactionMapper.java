@@ -2,7 +2,9 @@ package tech.agrowerk.business.mapper.barter;
 
 import org.springframework.stereotype.Component;
 import tech.agrowerk.application.dto.response.barter.*;
+import tech.agrowerk.application.dto.response.core.AddressResponse;
 import tech.agrowerk.infrastructure.model.barter.*;
+import tech.agrowerk.infrastructure.model.core.Address;
 
 @Component
 public class BarterTransactionMapper {
@@ -35,9 +37,13 @@ public class BarterTransactionMapper {
                 t.getOfferorAsset() != null ? t.getOfferorAsset().getId()   : null,
                 t.getOfferorAsset() != null ? t.getOfferorAsset().getName() : null,
                 t.getOfferorAssetQuantity(),
+                t.getOfferorBatch() != null ? t.getOfferorBatch().getBatchNumber() : null,
+                t.getOfferorBatch() != null ? t.getOfferorBatch().getInput().getName() : null,
                 t.getAcceptorGives(),
-                t.getAcceptorCrop()  != null ? t.getAcceptorCrop().getId()   : null,
-                t.getAcceptorCrop()  != null ? t.getAcceptorCrop().getName() : null,
+                t.getBarterOffer().getOfferedForecast() != null
+                        ? t.getBarterOffer().getOfferedForecast().getCrop().getId() : null,
+                t.getBarterOffer().getOfferedForecast() != null
+                        ? t.getBarterOffer().getOfferedForecast().getCrop().getName() : null,
                 t.getAcceptorCropQuantity(),
                 t.getStatus(),
                 t.getOfferorDeliveryDate(),
@@ -45,7 +51,9 @@ public class BarterTransactionMapper {
                 t.getNotes(),
                 t.getBarterContract() != null ? t.getBarterContract().getId() : null,
                 signatureStatus,
-                t.getCreatedAt()
+                t.getCreatedAt(),
+                t.getOfferorBatch() != null && t.getOfferorBatch().getSupplier() != null
+                        ? toAddressResponse(t.getOfferorBatch().getSupplier().getAddress()) : null
         );
     }
 
@@ -63,6 +71,21 @@ public class BarterTransactionMapper {
                 c.getAcceptorSignedAt() != null,
                 c.getAcceptorSignedAt(),
                 c.getCreatedAt()
+        );
+    }
+
+    public AddressResponse toAddressResponse(Address address) {
+        if (address == null) return null;
+
+        return new AddressResponse(
+                address.isRural(),
+                address.getCode(),
+                address.getMunicipality(),
+                address.getLocationName(),
+                address.getStreet(),
+                address.getNumber(),
+                address.getNeighborhood(),
+                address.getLandmark()
         );
     }
 }
