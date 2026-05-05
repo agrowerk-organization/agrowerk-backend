@@ -1,7 +1,7 @@
 package tech.agrowerk.business.mapper.inventory;
 
 import org.springframework.stereotype.Component;
-import tech.agrowerk.application.dto.response.inventory.StockPositionResponse;
+import tech.agrowerk.application.dto.views.StockPositionResponse;
 import tech.agrowerk.infrastructure.model.inventory.views.StockPositionView;
 
 @Component

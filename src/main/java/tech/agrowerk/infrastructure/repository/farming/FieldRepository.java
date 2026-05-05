@@ -25,7 +25,7 @@ public interface FieldRepository extends JpaRepository<Field, UUID> {
     @Query("""
             SELECT COALESCE(SUM(f.areaHectares), 0) FROM Field f
             WHERE f.property.id = :propertyId
-            AND f.fieldStatus != 'INACTIVE'
+            AND f.fieldStatus NOT IN ('INACTIVE', 'DEGRADED')
     """)
     BigDecimal sumAreaByProperty(@Param("propertyId") UUID propertyId);
 

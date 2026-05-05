@@ -67,7 +67,8 @@ public class PropertyService {
                            WeatherLocationService weatherLocationService,
                            AuthUtil authUtil,
                            PropertyMapper propertyMapper,
-                           OwnershipValidator ownershipValidator, ApplicationEventPublisher applicationEventPublisher) {
+                           OwnershipValidator ownershipValidator,
+                           ApplicationEventPublisher applicationEventPublisher) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
         this.userPropertyRepository = userPropertyRepository;

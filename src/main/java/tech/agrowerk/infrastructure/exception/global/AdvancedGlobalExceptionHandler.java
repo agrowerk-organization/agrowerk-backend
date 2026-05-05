@@ -21,6 +21,7 @@ public class AdvancedGlobalExceptionHandler {
     private static final Map<Class<? extends Exception>, ErrorConfig> ERROR_REGISTRY = Map.ofEntries(
             entry(BadCredentialsException.class, unauthorized("Invalid credentials provided")),
             entry(IllegalArgumentException.class, badRequest("Invalid argument provided")),
+            entry(java.lang.IllegalArgumentException.class, badRequest("Invalid argument provided")),
             entry(InvalidTokenException.class, badRequest("Invalid or expired token")),
             entry(InvalidPasswordException.class, badRequest("Password does not meet requirements")),
             entry(AccessDeniedException.class, forbidden("Access denied to this resource")),
@@ -42,6 +43,7 @@ public class AdvancedGlobalExceptionHandler {
     @ExceptionHandler({
             BadCredentialsException.class,
             IllegalArgumentException.class,
+            java.lang.IllegalArgumentException.class,
             InvalidTokenException.class,
             InvalidPasswordException.class,
             AccessDeniedException.class,

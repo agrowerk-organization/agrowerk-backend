@@ -3,7 +3,7 @@ package tech.agrowerk.business.service.inventory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.response.inventory.StockPositionResponse;
+import tech.agrowerk.application.dto.views.StockPositionResponse;
 import tech.agrowerk.business.mapper.inventory.StockPositionViewMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.validators.OwnershipValidator;

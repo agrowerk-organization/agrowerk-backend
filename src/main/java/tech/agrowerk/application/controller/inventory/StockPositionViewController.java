@@ -1,9 +1,8 @@
 package tech.agrowerk.application.controller.inventory;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.response.inventory.StockPositionResponse;
+import tech.agrowerk.application.dto.views.StockPositionResponse;
 import tech.agrowerk.business.service.inventory.StockPositionViewService;
 
 import java.util.List;

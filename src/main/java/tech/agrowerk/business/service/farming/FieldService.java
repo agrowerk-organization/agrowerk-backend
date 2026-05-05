@@ -1,7 +1,6 @@
 package tech.agrowerk.business.service.farming;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import tech.agrowerk.business.utils.AuthenticatedUser;
 import tech.agrowerk.business.validators.OwnershipValidator;
 import tech.agrowerk.infrastructure.exception.local.EntityAlreadyExistsException;
 import tech.agrowerk.infrastructure.exception.local.EntityNotFoundException;
+import tech.agrowerk.infrastructure.exception.local.IllegalArgumentException;
 import tech.agrowerk.infrastructure.model.farming.Field;
 import tech.agrowerk.infrastructure.model.farming.enums.FieldStatus;
 import tech.agrowerk.infrastructure.model.farming.enums.PlantingStatus;
