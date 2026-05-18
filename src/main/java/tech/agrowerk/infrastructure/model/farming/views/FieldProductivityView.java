@@ -24,6 +24,7 @@ public class FieldProductivityView {
     @Id
     private UUID fieldId;
     private String fieldName;
+    private UUID propertyId;
     private String propertyName;
     private BigDecimal avgProductivity;
     private BigDecimal totalProducedKg;

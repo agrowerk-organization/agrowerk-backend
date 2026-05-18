@@ -382,6 +382,7 @@ public class WeatherAlertService {
                 .notified(false)
                 .triggerCondition(buildTriggerCondition(current, type))
                 .source("AUTOMATED_SYSTEM")
+                .weatherAlertStatus(WeatherAlertStatus.ACTIVE)
                 .build();
 
         alert = alertRepository.save(alert);

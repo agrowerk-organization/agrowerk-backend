@@ -22,6 +22,7 @@ public class ActivePlantingView {
 
     @Id
     private UUID plantingId;
+    private UUID propertyId;
     private String propertyName;
     private String cropName;
     private String seasonName;

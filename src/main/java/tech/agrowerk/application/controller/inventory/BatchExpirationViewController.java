@@ -2,7 +2,7 @@ package tech.agrowerk.application.controller.inventory;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.response.inventory.BatchExpirationResponse;
+import tech.agrowerk.application.dto.views.BatchExpirationResponse;
 import tech.agrowerk.business.service.inventory.BatchExpirationViewService;
 
 import java.util.List;

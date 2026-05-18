@@ -5,19 +5,19 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.views.SeasonDashboardResponse;
-import tech.agrowerk.business.service.farming.SeasonDashboardService;
+import tech.agrowerk.business.service.farming.SeasonDashboardViewService;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/season-dashboard")
-public class SeasonDashboardController {
+public class SeasonDashboardViewController {
 
-    private final SeasonDashboardService seasonDashboardService;
+    private final SeasonDashboardViewService seasonDashboardViewService;
 
-    public SeasonDashboardController(SeasonDashboardService seasonDashboardService) {
-        this.seasonDashboardService = seasonDashboardService;
+    public SeasonDashboardViewController(SeasonDashboardViewService seasonDashboardViewService) {
+        this.seasonDashboardViewService = seasonDashboardViewService;
     }
 
     @GetMapping("/get-dashboard/{propertyId}")
@@ -25,7 +25,7 @@ public class SeasonDashboardController {
     public ResponseEntity<List<SeasonDashboardResponse>> getDashboard(
             @PathVariable UUID propertyId) {
 
-        List<SeasonDashboardResponse> response = seasonDashboardService.getDashboard(propertyId);
+        List<SeasonDashboardResponse> response = seasonDashboardViewService.getDashboard(propertyId);
 
         if (response.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -39,7 +39,7 @@ public class SeasonDashboardController {
     public ResponseEntity<List<SeasonDashboardResponse>> getDashboardBySeason(
             @PathVariable UUID seasonId) {
 
-        List<SeasonDashboardResponse> response = seasonDashboardService.getDashboardBySeason(seasonId);
+        List<SeasonDashboardResponse> response = seasonDashboardViewService.getDashboardBySeason(seasonId);
 
         if (response.isEmpty()) {
             return ResponseEntity.noContent().build();

@@ -2,6 +2,7 @@ package tech.agrowerk.application.controller.farming;
 
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,17 @@ public class PlantingController {
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(plantingService.findByProperty(propertyId, pageable));
     }
+
+    @GetMapping("find-by-field/{fieldId}")
+    @PreAuthorize("hasAuthority('PRODUCER')")
+    public ResponseEntity<Page<PlantingResponse>> findByField(
+            @PathVariable UUID fieldId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(plantingService.findByField(fieldId, PageRequest.of(page, size)));
+    }
+
 
     @GetMapping("/find-by-id/{plantingId}")
     @PreAuthorize("hasAuthority('PRODUCER')")

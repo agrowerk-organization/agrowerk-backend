@@ -205,7 +205,7 @@ public class MarketDataClient {
                         .queryParam("api_key", apiKey)
                         .queryParam("file_type", "json")
                         .queryParam("sort_order", "asc")
-                        .queryParam("observation_start", "2021-01-04")
+                        .queryParam("observation_start", "2021-05-15")
                         .build())
                 .retrieve()
                 .body(FinanceResponse.class);

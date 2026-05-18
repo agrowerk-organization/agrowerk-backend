@@ -79,11 +79,13 @@ public class CropVarietyService {
         return cropVarietyMapper.toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
     public Page<CropVarietyResponse> findByCrop(UUID cropId, Pageable pageable) {
         return cropVarietyRepository.findByCrop_Id(cropId, pageable)
                 .map(cropVarietyMapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
     public Page<CropVarietyResponse> searchByName(UUID cropId, String name, Pageable pageable) {
         return cropVarietyRepository
                 .findByCrop_IdAndNameContainingIgnoreCase(cropId, name, pageable)

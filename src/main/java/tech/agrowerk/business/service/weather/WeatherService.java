@@ -69,6 +69,7 @@ public class WeatherService {
         return weatherFetchService.fetchAndSaveCurrentWeather(location);
     }
 
+    @Transactional(readOnly = true)
     public Current getCurrentWeatherFallback(UUID locationId, Throwable t) {
 
         WeatherLocation location = findLocationOrThrow(locationId);
@@ -113,7 +114,6 @@ public class WeatherService {
                 .map(weatherMapper::toAlertDTO)
                 .toList();
     }
-
 
     @Transactional(readOnly = true)
     public Statistics calculateStatisticsInternal(UUID locationId) {

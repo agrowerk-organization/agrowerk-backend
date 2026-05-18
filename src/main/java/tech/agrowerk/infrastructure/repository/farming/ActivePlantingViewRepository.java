@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tech.agrowerk.infrastructure.model.farming.views.ActivePlantingView;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,4 +13,5 @@ public interface ActivePlantingViewRepository extends JpaRepository<ActivePlanti
 
     Optional<ActivePlantingView> findByPlantingId(UUID plantingId);
 
+    List<ActivePlantingView> findAllByPropertyId(UUID propertyId);
 }

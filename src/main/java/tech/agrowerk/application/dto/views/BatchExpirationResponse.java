@@ -1,4 +1,4 @@
-package tech.agrowerk.application.dto.response.inventory;
+package tech.agrowerk.application.dto.views;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -53,9 +53,8 @@ public class WeatherLocationService {
         this.authUtil = authUtil;
     }
 
-    @Cacheable(value = "weatherLocations", key = "'user_' + #auth.id() + '_' + #pageable")
     @Transactional(readOnly = true)
-    public Page<WeatherLocationDto> findLocationsByUser(Pageable pageable) {
+    public Page<WeatherLocationDto> findLocationsByUser(UUID userId, Pageable pageable){
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
         log.debug("Finding weather locations for user: {} - Cache MISS", auth.id());
 

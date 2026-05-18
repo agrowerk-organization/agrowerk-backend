@@ -137,21 +137,30 @@ public class ExchangeRateService {
         }
 
         log.warn("BCB exhausted after 5 attempts, falling back to AwesomeAPI");
-        return fetchFromAwesomeApi();
+        return fetchFromAwesomeApi(targetDate); // passa a data agora
     }
 
-    private BigDecimal fetchFromAwesomeApi() {
+    private BigDecimal fetchFromAwesomeApi(LocalDate targetDate) {
         try {
-            AwesomeApiResponse response = restTemplate.getForObject(awesomeUrl,
-                    AwesomeApiResponse.class
-            );
-            assert response != null;
-            BigDecimal rate = response.usdBrl().ask();
-            log.info("AwesomeAPI fallback USD/BRL: {}", rate);
-            return rate;
+            AwesomeApiResponse response = restTemplate.getForObject(awesomeUrl, AwesomeApiResponse.class);
+            if (response != null && response.usdBrl() != null) { // null-check — era o NPE
+                BigDecimal rate = response.usdBrl().ask();
+                log.info("AwesomeAPI fallback USD/BRL: {}", rate);
+                return rate;
+            }
         } catch (Exception e) {
-            throw new MarketDataException("Could not fetch USD/BRL rate from any source", e);
+            log.warn("AwesomeAPI also failed: {}", e.getMessage());
         }
+
+        log.warn("All external sources failed, falling back to last known DB rate");
+        return exchangeRateRepository
+                .findTopByCurrencyPairAndReferenceDateBetweenOrderByReferenceDateDesc(
+                        "USD_BRL",
+                        targetDate.minusDays(5),
+                        targetDate
+                )
+                .map(ExchangeRate::getRate)
+                .orElseThrow(() -> new MarketDataException("Could not fetch USD/BRL rate from any source"));
     }
 }
 

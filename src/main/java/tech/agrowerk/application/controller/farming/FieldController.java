@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import tech.agrowerk.application.dto.request.farming.CreateFieldRequest;
 import tech.agrowerk.application.dto.request.farming.UpdateFieldRequest;
 import tech.agrowerk.application.dto.response.farming.FieldResponse;
+import tech.agrowerk.application.dto.response.farming.PlantingResponse;
 import tech.agrowerk.business.service.farming.FieldService;
+import tech.agrowerk.business.service.farming.PlantingService;
 
 import java.util.UUID;
 
@@ -20,9 +22,11 @@ import java.util.UUID;
 public class FieldController {
 
     private final FieldService fieldService;
+    private final PlantingService plantingService;
 
-    public FieldController(FieldService fieldService) {
+    public FieldController(FieldService fieldService, PlantingService plantingService) {
         this.fieldService = fieldService;
+        this.plantingService = plantingService;
     }
 
     @PostMapping("/create-field")
@@ -45,7 +49,7 @@ public class FieldController {
         return ResponseEntity.ok(fieldService.findById(fieldId));
     }
 
-    @PutMapping("update-field/{fieldId}")
+    @PatchMapping("update-field/{fieldId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<FieldResponse> update(
             @PathVariable UUID fieldId,

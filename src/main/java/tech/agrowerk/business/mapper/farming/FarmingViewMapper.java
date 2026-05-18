@@ -3,9 +3,11 @@ package tech.agrowerk.business.mapper.farming;
 import org.springframework.stereotype.Component;
 import tech.agrowerk.application.dto.views.ActivePlantingResponse;
 import tech.agrowerk.application.dto.views.FieldProductivityResponse;
+import tech.agrowerk.application.dto.views.HarvestDashboardResponse;
 import tech.agrowerk.application.dto.views.SeasonDashboardResponse;
 import tech.agrowerk.infrastructure.model.farming.views.ActivePlantingView;
 import tech.agrowerk.infrastructure.model.farming.views.FieldProductivityView;
+import tech.agrowerk.infrastructure.model.farming.views.HarvestDashboardView;
 import tech.agrowerk.infrastructure.model.farming.views.SeasonDashboardView;
 
 @Component
@@ -48,6 +50,29 @@ public class FarmingViewMapper {
                 view.getTotalProducedKg(),
                 view.getAvgProductivity(),
                 "Data may be up to 1 hour old"
+        );
+    }
+
+    public HarvestDashboardResponse toHarvestDashboardResponse(HarvestDashboardView view) {
+        return new HarvestDashboardResponse(
+                view.getPlantingId(),
+                view.getPropertyId(),
+                view.getTotalPartials(),
+                view.getTotalHarvestedKg(),
+                view.getQualityGrade(),
+                view.getFinalized(),
+                view.getHarvestDate(),
+                view.getEstimatedQuantity(),
+                view.getCommittedQuantity(),
+                view.getConfidenceLevel(),
+                view.getVarietyName(),
+                view.getCropName(),
+                view.getFieldName(),
+                view.getSeasonName(),
+                view.getPlantingDate(),
+                view.getExpectedHarvestDate(),
+                view.getAchievementRate(),
+                view.getAvailableQuantity()
         );
     }
 }

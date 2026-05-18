@@ -17,6 +17,10 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, UUID
 
     Optional<ExchangeRate> findByCurrencyPairAndReferenceDate(String usdBrl, LocalDate targetDate);
 
+    Optional<ExchangeRate> findTopByCurrencyPairAndReferenceDateBetweenOrderByReferenceDateDesc(
+            String currencyPair, LocalDate start, LocalDate end
+    );
+
     List<ExchangeRate> findByCurrencyPairAndReferenceDateBetweenOrderByReferenceDateAsc(String usdBrl, LocalDate start, LocalDate end);
 
     List<ExchangeRate> findAllByCurrencyPairAndReferenceDateBetween(String currencyPair, LocalDate start, LocalDate end);

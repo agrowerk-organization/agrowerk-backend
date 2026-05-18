@@ -141,6 +141,19 @@ public class PlantingService {
     }
 
     @Transactional(readOnly = true)
+    public Page<PlantingResponse> findByField(UUID fieldId, Pageable pageable) {
+        AuthenticatedUser auth = authUtil.getAuthenticatedUser();
+
+        Field field = fieldRepository.findById(fieldId)
+                .orElseThrow(() -> new EntityNotFoundException("Field not found"));
+
+        ownershipValidator.validateMasterOwnership(field.getProperty().getId(), auth.id());
+
+        return plantingRepository.findByField_Id(fieldId, pageable)
+                .map(plantingMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public PlantingResponse findById(UUID plantingId) {
         AuthenticatedUser auth = authUtil.getAuthenticatedUser();
 

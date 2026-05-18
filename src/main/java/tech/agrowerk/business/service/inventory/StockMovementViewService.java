@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tech.agrowerk.application.dto.response.inventory.StockMovementResponse;
+import tech.agrowerk.application.dto.views.StockMovementResponse;
 import tech.agrowerk.business.mapper.inventory.StockMovementViewMapper;
 import tech.agrowerk.business.utils.AuthUtil;
 import tech.agrowerk.business.validators.OwnershipValidator;

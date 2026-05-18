@@ -18,6 +18,8 @@ public interface PlantingRepository extends JpaRepository<Planting, UUID> {
 
     Page<Planting> findByProperty_Id(UUID propertyId, Pageable pageable);
 
+    Page<Planting> findByField_Id(UUID fieldId, Pageable pageable);
+
     List<Planting> findBySeason_IdAndPlantingStatus(UUID seasonId, PlantingStatus plantingStatus);
 
     List<Planting> findByField_IdAndPlantingStatus(UUID fieldId, PlantingStatus plantingStatus);

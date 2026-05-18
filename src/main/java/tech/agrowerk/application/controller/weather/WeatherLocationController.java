@@ -59,7 +59,7 @@ public class WeatherLocationController {
     @PostMapping("/create-location")
     @PreAuthorize("hasAnyAuthority('PRODUCER', 'SYSTEM_ADMIN')")
     public ResponseEntity<WeatherLocationDto> createLocation(
-             WeatherLocationCreateRequest request) {
+             @Valid @RequestBody WeatherLocationCreateRequest request) {
 
         log.info("POST /weather/locations - name={}, lat={}, lon={}",
                 request.name(), request.latitude(), request.longitude());

@@ -30,13 +30,13 @@ public class SeasonController {
         return ResponseEntity.status(HttpStatus.CREATED).body(seasonService.createSeason(request));
     }
 
-    @PatchMapping("activate-season/{seasonId}")
+    @PatchMapping("/activate-season/{seasonId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<SeasonResponse> activate(@PathVariable UUID seasonId) {
         return ResponseEntity.ok(seasonService.activateSeason(seasonId));
     }
 
-    @PatchMapping("finish-season/{seasonId}")
+    @PatchMapping("/finish-season/{seasonId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<SeasonResponse> finish(@PathVariable UUID seasonId) {
         return ResponseEntity.ok(seasonService.finishSeason(seasonId));

@@ -5,7 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tech.agrowerk.application.dto.response.inventory.StockMovementResponse;
+import tech.agrowerk.application.dto.views.StockMovementResponse;
 import tech.agrowerk.business.service.inventory.StockMovementViewService;
 
 import java.util.UUID;
