@@ -31,7 +31,7 @@ public class WarehouseController {
                 .body(warehouseService.createWarehouse(request));
     }
 
-    @PutMapping("update-warehouse/{warehouseId}")
+    @PatchMapping("update-warehouse/{warehouseId}")
     @PreAuthorize("hasAuthority('PRODUCER')")
     public ResponseEntity<WarehouseResponse> update(
             @PathVariable UUID warehouseId,
