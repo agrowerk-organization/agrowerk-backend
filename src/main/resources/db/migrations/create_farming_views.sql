@@ -15,7 +15,7 @@ FROM plantings p
          JOIN crops c ON c.id = p.crop_id
          JOIN seasons s ON s.id = p.season_id
          JOIN fields f ON f.id = p.field_id
-WHERE p.planting_status = 'ACTIVE';
+WHERE p.planting_status IN ('IN_PROGRESS', 'ACTIVE');
 
 CREATE VIEW vw_field_productivity AS
 SELECT

@@ -212,30 +212,20 @@ public class InputService {
                         "Input not found"));
     }
 
-    private void validateEditPermission(Input input,
-                                        AuthenticatedUser auth) {
+    private void validateEditPermission(Input input, AuthenticatedUser auth) {
         User user = userRepository.findById(auth.id())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        if (user.getIsSystemAdmin() &&
-                input.getSupplier() != null) {
-            throw new AccessDeniedException(
-                    "System admin can only edit global inputs"
-            );
+        if (Boolean.TRUE.equals(user.getIsSystemAdmin()) && input.getSupplier() != null) {
+            throw new AccessDeniedException("System admin can only edit global inputs");
         }
 
         if (user.isSupplierAdmin()) {
-            Supplier supplier = supplierRepository
-                    .findByAdministrator_Id(auth.id())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Supplier not found"));
+            Supplier supplier = supplierRepository.findByAdministrator_Id(auth.id())
+                    .orElseThrow(() -> new EntityNotFoundException("Supplier not found"));
 
-            if (input.getSupplier() == null ||
-                    !input.getSupplier().getId().equals(supplier.getId())) {
-                throw new AccessDeniedException(
-                        "You can only edit your own supplier inputs"
-                );
+            if (input.getSupplier() == null || !input.getSupplier().getId().equals(supplier.getId())) {
+                throw new AccessDeniedException("You can only edit your own supplier inputs");
             }
         }
     }

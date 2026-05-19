@@ -34,7 +34,7 @@ public class InputController {
                 .body(inputService.createInput(request));
     }
 
-    @PutMapping("/update-input{inputId}/")
+    @PatchMapping("/update-input/{inputId}")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN') " +
             "or hasAuthority('SUPPLIER_ADMIN')")
     public ResponseEntity<InputResponse> updateInput(
@@ -44,7 +44,7 @@ public class InputController {
                 inputService.updateInput(inputId, request));
     }
 
-    @PatchMapping("deactivate-input/{inputId}")
+    @PatchMapping("/deactivate-input/{inputId}")
     @PreAuthorize("hasAuthority('SYSTEM_ADMIN') " +
             "or hasAuthority('SUPPLIER_ADMIN')")
     public ResponseEntity<Void> deactivateInput(
@@ -85,7 +85,7 @@ public class InputController {
                 inputService.findMyInputs(pageable));
     }
 
-    @GetMapping("find-by-id/{inputId}")
+    @GetMapping("/find-by-id/{inputId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InputResponse> findById(
             @PathVariable UUID inputId) {
